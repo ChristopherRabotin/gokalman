@@ -1,6 +1,10 @@
 package gokalman
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/gonum/matrix/mat64"
+)
 
 func assertPanic(t *testing.T, f func()) {
 	defer func() {
@@ -9,6 +13,15 @@ func assertPanic(t *testing.T, f func()) {
 		}
 	}()
 	f()
+}
+
+func TestIsNil(t *testing.T) {
+	if IsNil(Identity(2)) {
+		t.Fatal("i22 said to be nil")
+	}
+	if !IsNil(mat64.NewSymDense(2, []float64{0, 0, 0, 0})) {
+		t.Fatal("zeros 4x4 said to NOT be nil")
+	}
 }
 
 func TestIdentity(t *testing.T) {
@@ -26,6 +39,31 @@ func TestIdentity(t *testing.T) {
 				t.Fatalf("i33(%d,%d) != 0", i, j)
 			}
 		}
+	}
+}
+
+func TestAsSymDense(t *testing.T) {
+	d := mat64.NewDense(2, 2, []float64{1, 0, 0, 1})
+	dsym, err := AsSymDense(d)
+	if err != nil {
+		t.Fatal("AsSymDense failed on i22")
+	}
+	r, c := d.Dims()
+	for i := 0; i < r; i++ {
+		for j := 0; j < c; j++ {
+			if dsym.At(i, j) != d.At(i, j) {
+				t.Fatalf("returned symmetric matrix invalid: %+v %+v", dsym, d)
+			}
+		}
+	}
+	_, err = AsSymDense(mat64.NewDense(2, 2, []float64{1, 0, 1, 1}))
+	if err == nil {
+		t.Fatal("non symmetric matrix did not fail")
+	}
+
+	_, err = AsSymDense(mat64.NewDense(2, 3, []float64{1, 0, 1, 1, 2, 3}))
+	if err == nil {
+		t.Fatal("non square matrix did not fail")
 	}
 }
 

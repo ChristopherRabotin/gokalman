@@ -1,11 +1,13 @@
 package gokalman
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/gonum/matrix/mat64"
 )
 
+// Identity returns an identity matrix of the provided size.
 func Identity(n int) mat64.Symmetric {
 	vals := make([]float64, n*n)
 	for j := 0; j < n*n; j++ {
@@ -16,6 +18,41 @@ func Identity(n int) mat64.Symmetric {
 		}
 	}
 	return mat64.NewSymDense(n, vals)
+}
+
+// IsNil returns whether the provided matrix only has zero values
+func IsNil(m mat64.Matrix) bool {
+	r, c := m.Dims()
+	for i := 0; i < r; i++ {
+		for j := 0; j < c; j++ {
+			if m.At(i, j) != 0 {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+// AsSymDense attempts return a SymDense from the provided Dense.
+func AsSymDense(m *mat64.Dense) (*mat64.SymDense, error) {
+	r, c := m.Dims()
+	if r != c {
+		return nil, errors.New("matrix must be square")
+	}
+	mT := m.T()
+	vals := make([]float64, r+c)
+	idx := 0
+	for i := 0; i < r; i++ {
+		for j := 0; j < c; j++ {
+			if mT.At(i, j) != m.At(i, j) {
+				return nil, errors.New("matrix is not symmetric")
+			}
+			vals[idx] = m.At(i, j)
+			idx++
+		}
+	}
+
+	return mat64.NewSymDense(r, vals), nil
 }
 
 // DimensionAgreement defines how two matrices' dimensions should agree.

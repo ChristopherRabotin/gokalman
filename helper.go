@@ -6,6 +6,18 @@ import (
 	"github.com/gonum/matrix/mat64"
 )
 
+func Identity(n int) mat64.Symmetric {
+	vals := make([]float64, n*n)
+	for j := 0; j < n*n; j++ {
+		if j%(n+1) == 0 {
+			vals[j] = 1
+		} else {
+			vals[j] = 0
+		}
+	}
+	return mat64.NewSymDense(n, vals)
+}
+
 // DimensionAgreement defines how two matrices' dimensions should agree.
 type DimensionAgreement uint8
 

@@ -1,5 +1,9 @@
 package gokalman
 
+// TODO: Get rid of Q and R and instead one should be able to pass the exact w and v (as seen in class today).
+// Also, if Q and R and provided, then you gonum/stat to generate noise, but that, in "reality" only happens when
+// you are simulating the KF not the actual application of the KF.
+
 import (
 	"fmt"
 
@@ -17,10 +21,9 @@ import (
 // - F: state update matrix
 // - G: control matrix (if all zeros, then control vector will not be used)
 // - H: measurement update matrix
-// - Γ: process noise input matrix
-// - Q: process noise multiplier matrix
+// - Q: process noise matrix
 // - R: measurement noise matrix
-func NewVanilla(x0 mat64.Vector, Covar0 mat64.Symmetric, u0 mat64.Vector, F, G, H, Γ, Q, R mat64.Matrix) *Vanilla {
+func NewVanilla(x0 mat64.Vector, Covar0 mat64.Symmetric, u0 mat64.Vector, F, G, H mat64.Matrix, Q, R mat64.Symmetric) *Vanilla {
 	// Let's check the dimensions of everything here to panic ASAP.
 	if err := checkMatDims(&x0, Covar0, "x0", "Covar0", rows2cols); err != nil {
 		panic(err)
@@ -34,70 +37,33 @@ func NewVanilla(x0 mat64.Vector, Covar0 mat64.Symmetric, u0 mat64.Vector, F, G, 
 	if err := checkMatDims(H, &x0, "H", "x0", cols2rows); err != nil {
 		panic(err)
 	}
-	var Qprime mat64.Matrix
-	if !IsNil(Γ) {
-		if err := checkMatDims(Γ, Q, "Γ", "Q", rows2cols); err != nil {
-			panic(err)
-		}
-		if err := checkMatDims(Q, Γ.T(), "Q", "Γ^T", cols2rows); err != nil {
-			panic(err)
-		}
-		var QΓt, ΓQΓt mat64.Dense
-		QΓt.Mul(Q, Γ.T())
-		ΓQΓt.Mul(Γ, &QΓt)
-		Qprime = &ΓQΓt
-	} else {
-		Qprime = Q
-	}
-
-	buffSize := 100
-	stateEst := make(chan (mat64.Vector), buffSize)
-	measEast := make(chan (mat64.Vector), buffSize)
-	measChan := make(chan (mat64.Vector), buffSize)
-	covarChan := make(chan (mat64.Symmetric), buffSize)
-	var ctrlChan chan (mat64.Vector)
-
-	needCtrl := !IsNil(G)
-	if needCtrl {
-		ctrlChan = make(chan (mat64.Vector), buffSize)
-		ctrlChan <- u0
-	}
 
 	// Populate with the initial values.
-	stateEst <- x0
-	covarChan <- Covar0
+	rowsH, _ := H.Dims()
+	est0 := VanillaEstimate{&x0, mat64.NewVector(rowsH, nil), Covar0, nil}
 
-	return &Vanilla{stateEst, measEast, measChan, ctrlChan, covarChan, F, G, H, Qprime, R, needCtrl, x0, Covar0}
+	return &Vanilla{F, G, H, Q, R, !IsNil(G), est0}
 }
 
 // Vanilla defines a vanilla kalman filter. Use NewVanilla to initialize.
 type Vanilla struct {
-	StateEst  chan (mat64.Vector) // state estimate channel
-	MeasEst   chan (mat64.Vector) // measurement estimate channel
-	MeasChan  chan (mat64.Vector) // measurement channel
-	CtrlChan  chan (mat64.Vector) // control channel
-	CovarChan chan (mat64.Symmetric)
-	F         mat64.Matrix
-	G         mat64.Matrix
-	H         mat64.Matrix
-	Q         mat64.Matrix // Stores Γ*Q*Γ^T if Γ was provided.
-	R         mat64.Matrix
-	needCtrl  bool
-	prevState mat64.Vector    // local copy of the previous \hat{x}^{+}
-	prevCovar mat64.Symmetric // local copy of the previous covar
+	F        mat64.Matrix
+	G        mat64.Matrix
+	H        mat64.Matrix
+	Q        mat64.Matrix
+	R        mat64.Matrix
+	needCtrl bool
+	prevEst  VanillaEstimate
 }
 
-// Estimate is a blocking function which waits on a measurement and (eventually)
-// a control vector. It will return as soon as the measurement channel MeasChan
-// is closed.
-func (kf *Vanilla) Estimate() {
+// Update implements the KalmanFilter interface.
+func (kf Vanilla) Update(measurement, control *mat64.Vector) Estimate {
 	// Prediction step.
 	// \hat{x}_{k+1}^{-}
 	var xKp1Minus, xKp1Minus1, xKp1Minus2 mat64.Vector
-	xKp1Minus1.MulVec(kf.F, &kf.prevState)
+	xKp1Minus1.MulVec(kf.F, kf.prevEst.State())
 	if kf.needCtrl {
-		ctrlU := <-kf.CtrlChan
-		xKp1Minus2.MulVec(kf.G, &ctrlU)
+		xKp1Minus2.MulVec(kf.G, control)
 		xKp1Minus.AddVec(&xKp1Minus1, &xKp1Minus2)
 	} else {
 		xKp1Minus = xKp1Minus1
@@ -105,11 +71,14 @@ func (kf *Vanilla) Estimate() {
 
 	// P_{k+1}^{-}
 	var Pkp1Minus, PFt, FPFt mat64.Dense
-	PFt.Mul(kf.prevCovar, kf.F.T())
+	PFt.Mul(kf.prevEst.Covariance(), kf.F.T())
 	FPFt.Mul(kf.F, &PFt)
 	Pkp1Minus.Add(&FPFt, kf.Q)
 
-	//TODO: \hat{y}_{k+1}
+	//TODO: \hat{y}_{k}
+	var ykHat mat64.Vector
+	ykHat.MulVec(kf.H, kf.prevEst.State())
+	ykHat.AddVec(&ykHat, nil)
 
 	// Kalman gain
 	// Kkp1 = P_kp1_minus*H'*inv(H*P_kp1_minus*H'+[Ra 0; 0 Rp]);
@@ -123,15 +92,10 @@ func (kf *Vanilla) Estimate() {
 	Kkp1.Mul(&PHt, &HPHt)
 
 	// Measurement update
-	ykp1, more := <-kf.MeasChan
-	if !more {
-		// Channel was closed, let's stop estimating.
-		return
-	}
 	var xkp1Plus, xkp1Plus1 mat64.Vector
 	xkp1Plus1.MulVec(kf.H, &xKp1Minus)
 	xkp1Plus1.ScaleVec(-1.0, &xkp1Plus1)
-	xkp1Plus1.AddVec(&ykp1, &xkp1Plus1)
+	xkp1Plus1.AddVec(measurement, &xkp1Plus1)
 	xkp1Plus1.MulVec(&Kkp1, &xkp1Plus1)
 	xkp1Plus.AddVec(&xKp1Minus, &xkp1Plus1)
 
@@ -141,26 +105,40 @@ func (kf *Vanilla) Estimate() {
 	Kkp1H.Mul(&Kkp1, kf.H)
 	Kkp1H.Scale(-1.0, &Kkp1H)
 	n, _ := Kkp1H.Dims()
-	id := Identity(n)
-	Kkp1H.Add(id, &Kkp1H)
+	Kkp1H.Add(Identity(n), &Kkp1H)
 	Pkp1Plus.Mul(&Kkp1H, &Pkp1Minus)
 	Pkp1PlusSym, err := AsSymDense(&Pkp1Plus)
 	if err != nil {
 		panic(err)
 	}
-
-	// Push onto channels
-	kf.StateEst <- xkp1Plus
-	kf.CovarChan <- Pkp1PlusSym
+	return VanillaEstimate{&xkp1Plus, &ykHat, Pkp1PlusSym, &Kkp1}
 }
 
-// Stop closes all channels
-func (kf *Vanilla) Stop() {
-	close(kf.StateEst)
-	close(kf.CovarChan)
-	close(kf.MeasChan)
-	close(kf.MeasEst)
-	if kf.needCtrl {
-		close(kf.CtrlChan)
-	}
+// VanillaEstimate is the output of each update state of the Vanilla KF.
+// It implements the Estimate interface.
+type VanillaEstimate struct {
+	state, meas *mat64.Vector
+	covar       mat64.Symmetric
+	gain        mat64.Matrix
+}
+
+// State implements the Estimate interface.
+func (e VanillaEstimate) State() *mat64.Vector {
+	return e.state
+}
+
+// Measurement implements the Estimate interface.
+func (e VanillaEstimate) Measurement() *mat64.Vector {
+	return e.meas
+
+}
+
+// Covariance implements the Estimate interface.
+func (e VanillaEstimate) Covariance() mat64.Symmetric {
+	return e.covar
+}
+
+// Gain the Estimate interface.
+func (e VanillaEstimate) Gain() mat64.Matrix {
+	return e.gain
 }

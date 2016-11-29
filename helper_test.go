@@ -43,10 +43,10 @@ func TestIdentity(t *testing.T) {
 }
 
 func TestAsSymDense(t *testing.T) {
-	d := mat64.NewDense(2, 2, []float64{1, 0, 0, 1})
+	d := mat64.NewDense(3, 3, []float64{1, 0, 0, 0, 1, 0, 0, 0, 1})
 	dsym, err := AsSymDense(d)
 	if err != nil {
-		t.Fatal("AsSymDense failed on i22")
+		t.Fatal("AsSymDense failed on i33")
 	}
 	r, c := d.Dims()
 	for i := 0; i < r; i++ {
@@ -56,7 +56,7 @@ func TestAsSymDense(t *testing.T) {
 			}
 		}
 	}
-	_, err = AsSymDense(mat64.NewDense(2, 2, []float64{1, 0, 1, 1}))
+	_, err = AsSymDense(mat64.NewDense(3, 3, []float64{1, 0, 3, 0, 1, 0, 1, 2, 1}))
 	if err == nil {
 		t.Fatal("non symmetric matrix did not fail")
 	}

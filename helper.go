@@ -40,7 +40,7 @@ func AsSymDense(m *mat64.Dense) (*mat64.SymDense, error) {
 		return nil, errors.New("matrix must be square")
 	}
 	mT := m.T()
-	vals := make([]float64, r+c)
+	vals := make([]float64, r*c)
 	idx := 0
 	for i := 0; i < r; i++ {
 		for j := 0; j < c; j++ {

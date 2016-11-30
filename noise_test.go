@@ -6,6 +6,13 @@ import (
 	"github.com/gonum/matrix/mat64"
 )
 
+func TestImplementsNoise(t *testing.T) {
+	implements := func(Noise) {}
+	implements(new(Noiseless))
+	implements(new(BatchNoise))
+	implements(new(AWGN))
+}
+
 func TestBlankNoise(t *testing.T) {
 	nl := Noiseless{2, 3}
 	pR, _ := nl.Process(1).Dims()
@@ -16,20 +23,75 @@ func TestBlankNoise(t *testing.T) {
 	if mR != 3 {
 		t.Fatal("expected only 3 rows of measurement noise")
 	}
+
+	Q := nl.ProcessMatrix()
+	qR, qC := Q.Dims()
+	if qR != pR {
+		t.Fatal("Q is of wrong size")
+	}
+	for i := 0; i < qR; i++ {
+		for j := 0; j < qC; j++ {
+			if Q.At(i, j) != 0 {
+				t.Fatalf("Q(%d, %d) != 0", i, j)
+			}
+		}
+	}
+
+	R := nl.MeasurementMatrix()
+	rR, rC := R.Dims()
+	if rR != mR {
+		t.Fatalf("R is of wrong size: %d != %d", rR, mR)
+	}
+	for i := 0; i < rR; i++ {
+		for j := 0; j < rC; j++ {
+			if R.At(i, j) != 0 {
+				t.Fatalf("R(%d, %d) != 0", i, j)
+			}
+		}
+	}
 }
 
 func TestBatchNoise(t *testing.T) {
 	process := make([]*mat64.Vector, 4)
 	measurements := make([]*mat64.Vector, 4)
+	pR := 3
+	mR := 2
 	for i := 0; i < 4; i++ {
-		process[i] = mat64.NewVector(3, []float64{float64(i) + 1.0, float64(i) + 2.0, float64(i) + 3.0})
-		measurements[i] = mat64.NewVector(2, []float64{float64(i)*2.0 + 1.0, float64(i)*2.0 + 2.0})
+		process[i] = mat64.NewVector(pR, []float64{float64(i) + 1.0, float64(i) + 2.0, float64(i) + 3.0})
+		measurements[i] = mat64.NewVector(mR, []float64{float64(i)*2.0 + 1.0, float64(i)*2.0 + 2.0})
 	}
 	batch := BatchNoise{process, measurements}
 	for k := 0; k < 4; k++ {
 		batch.Process(k)
 		batch.Measurement(k)
 	}
+
+	Q := batch.ProcessMatrix()
+	qR, qC := Q.Dims()
+	if qR != pR {
+		t.Fatal("Q is of wrong size")
+	}
+	for i := 0; i < qR; i++ {
+		for j := 0; j < qC; j++ {
+			if Q.At(i, j) != 0 {
+				t.Fatalf("Q(%d, %d) != 0", i, j)
+			}
+		}
+	}
+
+	R := batch.MeasurementMatrix()
+	rR, rC := R.Dims()
+	if rR != mR {
+		t.Fatalf("R is of wrong size: %d != %d", rR, mR)
+	}
+	for i := 0; i < rR; i++ {
+		for j := 0; j < rC; j++ {
+			if R.At(i, j) != 0 {
+				t.Fatalf("R(%d, %d) != 0", i, j)
+			}
+		}
+	}
+
 	assertPanic(t, func() {
 		batch.Process(4)
 	})

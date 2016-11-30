@@ -116,6 +116,15 @@ func TestAWGN(t *testing.T) {
 	Q := mat64.NewSymDense(2, []float64{1, 0, 0, 1})
 	R := mat64.NewSymDense(2, []float64{20, 0.05, 0.05, 20})
 	n := NewAWGN(Q, R)
+
+	if !mat64.Equal(Q, n.ProcessMatrix()) {
+		t.Fatal("Q and n.ProcessMatrix are not equal.")
+	}
+
+	if !mat64.Equal(R, n.MeasurementMatrix()) {
+		t.Fatal("T and n.MeasurementMatrix are not equal.")
+	}
+
 	pk0 := n.Process(0)
 	pk1 := n.Process(1)
 	mk0 := n.Measurement(0)

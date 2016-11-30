@@ -3,20 +3,8 @@ package gokalman
 import "github.com/gonum/matrix/mat64"
 
 // KalmanFilter defines a general KF.
-/*
-USAGE EXAMPLE:
-estimateChan := make(chan(Estimate), 1)
-go processEstimates(estimateChan)
-kf := New[KalmanFilter](...)
-for k, m := range measurements{
-	newEstimate := kf.Update(m, controlVectors[k])
-	estimateChan <- newEstimate
-}
-close(estimateChan)
-// Perform a sync (e.g. wg.Wait())
-*/
 type KalmanFilter interface {
-	Update(measurement, control *mat64.Vector) Estimate
+	Update(measurement, control *mat64.Vector) (Estimate, error)
 }
 
 // Estimate is returned from Update() in any KF.

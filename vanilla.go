@@ -23,26 +23,26 @@ import (
 // - H: measurement update matrix
 // - Q: process noise matrix
 // - R: measurement noise matrix
-func NewVanilla(x0 mat64.Vector, Covar0 mat64.Symmetric, u0 mat64.Vector, F, G, H mat64.Matrix, Q, R mat64.Symmetric) *Vanilla {
+func NewVanilla(x0 mat64.Vector, Covar0 mat64.Symmetric, u0 mat64.Vector, F, G, H mat64.Matrix, Q, R mat64.Symmetric) (*Vanilla, error) {
 	// Let's check the dimensions of everything here to panic ASAP.
 	if err := checkMatDims(&x0, Covar0, "x0", "Covar0", rows2cols); err != nil {
-		panic(err)
+		return nil, err
 	}
 	if err := checkMatDims(F, Covar0, "F", "Covar0", rows2cols); err != nil {
-		panic(err)
+		return nil, err
 	}
 	if err := checkMatDims(Covar0, F.T(), "Covar0", "F^T", cols2rows); err != nil {
-		panic(err)
+		return nil, err
 	}
 	if err := checkMatDims(H, &x0, "H", "x0", cols2rows); err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	// Populate with the initial values.
 	rowsH, _ := H.Dims()
 	est0 := VanillaEstimate{&x0, mat64.NewVector(rowsH, nil), Covar0, nil}
 
-	return &Vanilla{F, G, H, Q, R, !IsNil(G), est0}
+	return &Vanilla{F, G, H, Q, R, !IsNil(G), est0}, nil
 }
 
 // Vanilla defines a vanilla kalman filter. Use NewVanilla to initialize.
@@ -57,7 +57,17 @@ type Vanilla struct {
 }
 
 // Update implements the KalmanFilter interface.
-func (kf Vanilla) Update(measurement, control *mat64.Vector) Estimate {
+func (kf Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			var ok bool
+			err, ok = r.(error)
+			if !ok {
+				err = fmt.Errorf("gokalman: vanilla: %v", r)
+			}
+		}
+	}()
+
 	// Prediction step.
 	// \hat{x}_{k+1}^{-}
 	var xKp1Minus, xKp1Minus1, xKp1Minus2 mat64.Vector
@@ -75,10 +85,11 @@ func (kf Vanilla) Update(measurement, control *mat64.Vector) Estimate {
 	FPFt.Mul(kf.F, &PFt)
 	Pkp1Minus.Add(&FPFt, kf.Q)
 
-	//TODO: \hat{y}_{k}
+	// Compute estimated measurement update \hat{y}_{k}
 	var ykHat mat64.Vector
 	ykHat.MulVec(kf.H, kf.prevEst.State())
 	ykHat.AddVec(&ykHat, nil)
+	// TODO: Noise
 
 	// Kalman gain
 	// Kkp1 = P_kp1_minus*H'*inv(H*P_kp1_minus*H'+[Ra 0; 0 Rp]);
@@ -86,8 +97,8 @@ func (kf Vanilla) Update(measurement, control *mat64.Vector) Estimate {
 	PHt.Mul(&Pkp1Minus, kf.H.T())
 	HPHt.Mul(kf.H, &PHt)
 	HPHt.Add(&HPHt, kf.R)
-	if err := HPHt.Inverse(&HPHt); err != nil {
-		panic(fmt.Errorf("could not invert `H*P_kp1_minus*H' + R`: %s", err))
+	if ierr := HPHt.Inverse(&HPHt); ierr != nil {
+		panic(fmt.Errorf("could not invert `H*P_kp1_minus*H' + R`: %s", ierr))
 	}
 	Kkp1.Mul(&PHt, &HPHt)
 
@@ -98,6 +109,7 @@ func (kf Vanilla) Update(measurement, control *mat64.Vector) Estimate {
 	xkp1Plus1.AddVec(measurement, &xkp1Plus1)
 	xkp1Plus1.MulVec(&Kkp1, &xkp1Plus1)
 	xkp1Plus.AddVec(&xKp1Minus, &xkp1Plus1)
+	// TODO: Noise
 
 	// Pa_kp1_plus = (eye(4) - Kkp1*H)*P_kp1_minus;
 	var Pkp1Plus, Kkp1H mat64.Dense
@@ -111,7 +123,8 @@ func (kf Vanilla) Update(measurement, control *mat64.Vector) Estimate {
 	if err != nil {
 		panic(err)
 	}
-	return VanillaEstimate{&xkp1Plus, &ykHat, Pkp1PlusSym, &Kkp1}
+	est = VanillaEstimate{&xkp1Plus, &ykHat, Pkp1PlusSym, &Kkp1}
+	return
 }
 
 // VanillaEstimate is the output of each update state of the Vanilla KF.

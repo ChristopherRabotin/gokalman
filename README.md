@@ -5,3 +5,21 @@
 
 # gokalman
 Go lang implementations of the Kalman Filter and its variantes, along with examples in statistical orbit determination.
+
+# Usage
+_WARNING: Not yet tested_
+```go
+estimateChan := make(chan(Estimate), 1)
+go processEstimates(estimateChan)
+kf := New[KalmanFilter](...) // e.g. NewVanilla(...)
+for k, m := range measurements {
+	newEstimate, err := kf.Update(m, controlVectors[k])
+	if err != nil {
+		processError(err)
+		continue
+	}
+	estimateChan <- newEstimate
+}
+close(estimateChan)
+// Should add a usage of sync.
+```

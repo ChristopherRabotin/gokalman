@@ -2,6 +2,8 @@ package gokalman
 
 import (
 	"fmt"
+	"math/rand"
+	"time"
 
 	"github.com/gonum/matrix/mat64"
 	"github.com/gonum/stat/distmv"
@@ -37,7 +39,7 @@ type BatchNoise struct {
 
 // Process implements the Noise interface.
 func (n BatchNoise) Process(k int) *mat64.Vector {
-	if k > len(n.process) {
+	if k >= len(n.process) {
 		panic(fmt.Errorf("no process noise defined at step k=%d", k))
 	}
 	return n.process[k]
@@ -45,7 +47,7 @@ func (n BatchNoise) Process(k int) *mat64.Vector {
 
 // Measurement implements the Noise interface.
 func (n BatchNoise) Measurement(k int) *mat64.Vector {
-	if k > len(n.measurement) {
+	if k >= len(n.measurement) {
 		panic(fmt.Errorf("no measurement noise defined at step k=%d", k))
 	}
 	return n.measurement[k]
@@ -59,10 +61,17 @@ type AWGN struct {
 
 // NewAWGN creates new AWGN noise from the provided Q and R.
 func NewAWGN(Q, R mat64.Symmetric) *AWGN {
+	randomSeed := rand.New(rand.NewSource(time.Now().UnixNano()))
 	sizeQ, _ := Q.Dims()
-	process, _ := distmv.NewNormal(make([]float64, sizeQ), Q, nil)
-	sizeR, _ := Q.Dims()
-	meas, _ := distmv.NewNormal(make([]float64, sizeR), R, nil)
+	process, ok := distmv.NewNormal(make([]float64, sizeQ), Q, randomSeed)
+	if !ok {
+		panic("process noise invalid")
+	}
+	sizeR, _ := R.Dims()
+	meas, ok := distmv.NewNormal(make([]float64, sizeR), R, randomSeed)
+	if !ok {
+		panic("measurement noise invalid")
+	}
 	return &AWGN{process, meas}
 }
 

@@ -17,29 +17,25 @@ import (
 // Parameters:
 // - x0: initial state
 // - Covar0: initial covariance matrix
-// - u0: initial control vector
 // - F: state update matrix
 // - G: control matrix (if all zeros, then control vector will not be used)
 // - H: measurement update matrix
 // - n: Noise
-func NewVanilla(x0 mat64.Vector, Covar0 mat64.Symmetric, u0 mat64.Vector, F, G, H mat64.Matrix, noise Noise) (*Vanilla, error) {
+func NewVanilla(x0 *mat64.Vector, Covar0 mat64.Symmetric, F, G, H mat64.Matrix, noise Noise) (*Vanilla, error) {
 	// Let's check the dimensions of everything here to panic ASAP.
-	if err := checkMatDims(&x0, Covar0, "x0", "Covar0", rows2cols); err != nil {
+	if err := checkMatDims(x0, Covar0, "x0", "Covar0", rows2cols); err != nil {
 		return nil, err
 	}
 	if err := checkMatDims(F, Covar0, "F", "Covar0", rows2cols); err != nil {
 		return nil, err
 	}
-	if err := checkMatDims(Covar0, F.T(), "Covar0", "F^T", cols2rows); err != nil {
-		return nil, err
-	}
-	if err := checkMatDims(H, &x0, "H", "x0", cols2rows); err != nil {
+	if err := checkMatDims(H, x0, "H", "x0", cols2rows); err != nil {
 		return nil, err
 	}
 
 	// Populate with the initial values.
 	rowsH, _ := H.Dims()
-	est0 := VanillaEstimate{&x0, mat64.NewVector(rowsH, nil), Covar0, nil}
+	est0 := VanillaEstimate{x0, mat64.NewVector(rowsH, nil), Covar0, nil}
 
 	return &Vanilla{F, G, H, noise, !IsNil(G), est0, 0}, nil
 }
@@ -66,6 +62,18 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 			}
 		}
 	}()
+
+	if err = checkMatDims(control, kf.G, "control (u)", "G", rows2cols); err != nil {
+		return
+	}
+
+	if err = checkMatDims(measurement, kf.H, "measurement (y)", "H", rows2rows); err != nil {
+		return
+	}
+
+	if err = checkMatDims(measurement, kf.prevEst.state, "measurement (y)", "state (x)", cols2cols); err != nil {
+		return
+	}
 
 	// Prediction step.
 	// \hat{x}_{k+1}^{-}
@@ -105,7 +113,19 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 	xkp1Plus1.MulVec(kf.H, &xKp1Minus)
 	xkp1Plus1.ScaleVec(-1.0, &xkp1Plus1)
 	xkp1Plus1.AddVec(measurement, &xkp1Plus1)
-	xkp1Plus1.MulVec(&Kkp1, &xkp1Plus1)
+	if rX, _ := xkp1Plus1.Dims(); rX == 1 {
+		// xkp1Plus1 is a scalar and mat64 won't be happy.
+		if _, c := Kkp1.Dims(); c != 1 {
+			panic("gain unexpectedly has more than one column")
+		}
+		Kkp1.Scale(xkp1Plus1.At(0, 0), &Kkp1)
+		rGain, _ := Kkp1.Dims()
+		var xkp1Plus2 mat64.Vector
+		xkp1Plus2.AddVec(Kkp1.ColView(0), mat64.NewVector(rGain, nil))
+		xkp1Plus1 = xkp1Plus2
+	} else {
+		xkp1Plus1.MulVec(&Kkp1, &xkp1Plus1)
+	}
 	xkp1Plus.AddVec(&xKp1Minus, &xkp1Plus1)
 	xkp1Plus.AddVec(&xKp1Minus, kf.Noise.Process(kf.step))
 
@@ -134,6 +154,16 @@ type VanillaEstimate struct {
 	gain        mat64.Matrix
 }
 
+// IsWithin2σ returns whether the estimation is within the 2σ bounds.
+func (e VanillaEstimate) IsWithin2σ() bool {
+	for i := 0; i < e.state.Len(); i++ {
+		if diff := e.covar.At(i, i) - e.state.At(i, 0); diff < 0 || diff > e.covar.At(i, i) {
+			return false
+		}
+	}
+	return true
+}
+
 // State implements the Estimate interface.
 func (e VanillaEstimate) State() *mat64.Vector {
 	return e.state
@@ -142,7 +172,6 @@ func (e VanillaEstimate) State() *mat64.Vector {
 // Measurement implements the Estimate interface.
 func (e VanillaEstimate) Measurement() *mat64.Vector {
 	return e.meas
-
 }
 
 // Covariance implements the Estimate interface.
@@ -153,4 +182,8 @@ func (e VanillaEstimate) Covariance() mat64.Symmetric {
 // Gain the Estimate interface.
 func (e VanillaEstimate) Gain() mat64.Matrix {
 	return e.gain
+}
+
+func (e VanillaEstimate) String() string {
+	return fmt.Sprintf("{state=%+v\nmeas=%+v\ncovar=%+v\ngain=%+v}", e.State(), e.Measurement(), e.Covariance(), e.Gain())
 }

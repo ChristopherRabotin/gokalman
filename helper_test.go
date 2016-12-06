@@ -43,16 +43,19 @@ func TestIdentity(t *testing.T) {
 }
 
 func TestAsSymDense(t *testing.T) {
-	d := mat64.NewDense(3, 3, []float64{1, 0, 0, 0, 1, 0, 0, 0, 1})
+	d := mat64.NewDense(3, 3, []float64{1, 0.1, 2, 0.1, 3, 5, 2, 5, 7})
 	dsym, err := AsSymDense(d)
 	if err != nil {
-		t.Fatal("AsSymDense failed on i33")
+		t.Fatal("AsSymDense failed on 3x3")
 	}
 	r, c := d.Dims()
 	for i := 0; i < r; i++ {
 		for j := 0; j < c; j++ {
+			if i == j {
+				continue
+			}
 			if dsym.At(i, j) != d.At(i, j) {
-				t.Fatalf("returned symmetric matrix invalid: %+v %+v", dsym, d)
+				t.Fatalf("returned symmetric matrix invalid (%d,%d): %+v %+v", i, j, dsym, d)
 			}
 		}
 	}

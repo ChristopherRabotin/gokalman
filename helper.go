@@ -4,20 +4,26 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/gonum/floats"
 	"github.com/gonum/matrix/mat64"
 )
 
-// Identity returns an identity matrix of the provided size.
-func Identity(n int) mat64.Symmetric {
+// ScaledIdentity returns an identity matrix time a scaling factor of the provided size.
+func ScaledIdentity(n int, s float64) mat64.Symmetric {
 	vals := make([]float64, n*n)
 	for j := 0; j < n*n; j++ {
 		if j%(n+1) == 0 {
-			vals[j] = 1
+			vals[j] = s
 		} else {
 			vals[j] = 0
 		}
 	}
 	return mat64.NewSymDense(n, vals)
+}
+
+// Identity returns an identity matrix of the provided size.
+func Identity(n int) mat64.Symmetric {
+	return ScaledIdentity(n, 1)
 }
 
 // IsNil returns whether the provided matrix only has zero values
@@ -44,7 +50,7 @@ func AsSymDense(m *mat64.Dense) (*mat64.SymDense, error) {
 	idx := 0
 	for i := 0; i < r; i++ {
 		for j := 0; j < c; j++ {
-			if mT.At(i, j) != m.At(i, j) {
+			if i != j && !floats.EqualWithinAbs(mT.At(i, j), m.At(i, j), 1e-16) {
 				return nil, fmt.Errorf("matrix is not symmetric: %+v", m)
 			}
 			vals[idx] = m.At(i, j)

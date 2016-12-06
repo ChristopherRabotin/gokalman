@@ -1,7 +1,6 @@
 package gokalman
 
 import (
-	"math"
 	"testing"
 
 	"github.com/gonum/matrix/mat64"
@@ -11,6 +10,13 @@ func Robot1DMatrices() (F, G mat64.Matrix, Δt float64) {
 	Δt = 0.1
 	F = mat64.NewDense(2, 2, []float64{1, Δt, 0, 1})
 	G = mat64.NewDense(2, 1, []float64{0.5 * Δt * Δt, Δt})
+	return
+}
+
+func Midterm2Matrices() (F, G mat64.Matrix, Δt float64) {
+	Δt = 0.01
+	F = mat64.NewDense(3, 3, []float64{1, 0.01, 5e-5, 0, 1, 0.01, 0, 0, 1})
+	G = mat64.NewDense(3, 1, []float64{(5e-7) / 3, 5e-5, 0.01})
 	return
 }
 
@@ -35,22 +41,36 @@ func TestNewVanillaErrors(t *testing.T) {
 }
 
 func TestVanilla(t *testing.T) {
-	F, G, Δt := Robot1DMatrices()
-	noise := NewAWGN(mat64.NewSymDense(2, []float64{0.0003, 0.005, 0.005, 0.1}), mat64.NewSymDense(1, []float64{0.5 / Δt}))
-	x0 := mat64.NewVector(2, nil)
-	Covar0 := mat64.NewSymDense(2, nil)
-	kf, err := NewVanilla(x0, Covar0, F, G, mat64.NewDense(1, 2, []float64{0, 1}), noise)
+	F, G, Δt := Midterm2Matrices()
+	Q := mat64.NewSymDense(3, []float64{2.5e-15, 6.25e-13, (25e-11) / 3, 6.25e-13, (5e-7) / 3, 2.5e-8, (25e-11) / 3, 2.5e-8, 5e-6})
+	R := mat64.NewSymDense(1, []float64{0.005 / Δt})
+	H := mat64.NewDense(1, 3, []float64{1, 0, 0})
+	noise := NewAWGN(Q, R)
+	x0 := mat64.NewVector(3, []float64{0, 0.35, 0})
+	Covar0 := ScaledIdentity(3, 10)
+	kf, err := NewVanilla(x0, Covar0, F, G, H, noise)
 	if err != nil {
 		t.Fatal(err)
 	}
 	var est Estimate
-	for k := 1; k < 50; k++ {
-		est, err = kf.Update(mat64.NewVector(1, nil), mat64.NewVector(1, []float64{2 * math.Cos(0.75*float64(k))}))
+	yacc := []float64{0.12758, 0.11748, 0.20925, 0.0984, 0.12824, -0.069948, -0.11166, 0.25519, 0.12713, -0.011207, 0.50973, 0.12334, -0.028878, 0.19208, 0.17605, -0.10383, 0.19707, -0.40455, 0.27355, 0.060617, 0.10369, 0.22131, -0.0038337, -0.60504, -0.10213, -0.021907, 0.030875, 0.17578, -0.45262, -0.086119, -0.12265, -0.056002, -0.11744, 0.01039, 0.028251, 0.053642, 0.17204, -0.052963, -0.16611, 0.078431, -0.20175, -0.23044, 0.38302, -0.33455, -0.35916, 0.28959, 0.097137, -0.29778, -0.23343, 0.21113, -0.22098, -0.057898, 0.17649, 0.058624, 0.045438, 0.11104, 0.37742, 0.0013074, 0.34331, 0.37244, 0.01434, -0.35709, 0.14435, -0.20445, -0.031335, -0.35165, -0.091494, -0.34382, 0.36144, -0.3835, 0.10339, -0.055055, -0.17677, -0.12108, -0.094458, -0.38408, 0.03215, 0.5759, 0.3297, -0.63341, 0.11228, 0.32364, -0.36897, 0.050504, 0.25338, -0.040326, 0.37904, 0.083807, -0.1023, 0.19609, 0.43701, -0.067234, 0.11835, 0.10064, 0.1024, 0.19084, 0.22646, -0.17419, 0.27345, 0.36295}
+	for k := 1; k < 100; k++ {
+		yVec := mat64.NewVector(1, []float64{yacc[k]})
+		est, err = kf.Update(yVec, mat64.NewVector(1, nil))
 		if err != nil {
 			t.Fatal(err)
 		}
 		if !est.IsWithin2σ() {
-			t.Logf("k=%d estimation not within 2σ bounds", k)
+			t.Logf("[WARN] 2σ bound breached: k=%d -> %s ", k, est)
 		}
 	}
+
+	if _, err = kf.Update(mat64.NewVector(1, nil), mat64.NewVector(2, nil)); err == nil {
+		t.Fatal("using an invalid control vector does not fail")
+	}
+
+	if _, err = kf.Update(mat64.NewVector(2, nil), mat64.NewVector(1, nil)); err == nil {
+		t.Fatal("using an invalid measurement vector does not fail")
+	}
+
 }

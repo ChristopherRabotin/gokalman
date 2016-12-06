@@ -157,7 +157,7 @@ type VanillaEstimate struct {
 // IsWithin2σ returns whether the estimation is within the 2σ bounds.
 func (e VanillaEstimate) IsWithin2σ() bool {
 	for i := 0; i < e.state.Len(); i++ {
-		if diff := e.covar.At(i, i) - e.state.At(i, 0); diff < 0 || diff > e.covar.At(i, i) {
+		if e.state.At(i, 0) > e.covar.At(i, i) || e.state.At(i, 0) < -1*e.covar.At(i, i) {
 			return false
 		}
 	}

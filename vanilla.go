@@ -64,15 +64,11 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 	}()
 
 	if err = checkMatDims(control, kf.G, "control (u)", "G", rows2cols); err != nil {
-		return
+		panic(err)
 	}
 
 	if err = checkMatDims(measurement, kf.H, "measurement (y)", "H", rows2rows); err != nil {
-		return
-	}
-
-	if err = checkMatDims(measurement, kf.prevEst.state, "measurement (y)", "state (x)", cols2cols); err != nil {
-		return
+		panic(err)
 	}
 
 	// Prediction step.
@@ -115,9 +111,7 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 	xkp1Plus1.AddVec(measurement, &xkp1Plus1)
 	if rX, _ := xkp1Plus1.Dims(); rX == 1 {
 		// xkp1Plus1 is a scalar and mat64 won't be happy.
-		if _, c := Kkp1.Dims(); c != 1 {
-			panic("gain unexpectedly has more than one column")
-		}
+		// The following line will panic if gain unexpectedly has more than one column.
 		Kkp1.Scale(xkp1Plus1.At(0, 0), &Kkp1)
 		rGain, _ := Kkp1.Dims()
 		var xkp1Plus2 mat64.Vector
@@ -185,5 +179,9 @@ func (e VanillaEstimate) Gain() mat64.Matrix {
 }
 
 func (e VanillaEstimate) String() string {
-	return fmt.Sprintf("{state=%+v\nmeas=%+v\ncovar=%+v\ngain=%+v}", e.State(), e.Measurement(), e.Covariance(), e.Gain())
+	state := mat64.Formatted(e.State(), mat64.Prefix("  "))
+	meas := mat64.Formatted(e.Measurement(), mat64.Prefix("  "))
+	covar := mat64.Formatted(e.Covariance(), mat64.Prefix("  "))
+	gain := mat64.Formatted(e.Gain(), mat64.Prefix("  "))
+	return fmt.Sprintf("{\ns=%v\ny=%v\nP=%v\nK=%v\n}", state, meas, covar, gain)
 }

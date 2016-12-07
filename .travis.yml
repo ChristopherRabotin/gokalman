@@ -8,5 +8,3 @@ before_install:
 script:
   - go test .
   - $HOME/gopath/bin/goveralls -service=travis-ci
-addons:
-  srcclr: true

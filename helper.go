@@ -50,8 +50,8 @@ func AsSymDense(m *mat64.Dense) (*mat64.SymDense, error) {
 	idx := 0
 	for i := 0; i < r; i++ {
 		for j := 0; j < c; j++ {
-			if i != j && !floats.EqualWithinAbs(mT.At(i, j), m.At(i, j), 1e-15) {
-				return nil, fmt.Errorf("matrix is not symmetric: %+v", m)
+			if i != j && !floats.EqualWithinRel(mT.At(i, j), m.At(i, j), 1e-12) {
+				return nil, fmt.Errorf("matrix is not symmetric (%d, %d): %+v", i, j, m)
 			}
 			vals[idx] = m.At(i, j)
 			idx++

@@ -125,6 +125,7 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 		return nil, err
 	}
 	est = VanillaEstimate{&xkp1Plus, &ykHat, Pkp1PlusSym, &Kkp1}
+	kf.prevEst = est.(VanillaEstimate)
 	kf.step++
 	return
 }

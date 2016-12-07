@@ -53,22 +53,12 @@ type Vanilla struct {
 
 // Update implements the KalmanFilter interface.
 func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			var ok bool
-			err, ok = r.(error)
-			if !ok {
-				err = fmt.Errorf("gokalman: vanilla: %v", r)
-			}
-		}
-	}()
-
 	if err = checkMatDims(control, kf.G, "control (u)", "G", rows2cols); err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	if err = checkMatDims(measurement, kf.H, "measurement (y)", "H", rows2rows); err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	// Prediction step.
@@ -105,7 +95,7 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 	Kkp1.Mul(&PHt, &HPHt)
 
 	// Measurement update
-	var xkp1Plus, xkp1Plus1 mat64.Vector
+	var xkp1Plus, xkp1Plus1, xkp1Plus2 mat64.Vector
 	xkp1Plus1.MulVec(kf.H, &xKp1Minus)
 	xkp1Plus1.ScaleVec(-1.0, &xkp1Plus1)
 	xkp1Plus1.AddVec(measurement, &xkp1Plus1)
@@ -114,13 +104,12 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 		// The following line will panic if gain unexpectedly has more than one column.
 		Kkp1.Scale(xkp1Plus1.At(0, 0), &Kkp1)
 		rGain, _ := Kkp1.Dims()
-		var xkp1Plus2 mat64.Vector
 		xkp1Plus2.AddVec(Kkp1.ColView(0), mat64.NewVector(rGain, nil))
 		xkp1Plus1 = xkp1Plus2
 	} else {
-		xkp1Plus1.MulVec(&Kkp1, &xkp1Plus1)
+		xkp1Plus2.MulVec(&Kkp1, &xkp1Plus1)
 	}
-	xkp1Plus.AddVec(&xKp1Minus, &xkp1Plus1)
+	xkp1Plus.AddVec(&xKp1Minus, &xkp1Plus2)
 	xkp1Plus.AddVec(&xKp1Minus, kf.Noise.Process(kf.step))
 
 	// Pa_kp1_plus = (eye(4) - Kkp1*H)*P_kp1_minus;
@@ -133,7 +122,7 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 	Pkp1Plus.Mul(&Kkp1H, &Pkp1Minus)
 	Pkp1PlusSym, err := AsSymDense(&Pkp1Plus)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	est = VanillaEstimate{&xkp1Plus, &ykHat, Pkp1PlusSym, &Kkp1}
 	kf.step++

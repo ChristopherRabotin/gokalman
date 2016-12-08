@@ -6,27 +6,27 @@ import (
 	"github.com/gonum/matrix/mat64"
 )
 
-func TestNewVanillaErrors(t *testing.T) {
+func TestNewInformationErrors(t *testing.T) {
 	F, G, _ := Robot1DMatrices()
 	H := mat64.NewDense(2, 2, nil)
 	x0 := mat64.NewVector(2, nil)
 	Covar0 := mat64.NewSymDense(3, nil)
-	if _, err := NewVanilla(x0, Covar0, F, G, H, Noiseless{}); err == nil {
+	if _, err := NewInformation(x0, Covar0, F, G, H, Noiseless{}); err == nil {
 		t.Fatal("x0 and Covar0 of incompatible sizes does not fail")
 	}
 	x0 = mat64.NewVector(3, nil)
-	if _, err := NewVanilla(x0, Covar0, F, G, H, Noiseless{}); err == nil {
+	if _, err := NewInformation(x0, Covar0, F, G, H, Noiseless{}); err == nil {
 		t.Fatal("F and Covar0 of incompatible sizes does not fail")
 	}
 	x0 = mat64.NewVector(2, nil)
 	Covar0 = mat64.NewSymDense(2, nil)
 	H = mat64.NewDense(3, 3, nil)
-	if _, err := NewVanilla(x0, Covar0, F, G, H, Noiseless{}); err == nil {
+	if _, err := NewInformation(x0, Covar0, F, G, H, Noiseless{}); err == nil {
 		t.Fatal("H and x0 of incompatible sizes does not fail")
 	}
 }
 
-func TestVanilla(t *testing.T) {
+func TestInformation(t *testing.T) {
 	F, G, Δt := Midterm2Matrices()
 	Q := mat64.NewSymDense(3, []float64{2.5e-15, 6.25e-13, (25e-11) / 3, 6.25e-13, (5e-7) / 3, 2.5e-8, (25e-11) / 3, 2.5e-8, 5e-6})
 	R := mat64.NewSymDense(1, []float64{0.005 / Δt})
@@ -34,7 +34,7 @@ func TestVanilla(t *testing.T) {
 	noise := NewAWGN(Q, R)
 	x0 := mat64.NewVector(3, []float64{0, 0.35, 0})
 	Covar0 := ScaledIdentity(3, 10)
-	kf, err := NewVanilla(x0, Covar0, F, G, H, noise)
+	kf, err := NewInformation(x0, Covar0, F, G, H, noise)
 	if err != nil {
 		t.Fatal(err)
 	}

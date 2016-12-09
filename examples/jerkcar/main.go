@@ -69,12 +69,13 @@ func main() {
 
 	// Prepare the estimate channel.
 	var wg sync.WaitGroup
-	estimateChan := make(chan (gokalman.Estimate), 1)
-	go func() {
+	vanillaEstChan := make(chan (gokalman.Estimate), 1)
+	informationEstChan := make(chan (gokalman.Estimate), 1)
+	processEst := func(fn string, estChan chan (gokalman.Estimate)) {
 		wg.Add(1)
-		ce, _ := gokalman.NewCSVExporter([]string{"position", "velocity", "acceleration"}, ".", "temp.csv")
+		ce, _ := gokalman.NewCSVExporter([]string{"position", "velocity", "acceleration"}, ".", fn+".csv")
 		for {
-			est, more := <-estimateChan
+			est, more := <-estChan
 			if !more {
 				ce.Close()
 				wg.Done()
@@ -82,7 +83,9 @@ func main() {
 			}
 			ce.Write(est)
 		}
-	}()
+	}
+	go processEst("vanilla", vanillaEstChan)
+	go processEst("information", informationEstChan)
 
 	// DT system
 	Δt := 0.01
@@ -99,7 +102,15 @@ func main() {
 	noise := gokalman.NewAWGN(Q, R)
 	x0 := mat64.NewVector(4, []float64{0, 0.35, 0, 0})
 	Covar0 := gokalman.ScaledIdentity(4, 10)
-	kf, err := gokalman.NewVanilla(x0, Covar0, F, G, H2, noise)
+	vanillaKF, err := gokalman.NewVanilla(x0, Covar0, F, G, H2, noise)
+	if err != nil {
+		panic(err)
+	}
+
+	// Information KF
+	i0 := mat64.NewVector(4, nil)
+	I0 := mat64.NewSymDense(4, nil)
+	infoKF, err := gokalman.NewInformation(i0, I0, F, G, H2, noise)
 	if err != nil {
 		panic(err)
 	}
@@ -108,19 +119,25 @@ func main() {
 		measurement := mat64.NewVector(2, []float64{ypos[k], yaccK})
 		if k%10 == 0 {
 			// Switch to using H1
-			kf.H = H1
+			vanillaKF.H = H1
 		}
-		newEstimate, err := kf.Update(measurement, control[k])
-		if k%10 == 0 {
-			// Switch back to using H2
-			kf.H = H2
-		}
+		vanillaEst, err := vanillaKF.Update(measurement, control[k])
 		if err != nil {
 			panic(err)
 		}
-		estimateChan <- newEstimate
+		vanillaEstChan <- vanillaEst
+		infoEst, err := infoKF.Update(measurement, control[k])
+		if err != nil {
+			panic(err)
+		}
+		informationEstChan <- infoEst
+		if k%10 == 0 {
+			// Switch back to using H2
+			vanillaKF.H = H2
+		}
 	}
-	close(estimateChan)
+	close(vanillaEstChan)
+	close(informationEstChan)
 
 	wg.Wait()
 }

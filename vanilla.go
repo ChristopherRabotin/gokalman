@@ -104,8 +104,8 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 		// The following line will panic if gain unexpectedly has more than one column.
 		Kkp1.Scale(xkp1Plus1.At(0, 0), &Kkp1)
 		rGain, _ := Kkp1.Dims()
+		// Let's create a vector out of this result.
 		xkp1Plus2.AddVec(Kkp1.ColView(0), mat64.NewVector(rGain, nil))
-		xkp1Plus1 = xkp1Plus2
 	} else {
 		xkp1Plus2.MulVec(&Kkp1, &xkp1Plus1)
 	}

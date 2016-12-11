@@ -16,26 +16,43 @@ import (
 // - G: control matrix (if all zeros, then control vector will not be used)
 // - H: measurement update matrix
 // - noise: Noise
-func NewInformation(i0 *mat64.Vector, I0 mat64.Symmetric, F, G, H mat64.Matrix, noise Noise) (*Information, error) {
+func NewInformation(x0 *mat64.Vector, P0 mat64.Symmetric, F, G, H mat64.Matrix, noise Noise) (*Information, error) {
 	// Let's check the dimensions of everything here to panic ASAP.
-	if err := checkMatDims(i0, I0, "x0", "Covar0", rows2cols); err != nil {
+	if err := checkMatDims(x0, P0, "x0", "Covar0", rows2cols); err != nil {
 		return nil, err
 	}
-	if err := checkMatDims(F, I0, "F", "Covar0", rows2cols); err != nil {
+	if err := checkMatDims(F, P0, "F", "Covar0", rows2cols); err != nil {
 		return nil, err
 	}
-	if err := checkMatDims(H, i0, "H", "x0", cols2rows); err != nil {
+	if err := checkMatDims(H, x0, "H", "x0", cols2rows); err != nil {
 		return nil, err
 	}
-
-	// Populate with the initial values.
-	rowsH, _ := H.Dims()
-	est0 := NewInformationEstimate(i0, mat64.NewVector(rowsH, nil), I0)
 
 	var Finv mat64.Dense
 	if err := Finv.Inverse(mat64.DenseCopyOf(F)); err != nil {
 		panic(fmt.Errorf("F not invertible: %s", err))
 	}
+
+	/*
+	   i0 := mat64.NewVector(3, nil)
+	   I0 := mat64.NewSymDense(3, nil)*/
+	var I0 *mat64.SymDense
+	var I0temp mat64.Dense
+	if err := I0temp.Inverse(P0); err != nil {
+		rI, _ := P0.Dims()
+		I0 = mat64.NewSymDense(rI, nil)
+		fmt.Printf("[WARN] initial covariance not invertible, using nil matrix: %s", err)
+	} else {
+		I0, _ = AsSymDense(&I0temp)
+	}
+
+	var i0 mat64.Vector
+	i0.MulVec(I0, x0)
+
+	// Populate with the initial values.
+	rowsH, _ := H.Dims()
+	est0 := NewInformationEstimate(&i0, mat64.NewVector(rowsH, nil), I0)
+	fmt.Printf("{\ni=%v\nI=%v\n}", mat64.Formatted(&i0, mat64.Prefix("  ")), mat64.Formatted(I0, mat64.Prefix("  ")))
 
 	var Qinv mat64.Dense
 	if err := Qinv.Inverse(mat64.DenseCopyOf(noise.ProcessMatrix())); err != nil {
@@ -73,22 +90,24 @@ func (kf *Information) Update(measurement, control *mat64.Vector) (est Estimate,
 	}
 
 	// zMat computation
-	var zMat mat64.Dense
-	zMat.Mul(kf.Finv, kf.prevEst.infoMat)
-	zMat.Mul(kf.Finv.T(), &zMat)
+	var zk mat64.Dense
+	zk.Mul(kf.prevEst.infoMat, kf.Finv)
+	zk.Mul(kf.Finv.T(), &zk)
 
 	// Prediction step.
 	// \hat{i}_{k+1}^{-}
 	var zkzkqi mat64.Dense
 
-	zkzkqi.Add(&zMat, kf.Qinv)
-	zkzkqi.Mul(&zMat, &zkzkqi)
+	zkzkqi.Add(&zk, kf.Qinv)
+	zkzkqi.Inverse(&zkzkqi)
+	zkzkqi.Mul(&zk, &zkzkqi)
+	zkzkqi.Scale(-1.0, &zkzkqi)
 	rzk, _ := zkzkqi.Dims()
 	var iKp1Minus, iKp1Minus1 mat64.Vector
 	iKp1Minus.MulVec(kf.Finv.T(), kf.prevEst.infoState)
 	if kf.needCtrl {
 		iKp1Minus1.MulVec(kf.G, control)
-		iKp1Minus1.MulVec(&zMat, &iKp1Minus1)
+		iKp1Minus1.MulVec(&zk, &iKp1Minus1)
 		iKp1Minus.AddVec(&iKp1Minus, &iKp1Minus1)
 	}
 	var iKp1MinusM mat64.Dense
@@ -97,27 +116,13 @@ func (kf *Information) Update(measurement, control *mat64.Vector) (est Estimate,
 
 	// I_{k+1}^{-}
 	var Ikp1Minus mat64.Dense
-	Ikp1Minus.Mul(&zkzkqi, &zMat)
-	Ikp1Minus.Scale(-1.0, &Ikp1Minus)
-	Ikp1Minus.Add(&zMat, &Ikp1Minus)
+	Ikp1Minus.Mul(&zkzkqi, zk.T())
+	Ikp1Minus.Add(&zk, &Ikp1Minus)
 
 	// TODO: Compute estimated measurement update \hat{y}_{k}
-	/*var ykHat mat64.Vector
+	var ykHat mat64.Vector
 	ykHat.MulVec(kf.H, kf.prevEst.State())
-	ykHat.AddVec(&ykHat, kf.Noise.Measurement(kf.step))*/
-
-	/*
-		// Kalman gain -- none in IF?!
-		// Kkp1 = P_kp1_minus*H'*inv(H*P_kp1_minus*H'+[Ra 0; 0 Rp]);
-		var PHt, HPHt, Kkp1 mat64.Dense
-		PHt.Mul(&Pkp1Minus, kf.H.T())
-		HPHt.Mul(kf.H, &PHt)
-		HPHt.Add(&HPHt, kf.Noise.MeasurementMatrix())
-		if ierr := HPHt.Inverse(&HPHt); ierr != nil {
-			panic(fmt.Errorf("could not invert `H*P_kp1_minus*H' + R`: %s", ierr))
-		}
-		Kkp1.Mul(&PHt, &HPHt)
-	*/
+	ykHat.AddVec(&ykHat, kf.Noise.Measurement(kf.step))
 
 	// Measurement update
 	var HTR mat64.Dense
@@ -141,7 +146,7 @@ func (kf *Information) Update(measurement, control *mat64.Vector) (est Estimate,
 	if err != nil {
 		panic(err)
 	}
-	est = NewInformationEstimate(&ikp1Plus, measurement, Ikp1PlusSym)
+	est = NewInformationEstimate(&ikp1Plus, &ykHat, Ikp1PlusSym)
 	kf.prevEst = est.(InformationEstimate)
 	kf.step++
 	return
@@ -215,8 +220,7 @@ func (e InformationEstimate) String() string {
 	state := mat64.Formatted(e.State(), mat64.Prefix("  "))
 	meas := mat64.Formatted(e.Measurement(), mat64.Prefix("  "))
 	covar := mat64.Formatted(e.Covariance(), mat64.Prefix("  "))
-	gain := mat64.Formatted(e.Gain(), mat64.Prefix("  "))
-	return fmt.Sprintf("{\ns=%v\ny=%v\nP=%v\nK=%v\n}", state, meas, covar, gain)
+	return fmt.Sprintf("{\ns=%v\ny=%v\nP=%v\n}", state, meas, covar)
 }
 
 // NewInformationEstimate initializes a new InformationEstimate.

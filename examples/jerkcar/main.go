@@ -100,7 +100,7 @@ func main() {
 
 	// Vanilla KF
 	noise := gokalman.NewAWGN(Q, R)
-	x0 := mat64.NewVector(4, []float64{0, 0.35, 0, 0})
+	x0 := mat64.NewVector(4, []float64{0, 0.35, 0, 0.05})
 	Covar0 := gokalman.ScaledIdentity(4, 10)
 	vanillaKF, err := gokalman.NewVanilla(x0, Covar0, F, G, H2, noise)
 	if err != nil {
@@ -108,9 +108,9 @@ func main() {
 	}
 
 	// Information KF
-	i0 := mat64.NewVector(4, nil)
-	I0 := mat64.NewSymDense(4, nil)
-	infoKF, err := gokalman.NewInformation(i0, I0, F, G, H2, noise)
+	/*i0 := mat64.NewVector(4, nil)
+	I0 := mat64.NewSymDense(4, nil)*/
+	infoKF, err := gokalman.NewInformation(x0, Covar0, F, G, H2, noise)
 	if err != nil {
 		panic(err)
 	}

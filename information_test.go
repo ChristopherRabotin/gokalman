@@ -32,9 +32,11 @@ func TestInformation(t *testing.T) {
 	R := mat64.NewSymDense(1, []float64{0.005 / Δt})
 	H := mat64.NewDense(1, 3, []float64{1, 0, 0})
 	noise := NewAWGN(Q, R)
-	i0 := mat64.NewVector(3, nil)
-	I0 := mat64.NewSymDense(3, nil)
-	kf, err := NewInformation(i0, I0, F, G, H, noise)
+	/*i0 := mat64.NewVector(3, nil)
+	I0 := mat64.NewSymDense(3, nil)*/
+	x0 := mat64.NewVector(3, []float64{0, 0.35, 0})
+	P0 := ScaledIdentity(3, 10)
+	kf, err := NewInformation(x0, P0, F, G, H, noise)
 	if err != nil {
 		t.Fatal(err)
 	}

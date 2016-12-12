@@ -51,6 +51,10 @@ type Vanilla struct {
 	step     int
 }
 
+func (kf *Vanilla) String() string {
+	return fmt.Sprintf("F=%v\nG=%v\nH=%v\n%s", mat64.Formatted(kf.F, mat64.Prefix("  ")), mat64.Formatted(kf.G, mat64.Prefix("  ")), mat64.Formatted(kf.H, mat64.Prefix("  ")), kf.Noise)
+}
+
 // Update implements the KalmanFilter interface.
 func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err error) {
 	if err = checkMatDims(control, kf.G, "control (u)", "G", rows2cols); err != nil {
@@ -60,6 +64,8 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 	if err = checkMatDims(measurement, kf.H, "measurement (y)", "H", rows2rows); err != nil {
 		return nil, err
 	}
+
+	fmt.Printf("y=%v\nu=%v\n", mat64.Formatted(measurement, mat64.Prefix("  ")), mat64.Formatted(control, mat64.Prefix("  ")))
 
 	// Prediction step.
 	// \hat{x}_{k+1}^{-}
@@ -72,16 +78,20 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 		xKp1Minus = xKp1Minus1
 	}
 
+	fmt.Printf("\\hat{x}_{k+1}^{-}=%v\n", mat64.Formatted(&xKp1Minus, mat64.Prefix("  ")))
+
 	// P_{k+1}^{-}
 	var Pkp1Minus, PFt, FPFt mat64.Dense
 	PFt.Mul(kf.prevEst.Covariance(), kf.F.T())
 	FPFt.Mul(kf.F, &PFt)
 	Pkp1Minus.Add(&FPFt, kf.Noise.ProcessMatrix())
+	fmt.Printf("\\P_{k+1}^{-}=%v\n", mat64.Formatted(&Pkp1Minus, mat64.Prefix("  ")))
 
 	// Compute estimated measurement update \hat{y}_{k}
 	var ykHat mat64.Vector
 	ykHat.MulVec(kf.H, kf.prevEst.State())
 	ykHat.AddVec(&ykHat, kf.Noise.Measurement(kf.step))
+	fmt.Printf("y_{k}=%v\n", mat64.Formatted(&ykHat, mat64.Prefix("  ")))
 
 	// Kalman gain
 	// Kkp1 = P_kp1_minus*H'*inv(H*P_kp1_minus*H'+[Ra 0; 0 Rp]);
@@ -93,6 +103,7 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 		panic(fmt.Errorf("could not invert `H*P_kp1_minus*H' + R`: %s", ierr))
 	}
 	Kkp1.Mul(&PHt, &HPHt)
+	fmt.Printf("K_{k+1}=%v\n", mat64.Formatted(&Kkp1, mat64.Prefix("  ")))
 
 	// Measurement update
 	var xkp1Plus, xkp1Plus1, xkp1Plus2 mat64.Vector
@@ -104,13 +115,13 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 		// The following line will panic if gain unexpectedly has more than one column.
 		Kkp1.Scale(xkp1Plus1.At(0, 0), &Kkp1)
 		rGain, _ := Kkp1.Dims()
-		// Let's create a vector out of this result.
 		xkp1Plus2.AddVec(Kkp1.ColView(0), mat64.NewVector(rGain, nil))
 	} else {
 		xkp1Plus2.MulVec(&Kkp1, &xkp1Plus1)
 	}
 	xkp1Plus.AddVec(&xKp1Minus, &xkp1Plus2)
 	xkp1Plus.AddVec(&xKp1Minus, kf.Noise.Process(kf.step))
+	fmt.Printf("\\hat{x}_{k+1}^{+}=%v\n", mat64.Formatted(&xkp1Plus, mat64.Prefix("  ")))
 
 	// Pa_kp1_plus = (eye(4) - Kkp1*H)*P_kp1_minus;
 	var Pkp1Plus, Kkp1H mat64.Dense
@@ -120,6 +131,8 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 	n, _ := Kkp1H.Dims()
 	Kkp1H.Add(Identity(n), &Kkp1H)
 	Pkp1Plus.Mul(&Kkp1H, &Pkp1Minus)
+	fmt.Printf("P_{k+1}^{+}=%v\n", mat64.Formatted(&Pkp1Plus, mat64.Prefix("  ")))
+
 	Pkp1PlusSym, err := AsSymDense(&Pkp1Plus)
 	if err != nil {
 		return nil, err

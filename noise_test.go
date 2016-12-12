@@ -14,7 +14,9 @@ func TestImplementsNoise(t *testing.T) {
 }
 
 func TestBlankNoise(t *testing.T) {
-	nl := Noiseless{2, 3}
+	nl := NewNoiseless(mat64.NewSymDense(2, nil), mat64.NewSymDense(3, nil))
+	t.Logf("%s", nl)
+
 	pR, _ := nl.Process(1).Dims()
 	mR, _ := nl.Measurement(1).Dims()
 	if pR != 2 {
@@ -61,6 +63,9 @@ func TestBatchNoise(t *testing.T) {
 		measurements[i] = mat64.NewVector(mR, []float64{float64(i)*2.0 + 1.0, float64(i)*2.0 + 2.0})
 	}
 	batch := BatchNoise{process, measurements}
+	if batch.String() != "BatchNoise" {
+		t.Fatal("invalid String implementation")
+	}
 	for k := 0; k < 4; k++ {
 		batch.Process(k)
 		batch.Measurement(k)

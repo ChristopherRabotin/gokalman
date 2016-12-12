@@ -72,7 +72,7 @@ func main() {
 	estimateChan := make(chan (gokalman.Estimate), 1)
 	go func() {
 		wg.Add(1)
-		ce, _ := gokalman.NewCSVExporter([]string{"position", "velocity", "acceleration"}, ".", "temp.csv")
+		ce, _ := gokalman.NewCSVExporter([]string{"position", "velocity", "acceleration"}, ".", "vanilla.csv")
 		for {
 			est, more := <-estimateChan
 			if !more {
@@ -85,41 +85,44 @@ func main() {
 	}()
 
 	// DT system
-	Δt := 0.01
-	F := mat64.NewDense(4, 4, []float64{1, 0.01, 5e-5, 0, 0, 1, 0.01, 0, 0, 0, 1, 0, 0, 0, 0, 1.0005})
-	G := mat64.NewDense(4, 1, []float64{(5e-7) / 3, 5e-5, 0.01, 0})
+	//Δt := 0.01
+	F := mat64.NewDense(4, 4, []float64{1, 0.01, 0.0001, 0, 0, 1, 0.01, 0, 0, 0, 1, 0, 0, 0, 0, 1.0005})
+	G := mat64.NewDense(4, 1, []float64{0.0, 0.0001, 0.01, 0.0})
 	// Note that we will be using two difference H matrices, which we'll swap on the fly.
 	H1 := mat64.NewDense(2, 4, []float64{1, 0, 0, 0, 0, 0, 1, 1})
 	H2 := mat64.NewDense(2, 4, []float64{0, 0, 0, 0, 0, 0, 1, 1})
 	// Noise
-	Q := mat64.NewSymDense(4, []float64{2.5e-15, 6.25e-13, (25e-11) / 3, 0, 6.25e-13, (5e-7) / 3, 2.5e-8, 0, (25e-11) / 3, 2.5e-8, 5e-6, 0, 0, 0, 0, 5.302e-4})
-	R := mat64.NewSymDense(2, []float64{0.005 / Δt, 0, 0, 0.0005 / Δt})
+	Q := mat64.NewSymDense(4, []float64{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.005e-3, 0, 0, 0, 0, 0.5303e-3})
+	R := mat64.NewSymDense(2, []float64{0.005, 0, 0, 0.0005})
 
 	// Vanilla KF
-	noise := gokalman.NewAWGN(Q, R)
+	noise := gokalman.NewNoiseless(Q, R)
 	x0 := mat64.NewVector(4, []float64{0, 0.35, 0, 0})
 	Covar0 := gokalman.ScaledIdentity(4, 10)
 	kf, err := gokalman.NewVanilla(x0, Covar0, F, G, H2, noise)
+	fmt.Printf("Vanilla: \n%s", kf)
 	if err != nil {
 		panic(err)
 	}
 
-	for k, yaccK := range yacc {
-		measurement := mat64.NewVector(2, []float64{ypos[k], yaccK})
-		if k%10 == 0 {
-			// Switch to using H1
-			kf.H = H1
-		}
-		newEstimate, err := kf.Update(measurement, control[k])
-		if k%10 == 0 {
-			// Switch back to using H2
-			kf.H = H2
-		}
-		if err != nil {
-			panic(err)
-		}
-		estimateChan <- newEstimate
+	//for k, yaccK := range yacc {
+	k := 0
+	yaccK := yacc[k]
+	measurement := mat64.NewVector(2, []float64{ypos[k], yaccK})
+	if k%10 == 0 {
+		// Switch to using H1
+		kf.H = H1
 	}
+	newEstimate, err := kf.Update(measurement, control[k])
+	if k%10 == 0 {
+		// Switch back to using H2
+		kf.H = H2
+	}
+	if err != nil {
+		panic(err)
+	}
+	estimateChan <- newEstimate
+	//}
 	close(estimateChan)
 
 	wg.Wait()

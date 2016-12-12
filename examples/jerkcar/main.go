@@ -86,28 +86,29 @@ func main() {
 
 	// DT system
 	//Δt := 0.01
-	F := mat64.NewDense(4, 4, []float64{1, 0.01, 0.0001, 0, 0, 1, 0.01, 0, 0, 0, 1, 0, 0, 0, 0, 1.0005})
+	F := mat64.NewDense(4, 4, []float64{1, 0.01, 0.0005, 0, 0, 1, 0.01, 0, 0, 0, 1, 0, 0, 0, 0, 1.0005125020836})
 	G := mat64.NewDense(4, 1, []float64{0.0, 0.0001, 0.01, 0.0})
 	// Note that we will be using two difference H matrices, which we'll swap on the fly.
 	H1 := mat64.NewDense(2, 4, []float64{1, 0, 0, 0, 0, 0, 1, 1})
 	H2 := mat64.NewDense(2, 4, []float64{0, 0, 0, 0, 0, 0, 1, 1})
 	// Noise
 	Q := mat64.NewSymDense(4, []float64{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.005e-3, 0, 0, 0, 0, 0.5303e-3})
-	R := mat64.NewSymDense(2, []float64{0.005, 0, 0, 0.0005})
+	R := mat64.NewSymDense(2, []float64{0.5, 0, 0, 0.05})
 
 	// Vanilla KF
 	noise := gokalman.NewNoiseless(Q, R)
-	x0 := mat64.NewVector(4, []float64{0, 0.35, 0, 0})
+	x0 := mat64.NewVector(4, []float64{0, 0.45, 0, 0.09})
 	Covar0 := gokalman.ScaledIdentity(4, 10)
-	kf, err := gokalman.NewVanilla(x0, Covar0, F, G, H2, noise)
+	kf, err := gokalman.NewVanilla(x0, Covar0, F, G, H1, noise)
 	fmt.Printf("Vanilla: \n%s", kf)
 	if err != nil {
 		panic(err)
 	}
 
 	//for k, yaccK := range yacc {
-	k := 0
+	k := 9
 	yaccK := yacc[k]
+
 	measurement := mat64.NewVector(2, []float64{ypos[k], yaccK})
 	if k%10 == 0 {
 		// Switch to using H1

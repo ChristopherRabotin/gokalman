@@ -81,11 +81,11 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 	fmt.Printf("\\hat{x}_{k+1}^{-}=%v\n", mat64.Formatted(&xKp1Minus, mat64.Prefix("  ")))
 
 	// P_{k+1}^{-}
-	var Pkp1Minus, PFt, FPFt mat64.Dense
-	PFt.Mul(kf.prevEst.Covariance(), kf.F.T())
-	FPFt.Mul(kf.F, &PFt)
+	var Pkp1Minus, FP, FPFt mat64.Dense
+	FP.Mul(kf.F, kf.prevEst.Covariance())
+	FPFt.Mul(&FP, kf.F.T())
 	Pkp1Minus.Add(&FPFt, kf.Noise.ProcessMatrix())
-	fmt.Printf("\\P_{k+1}^{-}=%v\n", mat64.Formatted(&Pkp1Minus, mat64.Prefix("  ")))
+	fmt.Printf("Pkp1{-}=%v\n", mat64.Formatted(&Pkp1Minus, mat64.Prefix("     ")))
 
 	// Compute estimated measurement update \hat{y}_{k}
 	var ykHat mat64.Vector
@@ -94,10 +94,11 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 	fmt.Printf("y_{k}=%v\n", mat64.Formatted(&ykHat, mat64.Prefix("  ")))
 
 	// Kalman gain
-	// Kkp1 = P_kp1_minus*H'*inv(H*P_kp1_minus*H'+[Ra 0; 0 Rp]);
+	// Kkp1 = Pkkp1_minus*Hkkp1'*inv(Hkkp1*Pkkp1_minus*Hkkp1' + Rkkp1)
 	var PHt, HPHt, Kkp1 mat64.Dense
 	PHt.Mul(&Pkp1Minus, kf.H.T())
 	HPHt.Mul(kf.H, &PHt)
+	fmt.Printf("PHt=%v\n", mat64.Formatted(&PHt, mat64.Prefix("     ")))
 	HPHt.Add(&HPHt, kf.Noise.MeasurementMatrix())
 	if ierr := HPHt.Inverse(&HPHt); ierr != nil {
 		panic(fmt.Errorf("could not invert `H*P_kp1_minus*H' + R`: %s", ierr))

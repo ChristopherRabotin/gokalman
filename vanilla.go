@@ -65,8 +65,6 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 		return nil, err
 	}
 
-	fmt.Printf("y=%v\nu=%v\n", mat64.Formatted(measurement, mat64.Prefix("  ")), mat64.Formatted(control, mat64.Prefix("  ")))
-
 	// Prediction step.
 	// \hat{x}_{k+1}^{-}
 	var xKp1Minus, xKp1Minus1, xKp1Minus2 mat64.Vector
@@ -78,35 +76,29 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 		xKp1Minus = xKp1Minus1
 	}
 
-	fmt.Printf("\\hat{x}_{k+1}^{-}=%v\n", mat64.Formatted(&xKp1Minus, mat64.Prefix("  ")))
-
 	// P_{k+1}^{-}
 	var Pkp1Minus, FP, FPFt mat64.Dense
 	FP.Mul(kf.F, kf.prevEst.Covariance())
 	FPFt.Mul(&FP, kf.F.T())
 	Pkp1Minus.Add(&FPFt, kf.Noise.ProcessMatrix())
-	fmt.Printf("Pkp1{-}=%v\n", mat64.Formatted(&Pkp1Minus, mat64.Prefix("     ")))
 
 	// Compute estimated measurement update \hat{y}_{k}
 	var ykHat mat64.Vector
 	ykHat.MulVec(kf.H, kf.prevEst.State())
 	ykHat.AddVec(&ykHat, kf.Noise.Measurement(kf.step))
-	fmt.Printf("y_{k}=%v\n", mat64.Formatted(&ykHat, mat64.Prefix("  ")))
 
 	// Kalman gain
-	// Kkp1 = Pkkp1_minus*Hkkp1'*inv(Hkkp1*Pkkp1_minus*Hkkp1' + Rkkp1)
 	var PHt, HPHt, Kkp1 mat64.Dense
 	PHt.Mul(&Pkp1Minus, kf.H.T())
 	HPHt.Mul(kf.H, &PHt)
-	fmt.Printf("PHt=%v\n", mat64.Formatted(&PHt, mat64.Prefix("     ")))
 	HPHt.Add(&HPHt, kf.Noise.MeasurementMatrix())
 	if ierr := HPHt.Inverse(&HPHt); ierr != nil {
 		panic(fmt.Errorf("could not invert `H*P_kp1_minus*H' + R`: %s", ierr))
 	}
 	Kkp1.Mul(&PHt, &HPHt)
-	fmt.Printf("K_{k+1}=%v\n", mat64.Formatted(&Kkp1, mat64.Prefix("  ")))
 
 	// Measurement update
+	// xhatkkp1_minus + Kkkp1*(ykkp1 - Hkkp1*xhatkkp1_minus)
 	var xkp1Plus, xkp1Plus1, xkp1Plus2 mat64.Vector
 	xkp1Plus1.MulVec(kf.H, &xKp1Minus)
 	xkp1Plus1.ScaleVec(-1.0, &xkp1Plus1)
@@ -121,8 +113,7 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 		xkp1Plus2.MulVec(&Kkp1, &xkp1Plus1)
 	}
 	xkp1Plus.AddVec(&xKp1Minus, &xkp1Plus2)
-	xkp1Plus.AddVec(&xKp1Minus, kf.Noise.Process(kf.step))
-	fmt.Printf("\\hat{x}_{k+1}^{+}=%v\n", mat64.Formatted(&xkp1Plus, mat64.Prefix("  ")))
+	xkp1Plus.AddVec(&xkp1Plus, kf.Noise.Process(kf.step))
 
 	// Pa_kp1_plus = (eye(4) - Kkp1*H)*P_kp1_minus;
 	var Pkp1Plus, Kkp1H mat64.Dense
@@ -132,7 +123,6 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 	n, _ := Kkp1H.Dims()
 	Kkp1H.Add(Identity(n), &Kkp1H)
 	Pkp1Plus.Mul(&Kkp1H, &Pkp1Minus)
-	fmt.Printf("P_{k+1}^{+}=%v\n", mat64.Formatted(&Pkp1Plus, mat64.Prefix("  ")))
 
 	Pkp1PlusSym, err := AsSymDense(&Pkp1Plus)
 	if err != nil {

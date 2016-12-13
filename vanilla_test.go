@@ -50,8 +50,8 @@ func TestVanilla(t *testing.T) {
 		if !est.IsWithin2σ() && k != 99 {
 			t.Logf("[WARN] 2σ bound breached: k=%d -> %s ", k, est)
 		}
-		if k == 99 {
-			t.Logf("%s", est)
+		if k == 99 || k < 10 {
+			t.Logf("k=%d\n%s", k, est)
 		}
 	}
 

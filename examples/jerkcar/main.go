@@ -69,12 +69,13 @@ func main() {
 
 	// Prepare the estimate channel.
 	var wg sync.WaitGroup
-	estimateChan := make(chan (gokalman.Estimate), 1)
-	go func() {
+	vanillaEstChan := make(chan (gokalman.Estimate), 1)
+	informationEstChan := make(chan (gokalman.Estimate), 1)
+	processEst := func(fn string, estChan chan (gokalman.Estimate)) {
 		wg.Add(1)
-		ce, _ := gokalman.NewCSVExporter([]string{"position", "velocity", "acceleration", "bias"}, ".", "vanilla.csv")
+		ce, _ := gokalman.NewCSVExporter([]string{"position", "velocity", "acceleration"}, ".", fn+".csv")
 		for {
-			est, more := <-estimateChan
+			est, more := <-estChan
 			if !more {
 				ce.Close()
 				wg.Done()
@@ -82,7 +83,9 @@ func main() {
 			}
 			ce.Write(est)
 		}
-	}()
+	}
+	go processEst("vanilla", vanillaEstChan)
+	go processEst("information", informationEstChan)
 
 	// DT system
 	//Δt := 0.01
@@ -104,6 +107,13 @@ func main() {
 	Covar0 := gokalman.ScaledIdentity(4, 10)
 	kf, err := gokalman.NewVanilla(x0, Covar0, F, G, H1, noise1)
 	fmt.Printf("Vanilla: \n%s", kf)
+		panic(err)
+	}
+
+	// Information KF
+	i0 := mat64.NewVector(4, nil)
+	I0 := mat64.NewSymDense(4, nil)
+	infoKF, err := gokalman.NewInformation(i0, I0, F, G, H2, noise)
 	if err != nil {
 		panic(err)
 	}
@@ -113,7 +123,7 @@ func main() {
 
 		if (k+1)%10 == 0 {
 			// Switch to using H1
-			kf.H = H1
+			vanillaKF.H = H1
 			kf.Noise = noise1
 			measurement = mat64.NewVector(2, []float64{ypos[k], yaccK})
 		} else {
@@ -122,14 +132,18 @@ func main() {
 			measurement = mat64.NewVector(1, []float64{yaccK})
 		}
 		newEstimate, err := kf.Update(measurement, control[k])
+		infoEst, err := infoKF.Update(measurement, control[k])
 		if err != nil {
 			panic(fmt.Errorf("k=%d %s", k, err))
 		}
 
-		estimateChan <- newEstimate
+		if k%10 == 0 {
 
+			vanillaKF.H = H2
+		}
 	}
-	close(estimateChan)
+	close(vanillaEstChan)
+	close(informationEstChan)
 
 	wg.Wait()
 }

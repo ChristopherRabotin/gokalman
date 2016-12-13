@@ -6,32 +6,31 @@ import (
 	"github.com/gonum/matrix/mat64"
 )
 
-// NewInformation returns a new Vanilla KF. To get the next estimate, simply push to
-// the MeasChan the next measurement and read from StateEst and MeasEst to get
-// the next state estimate (\hat{x}_{k+1}^{+}) and next measurement estimate (\hat{y}_{k+1}).
-// The Covar channel stores the next covariance of the system (P_{k+1}^{+}).
+// NewInformation returns a new Information KF. To get the next estimate, call
+// Update() with the next measurement and the control vector. This will return a
+// new InformationEstimate which contains everything of this step and an error if any.
 // Parameters:
-// - x0: initial state
-// - Covar0: initial covariance matrix
+// - i0: initial information state (usually a zero vector)
+// - I0: initial information matrix (usually a zero matrix)
 // - F: state update matrix
 // - G: control matrix (if all zeros, then control vector will not be used)
 // - H: measurement update matrix
-// - n: Noise
-func NewInformation(x0 *mat64.Vector, Covar0 mat64.Symmetric, F, G, H mat64.Matrix, noise Noise) (*Information, error) {
+// - noise: Noise
+func NewInformation(i0 *mat64.Vector, I0 mat64.Symmetric, F, G, H mat64.Matrix, noise Noise) (*Information, error) {
 	// Let's check the dimensions of everything here to panic ASAP.
-	if err := checkMatDims(x0, Covar0, "x0", "Covar0", rows2cols); err != nil {
+	if err := checkMatDims(i0, I0, "x0", "Covar0", rows2cols); err != nil {
 		return nil, err
 	}
-	if err := checkMatDims(F, Covar0, "F", "Covar0", rows2cols); err != nil {
+	if err := checkMatDims(F, I0, "F", "Covar0", rows2cols); err != nil {
 		return nil, err
 	}
-	if err := checkMatDims(H, x0, "H", "x0", cols2rows); err != nil {
+	if err := checkMatDims(H, i0, "H", "x0", cols2rows); err != nil {
 		return nil, err
 	}
 
 	// Populate with the initial values.
 	rowsH, _ := H.Dims()
-	est0 := NewInformationEstimate(x0, mat64.NewVector(rowsH, nil), Covar0)
+	est0 := NewInformationEstimate(i0, mat64.NewVector(rowsH, nil), I0)
 
 	var Finv mat64.Dense
 	if err := Finv.Inverse(mat64.DenseCopyOf(F)); err != nil {
@@ -47,7 +46,7 @@ func NewInformation(x0 *mat64.Vector, Covar0 mat64.Symmetric, F, G, H mat64.Matr
 		panic(fmt.Errorf("R not invertible: %s", err))
 	}
 
-	return &Information{&Finv, G, H, &Qinv, &Rinv, noise, !IsNil(G), *est0, 0}, nil
+	return &Information{&Finv, G, H, &Qinv, &Rinv, noise, !IsNil(G), est0, 0}, nil
 }
 
 // Information defines a vanilla kalman filter. Use NewVanilla to initialize.
@@ -75,17 +74,13 @@ func (kf *Information) Update(measurement, control *mat64.Vector) (est Estimate,
 
 	// zMat computation
 	var zMat mat64.Dense
-	zMat.Mul(kf.Finv, kf.prevEst.infoState)
-	zMat.Mul(kf.Finv, &zMat)
+	zMat.Mul(kf.Finv, kf.prevEst.infoMat)
+	zMat.Mul(kf.Finv.T(), &zMat)
 
 	// Prediction step.
 	// \hat{i}_{k+1}^{-}
 	var zkzkqi mat64.Dense
-	/*
-		zr, zc := zMat.Dims()
-		qr, qc := kf.Qinv.Dims()
-		fmt.Printf("%d!=%d? \t %d!=%d?", zr, qr, zc, qc)
-	*/
+
 	zkzkqi.Add(&zMat, kf.Qinv)
 	zkzkqi.Mul(&zMat, &zkzkqi)
 	rzk, _ := zkzkqi.Dims()
@@ -125,22 +120,27 @@ func (kf *Information) Update(measurement, control *mat64.Vector) (est Estimate,
 	*/
 
 	// Measurement update
+	var HTR mat64.Dense
+	if rR, cR := kf.Rinv.Dims(); rR == 1 && cR == 1 {
+		// Rinv is a scalar and mat64 won't be happy.
+		HTR.Scale(kf.Rinv.At(0, 0), kf.H.T())
+	} else {
+		HTR.Mul(kf.H.T(), kf.Rinv)
+	}
+
 	var ikp1Plus mat64.Vector
-	ikp1Plus.MulVec(kf.Rinv, measurement)
-	ikp1Plus.MulVec(kf.H.T(), &ikp1Plus)
+	ikp1Plus.MulVec(&HTR, measurement)
 	ikp1Plus.AddVec(&ikp1Plus, &iKp1Minus)
 
 	// I_{k+1}^{+}
 	var Ikp1Plus mat64.Dense
-	Ikp1Plus.Mul(kf.Rinv, kf.H)
-	Ikp1Plus.Mul(kf.H.T(), &Ikp1Plus)
+	Ikp1Plus.Mul(&HTR, kf.H)
 	Ikp1Plus.Add(kf.prevEst.infoMat, &Ikp1Plus)
 
 	Ikp1PlusSym, err := AsSymDense(&Ikp1Plus)
 	if err != nil {
 		panic(err)
 	}
-
 	est = NewInformationEstimate(&ikp1Plus, measurement, Ikp1PlusSym)
 	kf.prevEst = est.(InformationEstimate)
 	kf.step++
@@ -171,6 +171,8 @@ func (e InformationEstimate) IsWithin2σ() bool {
 // State implements the Estimate interface.
 func (e InformationEstimate) State() *mat64.Vector {
 	if e.cachedState == nil {
+		rState, _ := e.infoState.Dims()
+		e.cachedState = mat64.NewVector(rState, nil)
 		e.cachedState.MulVec(e.Covariance(), e.infoState)
 	}
 	return e.cachedState
@@ -182,26 +184,31 @@ func (e InformationEstimate) Measurement() *mat64.Vector {
 }
 
 // Covariance implements the Estimate interface.
+// *NOTE:* With the IF, one cannot view the covariance matrix until there is enough information.
 func (e InformationEstimate) Covariance() mat64.Symmetric {
 	if e.cachedCovar == nil {
+		rCovar, _ := e.infoMat.Dims()
+		e.cachedCovar = mat64.NewSymDense(rCovar, nil)
 		infoMat := mat64.DenseCopyOf(e.infoMat)
 		var tmpCovar mat64.Dense
 		err := tmpCovar.Inverse(infoMat)
 		if err != nil {
-			panic(fmt.Errorf("information matrix is not invertible: %s", err))
+			fmt.Printf("gokalman: InformationEstimate: information matrix is not (yet) invertible: %s\n", err)
+		} else {
+			cachedCovar, err := AsSymDense(&tmpCovar)
+			if err != nil {
+				fmt.Printf("gokalman: InformationEstimate: covariance matrix: %s\n", err)
+			} else {
+				e.cachedCovar = cachedCovar
+			}
 		}
-		cachedCovar, err := AsSymDense(&tmpCovar)
-		if err != nil {
-			panic(fmt.Errorf("covariance matrix %s", err))
-		}
-		e.cachedCovar = cachedCovar
 	}
 	return e.cachedCovar
 }
 
-// Gain the Estimate interface.
+// Gain the Estimate interface. Note that there is no Gain in the Information filter.
 func (e InformationEstimate) Gain() mat64.Matrix {
-	return nil
+	return mat64.NewDense(1, 1, nil)
 }
 
 func (e InformationEstimate) String() string {
@@ -213,6 +220,6 @@ func (e InformationEstimate) String() string {
 }
 
 // NewInformationEstimate initializes a new InformationEstimate.
-func NewInformationEstimate(infoState, meas *mat64.Vector, infoMat mat64.Symmetric) *InformationEstimate {
-	return &InformationEstimate{infoState, meas, infoMat, nil, nil}
+func NewInformationEstimate(infoState, meas *mat64.Vector, infoMat mat64.Symmetric) InformationEstimate {
+	return InformationEstimate{infoState, meas, infoMat, nil, nil}
 }

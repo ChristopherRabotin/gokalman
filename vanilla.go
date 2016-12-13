@@ -75,12 +75,14 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 	} else {
 		xKp1Minus = xKp1Minus1
 	}
+	fmt.Printf("x-=%v\n", mat64.Formatted(&xKp1Minus, mat64.Prefix("   ")))
 
 	// P_{k+1}^{-}
 	var Pkp1Minus, FP, FPFt mat64.Dense
 	FP.Mul(kf.F, kf.prevEst.Covariance())
 	FPFt.Mul(&FP, kf.F.T())
 	Pkp1Minus.Add(&FPFt, kf.Noise.ProcessMatrix())
+	fmt.Printf("P-=%v\n", mat64.Formatted(&Pkp1Minus, mat64.Prefix("   ")))
 
 	// Compute estimated measurement update \hat{y}_{k}
 	var ykHat mat64.Vector
@@ -101,28 +103,31 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 	// xhatkkp1_minus + Kkkp1*(ykkp1 - Hkkp1*xhatkkp1_minus)
 	var xkp1Plus, xkp1Plus1, xkp1Plus2 mat64.Vector
 	xkp1Plus1.MulVec(kf.H, &xKp1Minus)
-	xkp1Plus1.ScaleVec(-1.0, &xkp1Plus1)
-	xkp1Plus1.AddVec(measurement, &xkp1Plus1)
+	xkp1Plus1.SubVec(measurement, &xkp1Plus1)
 	if rX, _ := xkp1Plus1.Dims(); rX == 1 {
 		// xkp1Plus1 is a scalar and mat64 won't be happy.
-		// The following line will panic if gain unexpectedly has more than one column.
-		Kkp1.Scale(xkp1Plus1.At(0, 0), &Kkp1)
-		rGain, _ := Kkp1.Dims()
-		xkp1Plus2.AddVec(Kkp1.ColView(0), mat64.NewVector(rGain, nil))
+		var sKkp1 mat64.Dense
+		sKkp1.Scale(xkp1Plus1.At(0, 0), &Kkp1)
+		rGain, _ := sKkp1.Dims()
+		xkp1Plus2.AddVec(sKkp1.ColView(0), mat64.NewVector(rGain, nil))
 	} else {
 		xkp1Plus2.MulVec(&Kkp1, &xkp1Plus1)
 	}
 	xkp1Plus.AddVec(&xKp1Minus, &xkp1Plus2)
 	xkp1Plus.AddVec(&xkp1Plus, kf.Noise.Process(kf.step))
+	fmt.Printf("x+=%v\n", mat64.Formatted(&xkp1Plus, mat64.Prefix("   ")))
 
 	// Pa_kp1_plus = (eye(4) - Kkp1*H)*P_kp1_minus;
-	var Pkp1Plus, Kkp1H mat64.Dense
-	//var Pkp1PlusSym mat64.SymDense
+	var Pkp1Plus, Pkp1Plus1, Kkp1H, Kkp1R, Kkp1RKkp1 mat64.Dense
 	Kkp1H.Mul(&Kkp1, kf.H)
-	Kkp1H.Scale(-1.0, &Kkp1H)
 	n, _ := Kkp1H.Dims()
-	Kkp1H.Add(Identity(n), &Kkp1H)
-	Pkp1Plus.Mul(&Kkp1H, &Pkp1Minus)
+	Kkp1H.Sub(Identity(n), &Kkp1H)
+	Pkp1Plus1.Mul(&Kkp1H, &Pkp1Minus)
+	Pkp1Plus.Mul(&Pkp1Plus1, Kkp1H.T())
+	Kkp1R.Mul(&Kkp1, kf.Noise.MeasurementMatrix())
+	Kkp1RKkp1.Mul(&Kkp1R, Kkp1.T())
+	Pkp1Plus.Add(&Pkp1Plus, &Kkp1RKkp1)
+	fmt.Printf("P+=%v\n", mat64.Formatted(&Pkp1Plus, mat64.Prefix("   ")))
 
 	Pkp1PlusSym, err := AsSymDense(&Pkp1Plus)
 	if err != nil {

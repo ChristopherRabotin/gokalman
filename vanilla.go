@@ -66,7 +66,6 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 	}
 
 	// Prediction step.
-	// \hat{x}_{k+1}^{-}
 	var xKp1Minus, xKp1Minus1, xKp1Minus2 mat64.Vector
 	xKp1Minus1.MulVec(kf.F, kf.prevEst.State())
 	if kf.needCtrl {
@@ -75,14 +74,12 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 	} else {
 		xKp1Minus = xKp1Minus1
 	}
-	fmt.Printf("x-=%v\n", mat64.Formatted(&xKp1Minus, mat64.Prefix("   ")))
 
 	// P_{k+1}^{-}
 	var Pkp1Minus, FP, FPFt mat64.Dense
 	FP.Mul(kf.F, kf.prevEst.Covariance())
 	FPFt.Mul(&FP, kf.F.T())
 	Pkp1Minus.Add(&FPFt, kf.Noise.ProcessMatrix())
-	fmt.Printf("P-=%v\n", mat64.Formatted(&Pkp1Minus, mat64.Prefix("   ")))
 
 	// Compute estimated measurement update \hat{y}_{k}
 	var ykHat mat64.Vector
@@ -100,7 +97,6 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 	Kkp1.Mul(&PHt, &HPHt)
 
 	// Measurement update
-	// xhatkkp1_minus + Kkkp1*(ykkp1 - Hkkp1*xhatkkp1_minus)
 	var xkp1Plus, xkp1Plus1, xkp1Plus2 mat64.Vector
 	xkp1Plus1.MulVec(kf.H, &xKp1Minus)
 	xkp1Plus1.SubVec(measurement, &xkp1Plus1)
@@ -115,9 +111,7 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 	}
 	xkp1Plus.AddVec(&xKp1Minus, &xkp1Plus2)
 	xkp1Plus.AddVec(&xkp1Plus, kf.Noise.Process(kf.step))
-	fmt.Printf("x+=%v\n", mat64.Formatted(&xkp1Plus, mat64.Prefix("   ")))
 
-	// Pa_kp1_plus = (eye(4) - Kkp1*H)*P_kp1_minus;
 	var Pkp1Plus, Pkp1Plus1, Kkp1H, Kkp1R, Kkp1RKkp1 mat64.Dense
 	Kkp1H.Mul(&Kkp1, kf.H)
 	n, _ := Kkp1H.Dims()
@@ -127,7 +121,6 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 	Kkp1R.Mul(&Kkp1, kf.Noise.MeasurementMatrix())
 	Kkp1RKkp1.Mul(&Kkp1R, Kkp1.T())
 	Pkp1Plus.Add(&Pkp1Plus, &Kkp1RKkp1)
-	fmt.Printf("P+=%v\n", mat64.Formatted(&Pkp1Plus, mat64.Prefix("   ")))
 
 	Pkp1PlusSym, err := AsSymDense(&Pkp1Plus)
 	if err != nil {

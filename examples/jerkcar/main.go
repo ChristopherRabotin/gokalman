@@ -110,7 +110,6 @@ func main() {
 
 	for k, yaccK := range yacc {
 		var measurement *mat64.Vector
-		fmt.Printf("\n---- k = %d ----\n", k)
 
 		if (k+1)%10 == 0 {
 			// Switch to using H1

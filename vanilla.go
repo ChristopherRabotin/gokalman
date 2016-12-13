@@ -2,6 +2,7 @@ package gokalman
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/gonum/matrix/mat64"
 )
@@ -159,7 +160,8 @@ type VanillaEstimate struct {
 // IsWithin2σ returns whether the estimation is within the 2σ bounds.
 func (e VanillaEstimate) IsWithin2σ() bool {
 	for i := 0; i < e.state.Len(); i++ {
-		if e.state.At(i, 0) > e.covar.At(i, i) || e.state.At(i, 0) < -e.covar.At(i, i) {
+		twoσ := 2 * math.Sqrt(e.covar.At(i, i))
+		if e.state.At(i, 0) > twoσ || e.state.At(i, 0) < -twoσ {
 			return false
 		}
 	}

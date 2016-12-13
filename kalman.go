@@ -19,6 +19,5 @@ type Estimate interface {
 	State() *mat64.Vector        // Returns \hat{x}_{k+1}^{+}
 	Measurement() *mat64.Vector  // Returns \hat{y}_{k}^{+}
 	Covariance() mat64.Symmetric // Return P_{k+1}^{+}
-	Gain() mat64.Matrix          // Returns the gain used for the given step.
 	String() string              // Must implement the stringer interface.
 }

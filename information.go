@@ -2,6 +2,7 @@ package gokalman
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/gonum/floats"
 	"github.com/gonum/matrix/mat64"
@@ -133,7 +134,6 @@ func (kf *Information) Update(measurement, control *mat64.Vector) (est Estimate,
 	var zk mat64.Dense
 	zk.Mul(kf.prevEst.infoMat, kf.Finv)
 	zk.Mul(kf.Finv.T(), &zk)
-	fmt.Printf("zk=%v\n", mat64.Formatted(&zk, mat64.Prefix("  ")))
 
 	// Prediction step.
 	// \hat{i}_{k+1}^{-}
@@ -154,13 +154,11 @@ func (kf *Information) Update(measurement, control *mat64.Vector) (est Estimate,
 	var iKp1MinusM mat64.Dense
 	iKp1MinusM.Add(Identity(rzk), &zkzkqi)
 	iKp1Minus.MulVec(&iKp1MinusM, &iKp1Minus)
-	fmt.Printf("i-=%v\n", mat64.Formatted(&iKp1Minus, mat64.Prefix("   ")))
 
 	// I_{k+1}^{-}
 	var Ikp1Minus mat64.Dense
 	Ikp1Minus.Mul(&zkzkqi, zk.T())
 	Ikp1Minus.Add(&zk, &Ikp1Minus)
-	fmt.Printf("I-=%v\n", mat64.Formatted(&Ikp1Minus, mat64.Prefix("   ")))
 
 	var ykHat mat64.Vector
 	ykHat.MulVec(kf.H, kf.prevEst.State())
@@ -178,7 +176,6 @@ func (kf *Information) Update(measurement, control *mat64.Vector) (est Estimate,
 	var ikp1Plus mat64.Vector
 	ikp1Plus.MulVec(&HTR, measurement)
 	ikp1Plus.AddVec(&ikp1Plus, &iKp1Minus)
-	fmt.Printf("i+=%v\n", mat64.Formatted(&ikp1Plus, mat64.Prefix("   ")))
 
 	// I_{k+1}^{+}
 	var Ikp1Plus mat64.Dense
@@ -186,7 +183,6 @@ func (kf *Information) Update(measurement, control *mat64.Vector) (est Estimate,
 	Ikp1Plus.Add(&Ikp1Minus, &Ikp1Plus)
 
 	Ikp1PlusSym, err := AsSymDense(&Ikp1Plus)
-	fmt.Printf("I+=%v\n", mat64.Formatted(Ikp1PlusSym, mat64.Prefix("   ")))
 	if err != nil {
 		panic(err)
 	}
@@ -210,7 +206,8 @@ func (e InformationEstimate) IsWithin2σ() bool {
 	state := e.State()
 	covar := e.Covariance()
 	for i := 0; i < state.Len(); i++ {
-		if state.At(i, 0) > covar.At(i, i) || state.At(i, 0) < -covar.At(i, i) {
+		twoσ := 2 * math.Sqrt(covar.At(i, i))
+		if state.At(i, 0) > twoσ || state.At(i, 0) < -twoσ {
 			return false
 		}
 	}
@@ -243,29 +240,20 @@ func (e InformationEstimate) Covariance() mat64.Symmetric {
 			return e.cachedCovar
 		}
 		infoMat := mat64.DenseCopyOf(e.infoMat)
-		fmt.Printf("ie=%v\n", mat64.Formatted(e.infoMat, mat64.Prefix("   ")))
-		fmt.Printf("ic=%v\n", mat64.Formatted(infoMat, mat64.Prefix("   ")))
 		var tmpCovar mat64.Dense
 		err := tmpCovar.Inverse(infoMat)
 		if err != nil {
 			fmt.Printf("gokalman: InformationEstimate: information matrix is not (yet) invertible: %s\n", err)
 			return e.cachedCovar
 		}
-		fmt.Printf("iv=%v\n", mat64.Formatted(&tmpCovar, mat64.Prefix("   ")))
 		cachedCovar, err := AsSymDense(&tmpCovar)
 		if err != nil {
 			fmt.Printf("gokalman: InformationEstimate: covariance matrix: %s\n", err)
 			return e.cachedCovar
 		}
 		e.cachedCovar = cachedCovar
-
 	}
 	return e.cachedCovar
-}
-
-// Gain the Estimate interface. Note that there is no Gain in the Information filter.
-func (e InformationEstimate) Gain() mat64.Matrix {
-	return mat64.NewDense(1, 1, nil)
 }
 
 func (e InformationEstimate) String() string {

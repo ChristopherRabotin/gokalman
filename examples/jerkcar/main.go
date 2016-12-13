@@ -112,9 +112,9 @@ func main() {
 	}
 
 	// Information KF
-	i0 := mat64.NewVector(4, nil)
-	I0 := mat64.NewSymDense(4, nil)
-	infoKF, err := gokalman.NewInformation(i0, I0, F, G, H2, noise2)
+	/*i0 := mat64.NewVector(4, nil)
+	I0 := mat64.NewSymDense(4, nil)*/
+	infoKF, err := gokalman.NewInformationFromState(x0, Covar0, F, G, H2, noise2)
 	if err != nil {
 		panic(err)
 	}

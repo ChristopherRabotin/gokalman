@@ -5,6 +5,11 @@ import "github.com/gonum/matrix/mat64"
 // KalmanFilter defines a general KF.
 type KalmanFilter interface {
 	Update(measurement, control *mat64.Vector) (Estimate, error)
+	SetF(mat64.Matrix)
+	SetG(mat64.Matrix)
+	SetH(mat64.Matrix)
+	SetNoise(Noise)
+	String() string
 }
 
 // Estimate is returned from Update() in any KF.

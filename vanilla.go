@@ -51,6 +51,26 @@ func (kf *Vanilla) String() string {
 	return fmt.Sprintf("F=%v\nG=%v\nH=%v\n%s", mat64.Formatted(kf.F, mat64.Prefix("  ")), mat64.Formatted(kf.G, mat64.Prefix("  ")), mat64.Formatted(kf.H, mat64.Prefix("  ")), kf.Noise)
 }
 
+// SetF updates the F matrix.
+func (kf *Vanilla) SetF(F mat64.Matrix) {
+	kf.F = F
+}
+
+// SetG updates the F matrix.
+func (kf *Vanilla) SetG(G mat64.Matrix) {
+	kf.G = G
+}
+
+// SetH updates the F matrix.
+func (kf *Vanilla) SetH(H mat64.Matrix) {
+	kf.H = H
+}
+
+// SetNoise updates the Noise.
+func (kf *Vanilla) SetNoise(n Noise) {
+	kf.Noise = n
+}
+
 // Update implements the KalmanFilter interface.
 func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err error) {
 	if err = checkMatDims(control, kf.G, "control (u)", "G", rows2cols); kf.needCtrl && err != nil {

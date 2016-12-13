@@ -35,6 +35,7 @@ func TestInformation(t *testing.T) {
 	i0 := mat64.NewVector(3, nil)
 	I0 := mat64.NewSymDense(3, nil)
 	kf, err := NewInformation(i0, I0, F, G, H, noise)
+	t.Logf("%s", kf)
 	if err != nil {
 		t.Fatal(err)
 	}

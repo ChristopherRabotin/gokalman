@@ -62,6 +62,34 @@ type Information struct {
 	step     int
 }
 
+func (kf *Information) String() string {
+	return fmt.Sprintf("inv(F)=%v\nG=%v\nH=%v\n%s", mat64.Formatted(kf.Finv, mat64.Prefix("      ")), mat64.Formatted(kf.G, mat64.Prefix("  ")), mat64.Formatted(kf.H, mat64.Prefix("  ")), kf.Noise)
+}
+
+// SetF updates the F matrix.
+func (kf *Information) SetF(F mat64.Matrix) {
+	var Finv mat64.Dense
+	if err := Finv.Inverse(mat64.DenseCopyOf(F)); err != nil {
+		panic(fmt.Errorf("F not invertible: %s", err))
+	}
+	kf.Finv = &Finv
+}
+
+// SetG updates the F matrix.
+func (kf *Information) SetG(G mat64.Matrix) {
+	kf.G = G
+}
+
+// SetH updates the F matrix.
+func (kf *Information) SetH(H mat64.Matrix) {
+	kf.H = H
+}
+
+// SetNoise updates the Noise.
+func (kf *Information) SetNoise(n Noise) {
+	kf.Noise = n
+}
+
 // Update implements the KalmanFilter interface.
 func (kf *Information) Update(measurement, control *mat64.Vector) (est Estimate, err error) {
 	if err = checkMatDims(control, kf.G, "control (u)", "G", rows2cols); kf.needCtrl && err != nil {

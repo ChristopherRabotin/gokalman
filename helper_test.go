@@ -6,6 +6,20 @@ import (
 	"github.com/gonum/matrix/mat64"
 )
 
+func Robot1DMatrices() (F, G mat64.Matrix, Δt float64) {
+	Δt = 0.1
+	F = mat64.NewDense(2, 2, []float64{1, Δt, 0, 1})
+	G = mat64.NewDense(2, 1, []float64{0.5 * Δt * Δt, Δt})
+	return
+}
+
+func Midterm2Matrices() (F, G mat64.Matrix, Δt float64) {
+	Δt = 0.01
+	F = mat64.NewDense(3, 3, []float64{1, 0.01, 5e-5, 0, 1, 0.01, 0, 0, 1})
+	G = mat64.NewDense(3, 1, []float64{(5e-7) / 3, 5e-5, 0.01})
+	return
+}
+
 func assertPanic(t *testing.T, f func()) {
 	defer func() {
 		if r := recover(); r == nil {

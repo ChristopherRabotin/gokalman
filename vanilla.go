@@ -1,11 +1,8 @@
 package gokalman
 
-// TODO: Get rid of Q and R and instead one should be able to pass the exact w and v (as seen in class today).
-// Also, if Q and R and provided, then you gonum/stat to generate noise, but that, in "reality" only happens when
-// you are simulating the KF not the actual application of the KF.
-
 import (
 	"fmt"
+	"math"
 
 	"github.com/gonum/matrix/mat64"
 )
@@ -55,9 +52,29 @@ func (kf *Vanilla) String() string {
 	return fmt.Sprintf("F=%v\nG=%v\nH=%v\n%s", mat64.Formatted(kf.F, mat64.Prefix("  ")), mat64.Formatted(kf.G, mat64.Prefix("  ")), mat64.Formatted(kf.H, mat64.Prefix("  ")), kf.Noise)
 }
 
+// SetF updates the F matrix.
+func (kf *Vanilla) SetF(F mat64.Matrix) {
+	kf.F = F
+}
+
+// SetG updates the F matrix.
+func (kf *Vanilla) SetG(G mat64.Matrix) {
+	kf.G = G
+}
+
+// SetH updates the F matrix.
+func (kf *Vanilla) SetH(H mat64.Matrix) {
+	kf.H = H
+}
+
+// SetNoise updates the Noise.
+func (kf *Vanilla) SetNoise(n Noise) {
+	kf.Noise = n
+}
+
 // Update implements the KalmanFilter interface.
 func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err error) {
-	if err = checkMatDims(control, kf.G, "control (u)", "G", rows2cols); err != nil {
+	if err = checkMatDims(control, kf.G, "control (u)", "G", rows2cols); kf.needCtrl && err != nil {
 		return nil, err
 	}
 
@@ -143,7 +160,8 @@ type VanillaEstimate struct {
 // IsWithin2σ returns whether the estimation is within the 2σ bounds.
 func (e VanillaEstimate) IsWithin2σ() bool {
 	for i := 0; i < e.state.Len(); i++ {
-		if e.state.At(i, 0) > e.covar.At(i, i) || e.state.At(i, 0) < -1*e.covar.At(i, i) {
+		twoσ := 2 * math.Sqrt(e.covar.At(i, i))
+		if e.state.At(i, 0) > twoσ || e.state.At(i, 0) < -twoσ {
 			return false
 		}
 	}

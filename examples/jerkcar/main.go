@@ -69,12 +69,13 @@ func main() {
 
 	// Prepare the estimate channel.
 	var wg sync.WaitGroup
-	estimateChan := make(chan (gokalman.Estimate), 1)
-	go func() {
+	vanillaEstChan := make(chan (gokalman.Estimate), 1)
+	informationEstChan := make(chan (gokalman.Estimate), 1)
+	processEst := func(fn string, estChan chan (gokalman.Estimate)) {
 		wg.Add(1)
-		ce, _ := gokalman.NewCSVExporter([]string{"position", "velocity", "acceleration", "bias"}, ".", "vanilla.csv")
+		ce, _ := gokalman.NewCSVExporter([]string{"position", "velocity", "acceleration", "bias"}, ".", fn+".csv")
 		for {
-			est, more := <-estimateChan
+			est, more := <-estChan
 			if !more {
 				ce.Close()
 				wg.Done()
@@ -82,7 +83,9 @@ func main() {
 			}
 			ce.Write(est)
 		}
-	}()
+	}
+	go processEst("vanilla", vanillaEstChan)
+	go processEst("information", informationEstChan)
 
 	// DT system
 	//Δt := 0.01
@@ -102,34 +105,54 @@ func main() {
 	// Vanilla KF
 	x0 := mat64.NewVector(4, []float64{0, 0.45, 0, 0.09})
 	Covar0 := gokalman.ScaledIdentity(4, 10)
-	kf, err := gokalman.NewVanilla(x0, Covar0, F, G, H1, noise1)
-	fmt.Printf("Vanilla: \n%s", kf)
+	vanillaKF, err := gokalman.NewVanilla(x0, Covar0, F, G, H2, noise2)
+	fmt.Printf("Vanilla: \n%s", vanillaKF)
 	if err != nil {
 		panic(err)
 	}
 
-	for k, yaccK := range yacc {
-		var measurement *mat64.Vector
-
-		if (k+1)%10 == 0 {
-			// Switch to using H1
-			kf.H = H1
-			kf.Noise = noise1
-			measurement = mat64.NewVector(2, []float64{ypos[k], yaccK})
-		} else {
-			kf.H = H2
-			kf.Noise = noise2
-			measurement = mat64.NewVector(1, []float64{yaccK})
-		}
-		newEstimate, err := kf.Update(measurement, control[k])
-		if err != nil {
-			panic(fmt.Errorf("k=%d %s", k, err))
-		}
-
-		estimateChan <- newEstimate
-
+	// Information KF
+	i0 := mat64.NewVector(4, nil)
+	I0 := mat64.NewSymDense(4, nil)
+	infoKF, err := gokalman.NewInformation(i0, I0, F, G, H2, noise2)
+	if err != nil {
+		panic(err)
 	}
-	close(estimateChan)
+
+	filters := []gokalman.KalmanFilter{vanillaKF, infoKF}
+	chans := [](chan gokalman.Estimate){vanillaEstChan, informationEstChan}
+
+	for k, yaccK := range yacc {
+		for i, kf := range filters {
+			var measurement *mat64.Vector
+			kfChan := chans[i]
+
+			if (k+1)%10 == 0 {
+				// Switch to using H1
+				kf.SetH(H1)
+				kf.SetNoise(noise1)
+				measurement = mat64.NewVector(2, []float64{ypos[k], yaccK})
+			} else {
+				measurement = mat64.NewVector(1, []float64{yaccK})
+			}
+			est, err := kf.Update(measurement, control[k])
+			kfChan <- est
+			if err != nil {
+				panic(fmt.Errorf("k=%d %s", k, err))
+			}
+
+			if (k+1)%10 == 0 {
+				// Reset noise.
+				kf.SetH(H2)
+				kf.SetNoise(noise2)
+			}
+		}
+	}
+
+	// Close all channels
+	for _, kfChan := range chans {
+		close(kfChan)
+	}
 
 	wg.Wait()
 }

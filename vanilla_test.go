@@ -76,5 +76,36 @@ func TestVanilla(t *testing.T) {
 	if _, err = kf.Update(mat64.NewVector(2, nil), mat64.NewVector(1, nil)); err == nil {
 		t.Fatal("using an invalid measurement vector does not fail")
 	}
+}
+
+func TestVanillaMultiD(t *testing.T) {
+	// DT system
+	Δt := 0.01
+	F := mat64.NewDense(4, 4, []float64{1, 0.01, 5e-5, 0, 0, 1, 0.01, 0, 0, 0, 1, 0, 0, 0, 0, 1.0005})
+	G := mat64.NewDense(4, 1, []float64{(5e-7) / 3, 5e-5, 0.01, 0})
+	H := mat64.NewDense(2, 4, []float64{1, 0, 0, 0, 0, 0, 1, 1})
+	// Noise
+	Q := mat64.NewSymDense(4, []float64{2.5e-15, 6.25e-13, (25e-11) / 3, 0, 6.25e-13, (5e-7) / 3, 2.5e-8, 0, (25e-11) / 3, 2.5e-8, 5e-6, 0, 0, 0, 0, 5.302e-4})
+	R := mat64.NewSymDense(2, []float64{0.005 / Δt, 0, 0, 0.0005 / Δt})
+
+	// Vanilla KF
+	noise := NewAWGN(Q, R)
+	x0 := mat64.NewVector(4, []float64{0, 0.35, 0, 0})
+	Covar0 := ScaledIdentity(4, 10)
+	kf, err := NewVanilla(x0, Covar0, F, G, H, noise)
+	t.Logf("%s", kf)
+	if err != nil {
+		panic(err)
+	}
+
+	measurements := []*mat64.Vector{mat64.NewVector(2, []float64{-0.80832, -0.011207}), mat64.NewVector(2, []float64{0.39265, 0.060617})}
+
+	for _, measurement := range measurements {
+		newEstimate, err := kf.Update(measurement, mat64.NewVector(1, nil))
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Logf("%s\n", newEstimate)
+	}
 
 }

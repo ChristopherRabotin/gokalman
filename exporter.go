@@ -2,6 +2,7 @@ package gokalman
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"strings"
 	"time"
@@ -34,7 +35,7 @@ func (e CSVExporter) Write(est Estimate) error {
 	vals := make([]string, r*3)
 	for i := 0; i < r*3; i += 3 {
 		vals[i] = fmt.Sprintf("%f", est.State().At(i/3, 0))
-		covar := est.Covariance().At(i/3, i/3)
+		covar := 2 * math.Sqrt(est.Covariance().At(i/3, i/3))
 		vals[i+1] = fmt.Sprintf("%f", covar)
 		vals[i+2] = fmt.Sprintf("%f", -1*covar)
 	}

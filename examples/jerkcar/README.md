@@ -8,5 +8,5 @@ This example also shows how straight forward it is to use this package.
 # Example graph
 This plot uses the data from `temp.csv`, so feel free to inspect that.
 
-Note that the position is not correctly estimated.
+Note that the estimate is not correct. This is **expected** in this example.
 ![JerkCar example](./vanillaKF.png)

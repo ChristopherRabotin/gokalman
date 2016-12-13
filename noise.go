@@ -15,12 +15,23 @@ type Noise interface {
 	Measurement(k int) *mat64.Vector    // Returns the measurement noise w at step k
 	ProcessMatrix() mat64.Symmetric     // Returns the process noise matrix Q
 	MeasurementMatrix() mat64.Symmetric // Returns the measurement noise matrix R
+	String() string                     // Stringer interface implementation
 }
 
 // Noiseless is noiseless and implements the Noise interface.
 type Noiseless struct {
-	processSize     int
-	measurementSize int
+	Q, R                         mat64.Symmetric
+	processSize, measurementSize int
+}
+
+// NewNoiseless creates new AWGN noise from the provided Q and R.
+func NewNoiseless(Q, R mat64.Symmetric) *Noiseless {
+	if Q == nil || R == nil {
+		panic("Q and R must be specified")
+	}
+	rQ, _ := Q.Dims()
+	rR, _ := R.Dims()
+	return &Noiseless{Q, R, rQ, rR}
 }
 
 // Process returns a vector of the correct size.
@@ -35,12 +46,17 @@ func (n Noiseless) Measurement(k int) *mat64.Vector {
 
 // ProcessMatrix implements the Noise interface.
 func (n Noiseless) ProcessMatrix() mat64.Symmetric {
-	return mat64.NewSymDense(n.processSize, nil)
+	return n.Q
 }
 
 // MeasurementMatrix implements the Noise interface.
 func (n Noiseless) MeasurementMatrix() mat64.Symmetric {
-	return mat64.NewSymDense(n.measurementSize, nil)
+	return n.R
+}
+
+// String implements the Stringer interface.
+func (n Noiseless) String() string {
+	return fmt.Sprintf("Noiseless{\nQ=%v\nR=%v}\n", mat64.Formatted(n.Q, mat64.Prefix("  ")), mat64.Formatted(n.R, mat64.Prefix("  ")))
 }
 
 // BatchNoise implements the Noise interface.
@@ -75,6 +91,11 @@ func (n BatchNoise) ProcessMatrix() mat64.Symmetric {
 func (n BatchNoise) MeasurementMatrix() mat64.Symmetric {
 	rows, _ := n.measurement[0].Dims()
 	return mat64.NewSymDense(rows, nil)
+}
+
+// String implements the Stringer interface.
+func (n BatchNoise) String() string {
+	return "BatchNoise"
 }
 
 // AWGN implements the Noise interface and generates an Additive white Gaussian noise.
@@ -120,4 +141,9 @@ func (n AWGN) Process(k int) *mat64.Vector {
 func (n AWGN) Measurement(k int) *mat64.Vector {
 	r := n.measurement.Rand(nil)
 	return mat64.NewVector(len(r), r)
+}
+
+// String implements the Stringer interface.
+func (n AWGN) String() string {
+	return fmt.Sprintf("AWGN{\nQ=%v\nR=%v}\n", mat64.Formatted(n.Q, mat64.Prefix("  ")), mat64.Formatted(n.R, mat64.Prefix("  ")))
 }

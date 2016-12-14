@@ -159,9 +159,8 @@ func (kf *SquareRoot) Update(measurement, control *mat64.Vector) (est Estimate, 
 	SktHt.Mul(sKp1Minus.T(), kf.H.T())
 	shRr, shRc := SktHt.Dims()
 
-	//XXX: The following dimensions differ from the book and the lecture, but otherwise it doesn't fit!
-	// Also note the transpose because SktHt is transposed in the Δ matrix.
-	Δ := mat64.NewDense(sRr+shRr, sRc+shRc, nil)
+	pMeas, _ := measurement.Dims()
+	Δ := mat64.NewDense(nState+pMeas, nState+pMeas, nil)
 	ΔrMax, ΔcMax := Δ.Dims()
 	// Note that we populate by *column* for simpler logic.
 	for Δc := 0; Δc < ΔcMax; Δc++ {
@@ -193,18 +192,12 @@ func (kf *SquareRoot) Update(measurement, control *mat64.Vector) (est Estimate, 
 	UΔR, UΔC := UΔ.Dims()
 	// Note that Skp1PlusT is transposed, hence the change of indices.
 	Skp1PlusT := UΔ.View(UΔR-skC, UΔC-skR, skC, skR)
-	mMeas, _ := measurement.Dims()
-	SyyT := UΔ.View(0, 0, mMeas, mMeas)
-	Wkp1PlusT := UΔ.View(0, mMeas, UΔR-skC, UΔC-mMeas)
-	NilMat := UΔ.View(UΔR-skR, 0, skR, skC)
-	fmt.Printf("UΔR=%d\tUΔC=%d\tskR=%d\tskC=%d\t\n", UΔC, UΔC, skR, skC)
+	SyyT := UΔ.View(0, 0, pMeas, pMeas)
+	Wkp1PlusT := UΔ.View(0, pMeas, UΔR-skC, UΔC-pMeas)
 	fmt.Printf("UΔ=%v\n", mat64.Formatted(&UΔ, mat64.Prefix("   ")))
 	fmt.Printf("Sy=%v\n", mat64.Formatted(SyyT, mat64.Prefix("   ")))
 	fmt.Printf("Wt=%v\n", mat64.Formatted(Wkp1PlusT, mat64.Prefix("   ")))
 	fmt.Printf("St=%v\n", mat64.Formatted(Skp1PlusT, mat64.Prefix("   ")))
-	if !IsNil(NilMat) {
-		panic("probably extracted the wrong matrix")
-	}
 
 	var Skp1Plus, Syy, Wkp1Plus mat64.Dense
 	Skp1Plus.Clone(Skp1PlusT.T())
@@ -217,7 +210,7 @@ func (kf *SquareRoot) Update(measurement, control *mat64.Vector) (est Estimate, 
 		return nil, fmt.Errorf("Syy is not invertible: %s\nSyy=%v", invErr, mat64.Formatted(&SyyInv, mat64.Prefix("    ")))
 	}
 	var Kkp1 mat64.Dense
-	if mMeas == 1 {
+	if pMeas == 1 {
 		// Then SyyInv is just a scalar.
 		Kkp1.Scale(SyyInv.At(0, 0), &Wkp1Plus)
 	} else {

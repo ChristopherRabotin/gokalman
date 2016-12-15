@@ -80,8 +80,8 @@ func TestSquareRootMultiD(t *testing.T) {
 	// Noise
 	Q := mat64.NewSymDense(4, []float64{2.5e-15, 6.25e-13, (25e-11) / 3, 0, 6.25e-13, (5e-7) / 3, 2.5e-8, 0, (25e-11) / 3, 2.5e-8, 5e-6, 0, 0, 0, 0, 5.302e-4})
 	R := mat64.NewSymDense(2, []float64{0.005 / Δt, 0, 0, 0.0005 / Δt})
-
 	noise := NewAWGN(Q, R)
+
 	x0 := mat64.NewVector(4, []float64{0, 0.35, 0, 0})
 	Covar0 := ScaledIdentity(4, 10)
 	kf, err := NewSquareRoot(x0, Covar0, F, G, H, noise)

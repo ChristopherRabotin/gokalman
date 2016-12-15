@@ -71,6 +71,7 @@ func main() {
 	var wg sync.WaitGroup
 	vanillaEstChan := make(chan (gokalman.Estimate), 1)
 	informationEstChan := make(chan (gokalman.Estimate), 1)
+	sqrtEstChan := make(chan (gokalman.Estimate), 1)
 	processEst := func(fn string, estChan chan (gokalman.Estimate)) {
 		wg.Add(1)
 		ce, _ := gokalman.NewCSVExporter([]string{"position", "velocity", "acceleration", "bias"}, ".", fn+".csv")
@@ -86,6 +87,7 @@ func main() {
 	}
 	go processEst("vanilla", vanillaEstChan)
 	go processEst("information", informationEstChan)
+	go processEst("sqrt", sqrtEstChan)
 
 	// DT system
 	//Δt := 0.01
@@ -119,8 +121,14 @@ func main() {
 		panic(err)
 	}
 
-	filters := []gokalman.KalmanFilter{vanillaKF, infoKF}
-	chans := [](chan gokalman.Estimate){vanillaEstChan, informationEstChan}
+	// SquareRoot KF
+	sqrtKF, err := gokalman.NewSquareRoot(x0, Covar0, F, G, H2, noise2)
+	if err != nil {
+		panic(err)
+	}
+
+	filters := []gokalman.KalmanFilter{vanillaKF, infoKF, sqrtKF}
+	chans := [](chan gokalman.Estimate){vanillaEstChan, informationEstChan, sqrtEstChan}
 
 	for k, yaccK := range yacc {
 		for i, kf := range filters {

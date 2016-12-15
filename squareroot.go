@@ -30,17 +30,6 @@ func NewSquareRoot(x0 *mat64.Vector, P0 mat64.Symmetric, F, G, H mat64.Matrix, n
 		return nil, err
 	}
 
-	// Check the noise and compute the Cholesky of Q and R only once.
-	var sqrtQchol mat64.Cholesky
-	sqrtQchol.Factorize(noise.ProcessMatrix())
-	var sqrtQ mat64.TriDense
-	sqrtQ.LFromCholesky(&sqrtQchol)
-
-	var sqrtRchol mat64.Cholesky
-	sqrtRchol.Factorize(noise.MeasurementMatrix())
-	var sqrtR mat64.TriDense
-	sqrtR.LFromCholesky(&sqrtRchol)
-
 	// Get s0 from Covariance
 	// Compute the cholesky factorization of the covariance.
 	var sqrtP0 mat64.Cholesky
@@ -54,7 +43,9 @@ func NewSquareRoot(x0 *mat64.Vector, P0 mat64.Symmetric, F, G, H mat64.Matrix, n
 	rowsH, _ := H.Dims()
 	est0 := NewSqrtEstimate(x0, mat64.NewVector(rowsH, nil), &stddev, nil)
 	// Return the state and estimate to the SquareRoot structure.
-	return &SquareRoot{F, G, H, noise, &sqrtQ, &sqrtR, !IsNil(G), est0, 0}, nil
+	sqrt := SquareRoot{F, G, H, nil, nil, nil, !IsNil(G), est0, 0}
+	sqrt.SetNoise(noise) // Computes the Cholesky decompositions of the noise.
+	return &sqrt, nil
 }
 
 // SquareRoot defines a square root kalman filter. Use NewSqrt to initialize.
@@ -91,7 +82,19 @@ func (kf *SquareRoot) SetH(H mat64.Matrix) {
 
 // SetNoise updates the Noise.
 func (kf *SquareRoot) SetNoise(n Noise) {
+	// Compute the Cholesky of Q and R only once when the noise is set.
+	var sqrtQchol mat64.Cholesky
+	sqrtQchol.Factorize(n.ProcessMatrix())
+	var sqrtQ mat64.TriDense
+	sqrtQ.LFromCholesky(&sqrtQchol)
+
+	var sqrtRchol mat64.Cholesky
+	sqrtRchol.Factorize(n.MeasurementMatrix())
+	var sqrtR mat64.TriDense
+	sqrtR.LFromCholesky(&sqrtRchol)
 	kf.Noise = n
+	kf.sqrtQ = &sqrtQ
+	kf.sqrtR = &sqrtR
 }
 
 // Update implements the KalmanFilter interface.
@@ -148,23 +151,28 @@ func (kf *SquareRoot) Update(measurement, control *mat64.Vector) (est Estimate, 
 	Uc.RFromQR(&TcUc)
 
 	// Get sKp1Minus from the top block of QR decomposition.
-	skR, skC := kf.prevEst.stddev.Dims()
+	//skR, skC := kf.prevEst.stddev.Dims()
+	skR := nState
+	skC := nState
 	SKp1Minus := Uc.View(0, 0, skR, skC)
 
 	// Delta Matrix
 
-	sRr, sRc := kf.sqrtR.Dims()
-	// And now let's computer the two bottom blocks of the Delta matrix.
+	// And now let's compute the two bottom blocks of the Delta matrix.
 	var SKp1MinusTHT mat64.Dense
 	SKp1MinusTHT.Mul(SKp1Minus.T(), kf.H.T())
 	shR, shC := SKp1MinusTHT.Dims()
-
+	sRr, sRc := kf.sqrtR.Dims()
 	pMeas, _ := measurement.Dims()
 	Δ := mat64.NewDense(nState+pMeas, nState+pMeas, nil)
 	ΔrMax, ΔcMax := Δ.Dims()
+	fmt.Printf("Δ(%d,%d) R'(%d,%d) SK(%d,%d) SH(%d,%d)\nR'=%v\nSK=%v\nSH=%v\n", ΔrMax, ΔcMax, sRr, sRc, skR, skC, shR, shC, mat64.Formatted(SKp1Minus.T(), mat64.Prefix("   ")),
+		mat64.Formatted(kf.sqrtR.T(), mat64.Prefix("   ")), mat64.Formatted(&SKp1MinusTHT, mat64.Prefix("   ")))
+
 	// Note that we populate by *column* for simpler logic.
 	for Δc := 0; Δc < ΔcMax; Δc++ {
 		for Δr := 0; Δr < ΔrMax; Δr++ {
+			fmt.Printf("Δ(%d,%d)\n", Δr, Δc)
 			if Δc < sRc {
 				if Δr < sRr {
 					// Still in the upper left, let's set this to the R.T()
@@ -236,7 +244,7 @@ func (kf *SquareRoot) Update(measurement, control *mat64.Vector) (est Estimate, 
 	return
 }
 
-// SqrtEstimate is the output of each update state of the SquareRoot KF.
+// SquareRootEstimate is the output of each update state of the SquareRoot KF.
 // It implements the Estimate interface.
 type SquareRootEstimate struct {
 	state, meas *mat64.Vector

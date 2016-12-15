@@ -15,4 +15,9 @@ Note that the estimate is not correct. This is **expected** in this example.
 ## Information Filter
 This plot uses the data from `information.csv`, so feel free to inspect that.
 
-![Information KF](./informationKF.png)
+![Information KF](./infoKF.png)
+
+## Square Root Filter
+This plot uses the data from `sqrt.csv`, so feel free to inspect that.
+
+![Square Root KF](./sqrt.png)

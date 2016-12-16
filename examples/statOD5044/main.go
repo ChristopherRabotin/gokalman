@@ -71,13 +71,13 @@ func main() {
 	truthEstChan <- est0
 
 	scPeriod := 5.431e3                  // Spacecraft period.
-	samples := int((scPeriod / 32) / Δt) // Propagation time in samples.
+	samples := int((scPeriod / 50) / Δt) // Propagation time in samples.
 	stateTruth := make([]*mat64.Vector, samples)
 	measurements := make([]*mat64.Vector, samples)
 
 	if MONTECARLO {
 		vanillaKF, _, _ := gokalman.NewPurePredictorVanilla(x0, P0, F, G, H, gokalman.NewAWGN(Q, R))
-		runs := gokalman.NewMonteCarloRuns(10, samples, 2, 2, vanillaKF)
+		runs := gokalman.NewMonteCarloRuns(15, samples, 2, 2, vanillaKF)
 		// Write the information in N files.
 		headers := []string{"dr", "dr_dot", "dtheta", "dtheta_dot"}
 		for fNo, contents := range runs.AsCSV(headers) {
@@ -88,7 +88,7 @@ func main() {
 
 		// With control via Fcl/Gcl
 		vanillaKF, _, _ = gokalman.NewPurePredictorVanilla(x0, P0, &Fcl, Gcl, H, gokalman.NewAWGN(Q, R))
-		runs = gokalman.NewMonteCarloRuns(10, samples, 2, 2, vanillaKF)
+		runs = gokalman.NewMonteCarloRuns(15, samples, 2, 2, vanillaKF)
 		for fNo, contents := range runs.AsCSV(headers) {
 			f, _ := os.Create(fmt.Sprintf("./mc-ctrl-%s.csv", headers[fNo]))
 			f.WriteString(contents)

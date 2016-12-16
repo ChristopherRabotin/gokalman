@@ -71,7 +71,8 @@ func main() {
 	measurements := make([]*mat64.Vector, samples)
 
 	vanillaMCKF, _, _ := gokalman.NewPurePredictorVanilla(x0, P0, F, G, H, gokalman.NewAWGN(Q, R))
-	runs := gokalman.NewMonteCarloRuns(15, samples, 2, 2, vanillaMCKF)
+	numMC := 500
+	runs := gokalman.NewMonteCarloRuns(numMC, samples, 2, 2, vanillaMCKF)
 	// Write the information in N files.
 	headers := []string{"dr", "dr_dot", "dtheta", "dtheta_dot"}
 	for fNo, contents := range runs.AsCSV(headers) {
@@ -82,7 +83,7 @@ func main() {
 
 	// With control via Fcl/Gcl
 	vanillaMCKF, _, _ = gokalman.NewPurePredictorVanilla(x0, P0, &Fcl, Gcl, H, gokalman.NewAWGN(Q, R))
-	runs = gokalman.NewMonteCarloRuns(15, samples, 2, 2, vanillaMCKF)
+	runs = gokalman.NewMonteCarloRuns(numMC, samples, 2, 2, vanillaMCKF)
 	for fNo, contents := range runs.AsCSV(headers) {
 		f, _ := os.Create(fmt.Sprintf("./mc-ctrl-%s.csv", headers[fNo]))
 		f.WriteString(contents)

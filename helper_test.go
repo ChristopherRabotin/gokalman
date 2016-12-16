@@ -23,7 +23,7 @@ func Midterm2Matrices() (F, G mat64.Matrix, Δt float64) {
 func assertPanic(t *testing.T, f func()) {
 	defer func() {
 		if r := recover(); r == nil {
-			t.Errorf("code did not panic")
+			t.Fatalf("code did not panic")
 		}
 	}()
 	f()

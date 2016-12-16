@@ -22,7 +22,7 @@ type CSVExporter struct {
 
 // Close closes the file.
 func (e CSVExporter) Close() (err error) {
-	_, err = e.hdlr.WriteString(fmt.Sprintf("# Closing date (UTC): %s\n", time.Now().UTC()))
+	err = e.WriteRawLn(fmt.Sprintf("# Closing date (UTC): %s\n", time.Now().UTC()))
 	if err != nil {
 		return
 	}
@@ -43,6 +43,12 @@ func (e CSVExporter) Write(est Estimate) error {
 	return err
 }
 
+// WriteRawLn writes a raw line to the CSV file.
+func (e CSVExporter) WriteRawLn(s string) error {
+	_, err := e.hdlr.WriteString(s + "\n")
+	return err
+}
+
 // NewCSVExporter initializes a new CSV export.
 func NewCSVExporter(headers []string, filepath, filename string) (e *CSVExporter, err error) {
 	f, err := os.Create(fmt.Sprintf("%s/%s", filepath, filename))
@@ -54,8 +60,8 @@ func NewCSVExporter(headers []string, filepath, filename string) (e *CSVExporter
 	hdr := make([]string, len(headers)*3)
 	for i := 0; i < len(headers)*3; i += 3 {
 		hdr[i] = headers[i/3]
-		hdr[i+1] = hdr[i] + "+Covar"
-		hdr[i+2] = hdr[i] + "-Covar"
+		hdr[i+1] = hdr[i] + "+2s"
+		hdr[i+2] = hdr[i] + "-2s"
 	}
 	f.WriteString(fmt.Sprintf("# Creation date (UTC): %s\n%s\n", time.Now(), strings.Join(hdr, delimiter)))
 	e = &CSVExporter{delimiter, f}

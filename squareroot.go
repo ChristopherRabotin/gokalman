@@ -166,13 +166,10 @@ func (kf *SquareRoot) Update(measurement, control *mat64.Vector) (est Estimate, 
 	pMeas, _ := measurement.Dims()
 	Δ := mat64.NewDense(nState+pMeas, nState+pMeas, nil)
 	ΔrMax, ΔcMax := Δ.Dims()
-	fmt.Printf("Δ(%d,%d) R'(%d,%d) SK(%d,%d) SH(%d,%d)\nR'=%v\nSK=%v\nSH=%v\n", ΔrMax, ΔcMax, sRr, sRc, skR, skC, shR, shC, mat64.Formatted(SKp1Minus.T(), mat64.Prefix("   ")),
-		mat64.Formatted(kf.sqrtR.T(), mat64.Prefix("   ")), mat64.Formatted(&SKp1MinusTHT, mat64.Prefix("   ")))
 
 	// Note that we populate by *column* for simpler logic.
 	for Δc := 0; Δc < ΔcMax; Δc++ {
 		for Δr := 0; Δr < ΔrMax; Δr++ {
-			fmt.Printf("Δ(%d,%d)\n", Δr, Δc)
 			if Δc < sRc {
 				if Δr < sRr {
 					// Still in the upper left, let's set this to the R.T()
@@ -232,7 +229,6 @@ func (kf *SquareRoot) Update(measurement, control *mat64.Vector) (est Estimate, 
 		rGain, _ := sKkp1.Dims()
 		xkp1Plus2.AddVec(sKkp1.ColView(0), mat64.NewVector(rGain, nil))
 	} else {
-		fmt.Printf("K=%v\nx=%+v\n", mat64.Formatted(&Kkp1, mat64.Prefix("  ")), mat64.Formatted(&xkp1Plus1, mat64.Prefix("  ")))
 		xkp1Plus2.MulVec(&Kkp1, &xkp1Plus1)
 	}
 	xkp1Plus.AddVec(&xKp1Minus, &xkp1Plus2)

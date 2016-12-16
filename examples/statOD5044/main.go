@@ -11,13 +11,15 @@ import (
 func main() {
 	// Prepare the estimate channels.
 	var wg sync.WaitGroup
+	//truthEstChan := make(chan (gokalman.Estimate), 1)
 	vanillaEstChan := make(chan (gokalman.Estimate), 1)
 	informationEstChan := make(chan (gokalman.Estimate), 1)
 	sqrtEstChan := make(chan (gokalman.Estimate), 1)
 
 	processEst := func(fn string, estChan chan (gokalman.Estimate)) {
 		wg.Add(1)
-		ce, _ := gokalman.NewCSVExporter([]string{"velocity", "acceleration", "angular rate", "angular acceleration"}, ".", fn+".csv")
+		// TODO: Generate another file which will plot the 2D orbit.
+		ce, _ := gokalman.NewCSVExporter([]string{"position", "velocity", "angle", "angular rate"}, ".", fn+".csv")
 		for {
 			est, more := <-estChan
 			if !more {
@@ -29,6 +31,7 @@ func main() {
 		}
 	}
 
+	//go processEst("truth", truthEstChan)
 	go processEst("vanilla", vanillaEstChan)
 	go processEst("information", informationEstChan)
 	go processEst("sqrt", sqrtEstChan)
@@ -53,7 +56,7 @@ func main() {
 	Gcl := mat64.NewDense(4, 2, nil)
 
 	// Initial conditions
-	x0 := mat64.NewVector(4, []float64{2, 0.5, 0, 0})
+	x0 := mat64.NewVector(4, []float64{6678, 0, 0, 0.001156909175835434})
 	P0 := mat64.NewSymDense(4, []float64{5, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0.01, 0, 0, 0, 0, 0.00001})
 
 	// Truth generation, via a vanilla KF with AWGN.
@@ -64,21 +67,21 @@ func main() {
 	}
 
 	scPeriod := 5.431e3                 // Spacecraft period.
-	samples := int((scPeriod / 4) * Δt) // Propagation time in samples.
+	samples := int((scPeriod / 8) / Δt) // Propagation time in samples.
 	stateTruth := make([]*mat64.Vector, samples)
 	measurements := make([]*mat64.Vector, samples)
-	prevState := mat64.NewVector(4, nil)
-	prevState.CopyVec(x0)
 
 	for k := 0; k < samples; k++ {
 		est, kferr := truthKF.Update(mat64.NewVector(2, nil), mat64.NewVector(4, nil))
 		if kferr != nil {
 			panic(fmt.Errorf("k=%d %s", k, kferr))
 		}
-		prevState = est.State()
-		stateTruth[k] = prevState
+		//truthEstChan <- est
+		stateTruth[k] = est.State()
 		measurements[k] = est.Measurement()
 	}
+
+	truth := gokalman.NewBatchGroundTruth(stateTruth, measurements)
 
 	// Vanilla KF
 	noiseKF := gokalman.NewNoiseless(Q, R)
@@ -109,11 +112,10 @@ func main() {
 		for i, kf := range filters {
 			kfChan := chans[i]
 			est, err := kf.Update(measurements[k], mat64.NewVector(4, nil))
-			kfChan <- est
+			kfChan <- truth.Error(k, est)
 			if err != nil {
 				panic(fmt.Errorf("k=%d %s", k, err))
 			}
-
 		}
 	}
 

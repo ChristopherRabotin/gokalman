@@ -36,16 +36,16 @@ func NewInformation(i0 *mat64.Vector, I0 mat64.Symmetric, F, G, H mat64.Matrix, 
 
 	var Finv mat64.Dense
 	if err := Finv.Inverse(mat64.DenseCopyOf(F)); err != nil {
-		panic(fmt.Errorf("F not invertible: %s", err))
+		fmt.Printf("F *might* not invertible: %s\n", err)
 	}
 
 	var Qinv mat64.Dense
 	if err := Qinv.Inverse(mat64.DenseCopyOf(noise.ProcessMatrix())); err != nil {
-		panic(fmt.Errorf("Q not invertible: %s", err))
+		fmt.Printf("Q *might* not invertible: %s\n", err)
 	}
 	var Rinv mat64.Dense
 	if err := Rinv.Inverse(mat64.DenseCopyOf(noise.MeasurementMatrix())); err != nil {
-		panic(fmt.Errorf("R not invertible: %s", err))
+		fmt.Printf("R *might* not invertible: %s\n", err)
 	}
 
 	return &Information{&Finv, G, H, &Qinv, &Rinv, noise, !IsNil(G), est0, 0}, &est0, nil
@@ -100,7 +100,7 @@ func (kf *Information) String() string {
 func (kf *Information) SetF(F mat64.Matrix) {
 	var Finv mat64.Dense
 	if err := Finv.Inverse(mat64.DenseCopyOf(F)); err != nil {
-		panic(fmt.Errorf("F not invertible: %s", err))
+		fmt.Printf("F *might* not invertible: %s\n", err)
 	}
 	kf.Finv = &Finv
 }

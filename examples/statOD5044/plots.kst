@@ -14,84 +14,82 @@
     <variables>
         <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" field="INDEX" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="1" initialXNum="1"/>
         <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" field="INDEX" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="2" initialXNum="13"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" field="velocity" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="3" initialXNum="25"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" field="velocity+Covar" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="4" initialXNum="37"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" field="velocity-Covar" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="5" initialXNum="49"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" field="acceleration" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="6" initialXNum="61"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" field="acceleration+Covar" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="7" initialXNum="73"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" field="acceleration-Covar" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="8" initialXNum="85"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" field="angular rate" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="9" initialXNum="97"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" field="angular rate+Covar" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="10" initialXNum="109"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" field="angular rate-Covar" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="11" initialXNum="121"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" field="angular acceleration" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="12" initialXNum="133"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" field="angular acceleration+Covar" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="13" initialXNum="145"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" field="angular acceleration-Covar" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="14" initialXNum="157"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" field="velocity" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="15" initialXNum="169"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" field="velocity+Covar" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="16" initialXNum="181"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" field="velocity-Covar" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="17" initialXNum="193"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" field="acceleration" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="18" initialXNum="205"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" field="acceleration+Covar" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="19" initialXNum="217"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" field="acceleration-Covar" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="20" initialXNum="229"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" field="angular rate" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="21" initialXNum="241"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" field="angular rate+Covar" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="22" initialXNum="253"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" field="angular rate-Covar" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="23" initialXNum="265"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" field="angular acceleration" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="24" initialXNum="277"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" field="angular acceleration+Covar" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="25" initialXNum="289"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" field="angular acceleration-Covar" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="26" initialXNum="301"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" field="INDEX" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="27" initialXNum="313"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" field="velocity" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="28" initialXNum="325"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" field="velocity+Covar" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="29" initialXNum="337"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" field="velocity-Covar" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="30" initialXNum="349"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" field="acceleration" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="31" initialXNum="361"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" field="acceleration+Covar" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="32" initialXNum="373"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" field="acceleration-Covar" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="33" initialXNum="385"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" field="angular rate" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="34" initialXNum="397"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" field="angular rate+Covar" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="35" initialXNum="409"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" field="angular rate-Covar" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="36" initialXNum="421"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" field="angular acceleration" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="37" initialXNum="433"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" field="angular acceleration+Covar" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="38" initialXNum="445"/>
-        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" field="angular acceleration-Covar" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="39" initialXNum="457"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" field="dr" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="3" initialXNum="25"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" field="dr+2s" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="4" initialXNum="37"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" field="dr-2s" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="5" initialXNum="49"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" field="dr_dot" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="6" initialXNum="61"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" field="dr_dot+2s" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="7" initialXNum="73"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" field="dr_dot-2s" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="8" initialXNum="85"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" field="dtheta" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="9" initialXNum="97"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" field="dtheta+2s" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="10" initialXNum="109"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" field="dtheta-2s" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="11" initialXNum="121"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" field="dtheta_dot" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="12" initialXNum="133"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" field="dtheta_dot+2s" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="13" initialXNum="145"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" field="dtheta_dot-2s" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="14" initialXNum="157"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" field="dr" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="15" initialXNum="169"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" field="dr+2s" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="16" initialXNum="181"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" field="dr-2s" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="17" initialXNum="193"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" field="dr_dot" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="18" initialXNum="205"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" field="dr_dot+2s" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="19" initialXNum="217"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" field="dr_dot-2s" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="20" initialXNum="229"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" field="dtheta" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="21" initialXNum="241"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" field="dtheta+2s" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="22" initialXNum="253"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" field="dtheta-2s" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="23" initialXNum="265"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" field="dtheta_dot" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="24" initialXNum="277"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" field="dtheta_dot+2s" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="25" initialXNum="289"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/information.csv" field="dtheta_dot-2s" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="26" initialXNum="301"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" field="dr" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="27" initialXNum="313"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" field="dr+2s" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="28" initialXNum="325"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" field="dr-2s" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="29" initialXNum="337"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" field="dr_dot" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="30" initialXNum="349"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" field="dr_dot+2s" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="31" initialXNum="361"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" field="dr_dot-2s" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="32" initialXNum="373"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" field="dtheta" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="33" initialXNum="385"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" field="dtheta+2s" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="34" initialXNum="397"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" field="dtheta-2s" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="35" initialXNum="409"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" field="dtheta_dot" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="36" initialXNum="421"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" field="dtheta_dot+2s" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="37" initialXNum="433"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/sqrt.csv" field="dtheta_dot-2s" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="38" initialXNum="445"/>
     </variables>
     <objects/>
     <relations>
-        <curve xvector="INDEX (V1)" yvector="INDEX (V2)" color="#008000" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="0" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-3420978" initialCNum="1"/>
-        <curve xvector="INDEX (V1)" yvector="velocity (V3)" color="#000000" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="1" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="0" initialCNum="2"/>
-        <curve xvector="INDEX (V1)" yvector="velocity+Covar (V4)" color="#ff00ff" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="2" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="0" initialCNum="3"/>
-        <curve xvector="INDEX (V1)" yvector="velocity-Covar (V5)" color="#4682b4" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="3" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="0" initialCNum="4"/>
-        <curve xvector="INDEX (V1)" yvector="acceleration (V6)" color="#501010" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="4" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="0" initialCNum="5"/>
-        <curve xvector="INDEX (V1)" yvector="acceleration+Covar (V7)" color="#105010" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="5" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="0" initialCNum="6"/>
-        <curve xvector="INDEX (V1)" yvector="acceleration-Covar (V8)" color="#aa0000" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="6" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="0" initialCNum="7"/>
-        <curve xvector="INDEX (V1)" yvector="angular rate (V9)" color="#0000aa" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="7" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="0" initialCNum="8"/>
-        <curve xvector="INDEX (V1)" yvector="angular rate+Covar (V10)" color="#005500" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="8" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="0" initialCNum="9"/>
-        <curve xvector="INDEX (V1)" yvector="angular rate-Covar (V11)" color="#000000" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="9" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="0" initialCNum="10"/>
-        <curve xvector="INDEX (V1)" yvector="angular acceleration (V12)" color="#aa00aa" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="10" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="0" initialCNum="11"/>
-        <curve xvector="INDEX (V1)" yvector="angular acceleration+Covar (V13)" color="#2e5778" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="11" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="0" initialCNum="12"/>
-        <curve xvector="INDEX (V1)" yvector="angular acceleration-Covar (V14)" color="#350a0a" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="12" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="0" initialCNum="13"/>
-        <curve xvector="INDEX (V2)" yvector="velocity (V15)" color="#ff0000" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="0" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="54387728" initialCNum="14"/>
-        <curve xvector="INDEX (V2)" yvector="velocity+Covar (V16)" color="#0000ff" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="1" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="54387728" initialCNum="15"/>
-        <curve xvector="INDEX (V2)" yvector="velocity-Covar (V17)" color="#008000" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="2" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="54387728" initialCNum="16"/>
-        <curve xvector="INDEX (V2)" yvector="acceleration (V18)" color="#000000" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="3" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="54387728" initialCNum="17"/>
-        <curve xvector="INDEX (V2)" yvector="acceleration+Covar (V19)" color="#ff00ff" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="4" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="50357622" initialCNum="18"/>
-        <curve xvector="INDEX (V2)" yvector="acceleration-Covar (V20)" color="#4682b4" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="5" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-2894377" initialCNum="19"/>
-        <curve xvector="INDEX (V2)" yvector="angular rate (V21)" color="#501010" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="6" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-1644311" initialCNum="20"/>
-        <curve xvector="INDEX (V2)" yvector="angular rate+Covar (V22)" color="#105010" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="7" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-1710104" initialCNum="21"/>
-        <curve xvector="INDEX (V2)" yvector="angular rate-Covar (V23)" color="#aa0000" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="8" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-1710104" initialCNum="22"/>
-        <curve xvector="INDEX (V2)" yvector="angular acceleration (V24)" color="#0000aa" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="9" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-1710104" initialCNum="23"/>
-        <curve xvector="INDEX (V2)" yvector="angular acceleration+Covar (V25)" color="#005500" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="10" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-1710104" initialCNum="24"/>
-        <curve xvector="INDEX (V2)" yvector="angular acceleration-Covar (V26)" color="#000000" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="11" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-1775897" initialCNum="25"/>
-        <curve xvector="INDEX (V2)" yvector="INDEX (V27)" color="#2e5778" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="0" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="54271040" initialCNum="26"/>
-        <curve xvector="INDEX (V2)" yvector="velocity (V28)" color="#350a0a" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="1" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="54465520" initialCNum="27"/>
-        <curve xvector="INDEX (V2)" yvector="velocity+Covar (V29)" color="#0a350a" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="2" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-855052" initialCNum="28"/>
-        <curve xvector="INDEX (V2)" yvector="velocity-Covar (V30)" color="#ff0000" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="3" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-1052431" initialCNum="29"/>
-        <curve xvector="INDEX (V2)" yvector="acceleration (V31)" color="#0000ff" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="4" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-1249810" initialCNum="30"/>
-        <curve xvector="INDEX (V2)" yvector="acceleration+Covar (V32)" color="#008000" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="5" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-1315603" initialCNum="31"/>
-        <curve xvector="INDEX (V2)" yvector="acceleration-Covar (V33)" color="#000000" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="6" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-1447189" initialCNum="32"/>
-        <curve xvector="INDEX (V2)" yvector="angular rate (V34)" color="#ff00ff" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="7" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="0" initialCNum="33"/>
-        <curve xvector="INDEX (V2)" yvector="angular rate+Covar (V35)" color="#4682b4" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="8" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-855052" initialCNum="34"/>
-        <curve xvector="INDEX (V2)" yvector="angular rate-Covar (V36)" color="#501010" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="9" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-1052431" initialCNum="35"/>
-        <curve xvector="INDEX (V2)" yvector="angular acceleration (V37)" color="#105010" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="10" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-1184017" initialCNum="36"/>
-        <curve xvector="INDEX (V2)" yvector="angular acceleration+Covar (V38)" color="#aa0000" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="11" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-1315603" initialCNum="37"/>
-        <curve xvector="INDEX (V2)" yvector="angular acceleration-Covar (V39)" color="#0000aa" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="12" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-1447189" initialCNum="38"/>
+        <curve xvector="INDEX (V1)" yvector="INDEX (V2)" color="#4682b4" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="0" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-1973276" initialCNum="1"/>
+        <curve xvector="INDEX (V1)" yvector="dr (V3)" color="#501010" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="1" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-1973276" initialCNum="2"/>
+        <curve xvector="INDEX (V1)" yvector="dr+2s (V4)" color="#105010" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="2" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-2039069" initialCNum="3"/>
+        <curve xvector="INDEX (V1)" yvector="dr-2s (V5)" color="#aa0000" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="3" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-2039069" initialCNum="4"/>
+        <curve xvector="INDEX (V1)" yvector="dr\_dot (V6)" color="#0000aa" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="4" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-2104862" initialCNum="5"/>
+        <curve xvector="INDEX (V1)" yvector="dr\_dot+2s (V7)" color="#005500" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="5" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-2104862" initialCNum="6"/>
+        <curve xvector="INDEX (V1)" yvector="dr\_dot-2s (V8)" color="#000000" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="6" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-2104862" initialCNum="7"/>
+        <curve xvector="INDEX (V1)" yvector="dtheta (V9)" color="#aa00aa" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="7" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-2104862" initialCNum="8"/>
+        <curve xvector="INDEX (V1)" yvector="dtheta+2s (V10)" color="#2e5778" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="8" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-2104862" initialCNum="9"/>
+        <curve xvector="INDEX (V1)" yvector="dtheta-2s (V11)" color="#350a0a" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="9" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-2170655" initialCNum="10"/>
+        <curve xvector="INDEX (V1)" yvector="dtheta\_dot (V12)" color="#0a350a" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="10" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-2170655" initialCNum="11"/>
+        <curve xvector="INDEX (V1)" yvector="dtheta\_dot+2s (V13)" color="#ff0000" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="11" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-2170655" initialCNum="12"/>
+        <curve xvector="INDEX (V1)" yvector="dtheta\_dot-2s (V14)" color="#0000ff" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="12" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-2236448" initialCNum="13"/>
+        <curve xvector="INDEX (V2)" yvector="dr (V15)" color="#000000" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="0" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-4136204" initialCNum="14"/>
+        <curve xvector="INDEX (V2)" yvector="dr+2s (V16)" color="#ff00ff" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="1" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-4531219" initialCNum="15"/>
+        <curve xvector="INDEX (V2)" yvector="dr-2s (V17)" color="#4682b4" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="2" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-4992028" initialCNum="16"/>
+        <curve xvector="INDEX (V2)" yvector="dr\_dot (V18)" color="#501010" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="3" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="56549488" initialCNum="17"/>
+        <curve xvector="INDEX (V2)" yvector="dr\_dot+2s (V19)" color="#105010" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="4" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="-1794945868" initialCNum="18"/>
+        <curve xvector="INDEX (V2)" yvector="dr\_dot-2s (V20)" color="#aa0000" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="5" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="1919902565" initialCNum="19"/>
+        <curve xvector="INDEX (V2)" yvector="dtheta (V21)" color="#0000aa" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="6" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="2037666676" initialCNum="20"/>
+        <curve xvector="INDEX (V2)" yvector="dtheta+2s (V22)" color="#005500" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="7" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="774909228" initialCNum="21"/>
+        <curve xvector="INDEX (V2)" yvector="dtheta-2s (V23)" color="#000000" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="8" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="942945840" initialCNum="22"/>
+        <curve xvector="INDEX (V2)" yvector="dtheta\_dot (V24)" color="#aa00aa" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="9" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="909127728" initialCNum="23"/>
+        <curve xvector="INDEX (V2)" yvector="dtheta\_dot+2s (V25)" color="#2e5778" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="10" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="808464432" initialCNum="24"/>
+        <curve xvector="INDEX (V2)" yvector="dtheta\_dot-2s (V26)" color="#350a0a" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="11" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="741552176" initialCNum="25"/>
+        <curve xvector="INDEX (V2)" yvector="dr (V27)" color="#ff0000" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="0" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="0" initialCNum="26"/>
+        <curve xvector="INDEX (V2)" yvector="dr+2s (V28)" color="#0000ff" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="1" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="0" initialCNum="27"/>
+        <curve xvector="INDEX (V2)" yvector="dr-2s (V29)" color="#008000" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="2" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="9754784" initialCNum="28"/>
+        <curve xvector="INDEX (V2)" yvector="dr\_dot (V30)" color="#000000" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="3" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="235" initialCNum="29"/>
+        <curve xvector="INDEX (V2)" yvector="dr\_dot+2s (V31)" color="#ff00ff" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="4" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="58793824" initialCNum="30"/>
+        <curve xvector="INDEX (V2)" yvector="dr\_dot-2s (V32)" color="#4682b4" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="5" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="59363712" initialCNum="31"/>
+        <curve xvector="INDEX (V2)" yvector="dtheta (V33)" color="#501010" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="6" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="0" initialCNum="32"/>
+        <curve xvector="INDEX (V2)" yvector="dtheta+2s (V34)" color="#105010" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="7" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="58333360" initialCNum="33"/>
+        <curve xvector="INDEX (V2)" yvector="dtheta-2s (V35)" color="#aa0000" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="8" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="12910412" initialCNum="34"/>
+        <curve xvector="INDEX (V2)" yvector="dtheta\_dot (V36)" color="#0000aa" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="9" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="177" initialCNum="35"/>
+        <curve xvector="INDEX (V2)" yvector="dtheta\_dot+2s (V37)" color="#005500" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="10" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="1" initialCNum="36"/>
+        <curve xvector="INDEX (V2)" yvector="dtheta\_dot-2s (V38)" color="#000000" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="0" linestyle="0" haspoints="false" pointtype="11" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="6" initialCNum="37"/>
     </relations>
     <graphics>
         <view name="VKF" width="1357" height="580" color="#ffffff" style="1">
@@ -104,36 +102,33 @@
                     <brush color="#000000" style="1"/>
                 </pen>
                 <brush color="#ffffff" style="1"/>
-                <legend auto="true" title="" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="9.6" color="#000000" verticaldisplay="false" name="Legend">
-                    <position x="-18.4700882975" y="22.47716402" z="500"/>
-                    <rect x="-221.48986002" y="-26.99468712" width="443" height="54"/>
-                    <relativesize width="0.766494103121227" height="0.271092502786228" centerx="0.419147051560614" centery="0.809396251393114" posx="0.0359" posy="0.67385" leftx="0.0359" lefty="0.944942502786229" rightx="0.802394103121227" righty="0.944942502786229" fixaspect="false" lockpostodata="false"/>
+                <legend auto="true" title="" font="Noto Sans,10,-1,0,50,0,0,0,0,0" fontscale="9.6" color="#000000" verticaldisplay="false" name="Legend">
+                    <position x="-226.720485070383" y="-122.367367525773" z="500"/>
+                    <rect x="0" y="0" width="442" height="29"/>
+                    <relativesize width="0.7833581758601" height="0.145586714459271" centerx="0.427602511353473" centery="0.155009852074996" posx="0.0359234234234234" posy="0.0822164948453608" leftx="0.0359234234234234" lefty="0.227803209304632" rightx="0.819281599283523" righty="0.227803209304632" fixaspect="false" lockpostodata="false"/>
                     <transform m11="1" m12="0" m13="0" m21="0" m22="1" m23="0" m31="0" m32="0" m33="1"/>
                     <pen style="1" width="1" miterlimit="2" cap="16" joinStyle="64">
                         <brush color="#000000" style="1"/>
                     </pen>
                     <brush color="#ffffff" style="1"/>
-                    <relation tag="angular rate vs INDEX (C8)"/>
-                    <relation tag="angular rate+Covar vs INDEX (C9)"/>
-                    <relation tag="angular rate-Covar vs INDEX (C10)"/>
                 </legend>
                 <cartesianrender name="Cartesian Plot" type="1">
-                    <relation tag="angular rate vs INDEX (C8)"/>
-                    <relation tag="angular rate+Covar vs INDEX (C9)"/>
-                    <relation tag="angular rate-Covar vs INDEX (C10)"/>
+                    <relation tag="dtheta vs INDEX (C8)"/>
+                    <relation tag="dtheta+2s vs INDEX (C9)"/>
+                    <relation tag="dtheta-2s vs INDEX (C10)"/>
                 </cartesianrender>
                 <plotaxis id="xaxis" visible="true" log="false" reversed="false" autobaseoffset="true" baseoffset="false" forceoffsetmin="false" interpret="false" interpretation="1" display="4" displayformatstring="hh:mm:ss.zzz" majortickmode="5" minortickcount="5" autominortickcount="true" drawmajorticks="true" drawminorticks="true" drawmajorgridlines="true" drawminorgridlines="false" drawmajorgridlinecolor="#a0a0a4" drawminorgridlinecolor="#a0a0a4" drawmajorgridlinestyle="2" drawminorgridlinestyle="2" drawmajorgridlinewidth="1" drawminorgridlinewidth="1" significantdigits="9" rotation="0" zoommode="0" timezonename="GMT" timezoneoffset="0">
                     <plotmarkers xaxis="true" linecolor="#000000" linestyle="1" linewidth="1" curvemode="0"/>
                 </plotaxis>
                 <plotaxis id="yaxis" visible="true" log="false" reversed="false" autobaseoffset="true" baseoffset="false" forceoffsetmin="false" interpret="false" interpretation="1" display="4" displayformatstring="hh:mm:ss.zzz" majortickmode="5" minortickcount="5" autominortickcount="true" drawmajorticks="true" drawminorticks="true" drawmajorgridlines="true" drawminorgridlines="false" drawmajorgridlinecolor="#a0a0a4" drawminorgridlinecolor="#a0a0a4" drawmajorgridlinestyle="2" drawminorgridlinestyle="2" drawmajorgridlinewidth="1" drawminorgridlinewidth="1" significantdigits="9" rotation="0" zoommode="1" timezonename="GMT" timezoneoffset="0">
-                    <plotmarkers xaxis="false" linecolor="#000000" linestyle="1" linewidth="1" curvemode="-1710104"/>
+                    <plotmarkers xaxis="false" linecolor="#000000" linestyle="1" linewidth="1" curvemode="-6826769"/>
                 </plotaxis>
                 <plotlabel id="leftlabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="rightlabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="toplabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="bottomlabel" visible="true" overridetext="INDEX" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="numberlabel" visible="true" overridetext="" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
-                <projectionrect x="0" y="-0.2280432" width="270" height="0.4560864"/>
+                <projectionrect x="0" y="-0.00029715" width="1696" height="0.0005943"/>
             </plot>
             <plot tiedxzoom="false" tiedyzoom="false" leftlabelvisible="true" bottomlabelvisible="true" rightlabelvisible="true" toplabelvisible="true" globalfont="Noto Sans,12,-1,5,50,0,0,0,0,0" globalfontscale="16" globalfontcolor="#000000" showlegend="true" hidebottomaxislabel="false" hidetopaxislabel="false" hideleftaxislabel="false" hiderightaxislabel="false" numberaxislabelscale="true" initialPlotNum="1" name="Plot">
                 <position x="342.7096" y="155.0574" z="500"/>
@@ -145,9 +140,9 @@
                 </pen>
                 <brush color="#ffffff" style="1"/>
                 <legend auto="true" title="" font="Noto Sans,10,-1,0,50,0,0,0,0,0" fontscale="9.6" color="#000000" verticaldisplay="false" name="Legend">
-                    <position x="-239.946410605293" y="-122.367367525773" z="500"/>
-                    <rect x="0" y="0" width="375" height="54"/>
-                    <relativesize width="0.648838123409617" height="0.271092502786228" centerx="0.360342485128232" centery="0.217762746238475" posx="0.0359234234234234" posy="0.0822164948453608" leftx="0.0359234234234234" lefty="0.353308997631589" rightx="0.68476154683304" righty="0.353308997631589" fixaspect="false" lockpostodata="false"/>
+                    <position x="-226.720485070383" y="-122.367367525773" z="500"/>
+                    <rect x="0" y="0" width="350" height="29"/>
+                    <relativesize width="0.62030624785302" height="0.145586714459271" centerx="0.346076547349934" centery="0.155009852074996" posx="0.0359234234234234" posy="0.0822164948453608" leftx="0.0359234234234234" lefty="0.227803209304632" rightx="0.656229671276444" righty="0.227803209304632" fixaspect="false" lockpostodata="false"/>
                     <transform m11="1" m12="0" m13="0" m21="0" m22="1" m23="0" m31="0" m32="0" m33="1"/>
                     <pen style="1" width="1" miterlimit="2" cap="16" joinStyle="64">
                         <brush color="#000000" style="1"/>
@@ -155,22 +150,22 @@
                     <brush color="#ffffff" style="1"/>
                 </legend>
                 <cartesianrender name="Cartesian Plot" type="1">
-                    <relation tag="velocity vs INDEX (C2)"/>
-                    <relation tag="velocity+Covar vs INDEX (C3)"/>
-                    <relation tag="velocity-Covar vs INDEX (C4)"/>
+                    <relation tag="dr vs INDEX (C2)"/>
+                    <relation tag="dr+2s vs INDEX (C3)"/>
+                    <relation tag="dr-2s vs INDEX (C4)"/>
                 </cartesianrender>
                 <plotaxis id="xaxis" visible="true" log="false" reversed="false" autobaseoffset="true" baseoffset="false" forceoffsetmin="false" interpret="false" interpretation="1" display="4" displayformatstring="hh:mm:ss.zzz" majortickmode="5" minortickcount="5" autominortickcount="true" drawmajorticks="true" drawminorticks="true" drawmajorgridlines="true" drawminorgridlines="false" drawmajorgridlinecolor="#a0a0a4" drawminorgridlinecolor="#a0a0a4" drawmajorgridlinestyle="2" drawminorgridlinestyle="2" drawmajorgridlinewidth="1" drawminorgridlinewidth="1" significantdigits="9" rotation="0" zoommode="0" timezonename="GMT" timezoneoffset="0">
                     <plotmarkers xaxis="true" linecolor="#000000" linestyle="1" linewidth="1" curvemode="0"/>
                 </plotaxis>
                 <plotaxis id="yaxis" visible="true" log="false" reversed="false" autobaseoffset="true" baseoffset="false" forceoffsetmin="false" interpret="false" interpretation="1" display="4" displayformatstring="hh:mm:ss.zzz" majortickmode="5" minortickcount="5" autominortickcount="true" drawmajorticks="true" drawminorticks="true" drawmajorgridlines="true" drawminorgridlines="false" drawmajorgridlinecolor="#a0a0a4" drawminorgridlinecolor="#a0a0a4" drawmajorgridlinestyle="2" drawminorgridlinestyle="2" drawmajorgridlinewidth="1" drawminorgridlinewidth="1" significantdigits="9" rotation="0" zoommode="1" timezonename="GMT" timezoneoffset="0">
-                    <plotmarkers xaxis="false" linecolor="#000000" linestyle="1" linewidth="1" curvemode="16777215"/>
+                    <plotmarkers xaxis="false" linecolor="#000000" linestyle="1" linewidth="1" curvemode="0"/>
                 </plotaxis>
                 <plotlabel id="leftlabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="rightlabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="toplabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="bottomlabel" visible="true" overridetext="INDEX" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="numberlabel" visible="true" overridetext="" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
-                <projectionrect x="0" y="-18.9225116" width="270" height="19.4325012"/>
+                <projectionrect x="0" y="-1.1490174" width="1696" height="6.2980008"/>
             </plot>
             <plot tiedxzoom="false" tiedyzoom="false" leftlabelvisible="true" bottomlabelvisible="true" rightlabelvisible="true" toplabelvisible="true" globalfont="Noto Sans,12,-1,5,50,0,0,0,0,0" globalfontscale="16" globalfontcolor="#000000" showlegend="true" hidebottomaxislabel="false" hidetopaxislabel="false" hideleftaxislabel="false" hiderightaxislabel="false" numberaxislabelscale="true" initialPlotNum="2" name="Plot">
                 <position x="1017.8171" y="155.0574" z="500"/>
@@ -181,36 +176,33 @@
                     <brush color="#000000" style="1"/>
                 </pen>
                 <brush color="#ffffff" style="1"/>
-                <legend auto="true" title="" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="9.6" color="#000000" verticaldisplay="false" name="Legend">
-                    <position x="-19.97442796375" y="22.47716402" z="500"/>
-                    <rect x="-220.0144181625" y="-26.99468712" width="440" height="54"/>
-                    <relativesize width="0.76130339813395" height="0.271092502786228" centerx="0.416501699066975" centery="0.809396251393114" posx="0.03585" posy="0.67385" leftx="0.03585" lefty="0.944942502786229" rightx="0.79715339813395" righty="0.944942502786229" fixaspect="false" lockpostodata="false"/>
+                <legend auto="true" title="" font="Noto Sans,10,-1,0,50,0,0,0,0,0" fontscale="9.6" color="#000000" verticaldisplay="false" name="Legend">
+                    <position x="-226.720485070383" y="-122.367367525773" z="500"/>
+                    <rect x="0" y="0" width="441" height="29"/>
+                    <relativesize width="0.781585872294806" height="0.145586714459271" centerx="0.426716359570826" centery="0.155009852074996" posx="0.0359234234234234" posy="0.0822164948453608" leftx="0.0359234234234234" lefty="0.227803209304632" rightx="0.817509295718229" righty="0.227803209304632" fixaspect="false" lockpostodata="false"/>
                     <transform m11="1" m12="0" m13="0" m21="0" m22="1" m23="0" m31="0" m32="0" m33="1"/>
                     <pen style="1" width="1" miterlimit="2" cap="16" joinStyle="64">
                         <brush color="#000000" style="1"/>
                     </pen>
                     <brush color="#ffffff" style="1"/>
-                    <relation tag="acceleration vs INDEX (C5)"/>
-                    <relation tag="acceleration-Covar vs INDEX (C7)"/>
-                    <relation tag="acceleration+Covar vs INDEX (C6)"/>
                 </legend>
                 <cartesianrender name="Cartesian Plot" type="1">
-                    <relation tag="acceleration vs INDEX (C5)"/>
-                    <relation tag="acceleration-Covar vs INDEX (C7)"/>
-                    <relation tag="acceleration+Covar vs INDEX (C6)"/>
+                    <relation tag="dr\_dot vs INDEX (C5)"/>
+                    <relation tag="dr\_dot-2s vs INDEX (C7)"/>
+                    <relation tag="dr\_dot+2s vs INDEX (C6)"/>
                 </cartesianrender>
                 <plotaxis id="xaxis" visible="true" log="false" reversed="false" autobaseoffset="true" baseoffset="false" forceoffsetmin="false" interpret="false" interpretation="1" display="4" displayformatstring="hh:mm:ss.zzz" majortickmode="5" minortickcount="5" autominortickcount="true" drawmajorticks="true" drawminorticks="true" drawmajorgridlines="true" drawminorgridlines="false" drawmajorgridlinecolor="#a0a0a4" drawminorgridlinecolor="#a0a0a4" drawmajorgridlinestyle="2" drawminorgridlinestyle="2" drawmajorgridlinewidth="1" drawminorgridlinewidth="1" significantdigits="9" rotation="0" zoommode="0" timezonename="GMT" timezoneoffset="0">
                     <plotmarkers xaxis="true" linecolor="#000000" linestyle="1" linewidth="1" curvemode="0"/>
                 </plotaxis>
                 <plotaxis id="yaxis" visible="true" log="false" reversed="false" autobaseoffset="true" baseoffset="false" forceoffsetmin="false" interpret="false" interpretation="1" display="4" displayformatstring="hh:mm:ss.zzz" majortickmode="5" minortickcount="5" autominortickcount="true" drawmajorticks="true" drawminorticks="true" drawmajorgridlines="true" drawminorgridlines="false" drawmajorgridlinecolor="#a0a0a4" drawminorgridlinecolor="#a0a0a4" drawmajorgridlinestyle="2" drawminorgridlinestyle="2" drawmajorgridlinewidth="1" drawminorgridlinewidth="1" significantdigits="9" rotation="0" zoommode="1" timezonename="GMT" timezoneoffset="0">
-                    <plotmarkers xaxis="false" linecolor="#000000" linestyle="1" linewidth="1" curvemode="-2104862"/>
+                    <plotmarkers xaxis="false" linecolor="#000000" linestyle="1" linewidth="1" curvemode="0"/>
                 </plotaxis>
                 <plotlabel id="leftlabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="rightlabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="toplabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="bottomlabel" visible="true" overridetext="INDEX" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="numberlabel" visible="true" overridetext="" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
-                <projectionrect x="0" y="-19.0085434" width="270" height="21.2513448"/>
+                <projectionrect x="0" y="-47.4162872" width="1696" height="50.3519604"/>
             </plot>
             <plot tiedxzoom="false" tiedyzoom="false" leftlabelvisible="true" bottomlabelvisible="true" rightlabelvisible="true" toplabelvisible="true" globalfont="Noto Sans,12,-1,5,50,0,0,0,0,0" globalfontscale="16" globalfontcolor="#000000" showlegend="true" hidebottomaxislabel="false" hidetopaxislabel="false" hideleftaxislabel="false" hiderightaxislabel="false" numberaxislabelscale="true" initialPlotNum="4" name="Plot">
                 <position x="1017.8171" y="441.7514" z="500"/>
@@ -221,23 +213,20 @@
                     <brush color="#000000" style="1"/>
                 </pen>
                 <brush color="#ffffff" style="1"/>
-                <legend auto="true" title="" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="9.6" color="#000000" verticaldisplay="false" name="Legend">
-                    <position x="39.0432139125" y="22.47716402" z="500"/>
-                    <rect x="-279.00316223" y="-26.99468712" width="558" height="54"/>
-                    <relativesize width="0.96547112763351" height="0.271092502786228" centerx="0.518635563816755" centery="0.809396251393114" posx="0.0359" posy="0.67385" leftx="0.0359" lefty="0.944942502786229" rightx="1.00137112763351" righty="0.944942502786229" fixaspect="false" lockpostodata="false"/>
+                <legend auto="true" title="" font="Noto Sans,10,-1,0,50,0,0,0,0,0" fontscale="9.6" color="#000000" verticaldisplay="false" name="Legend">
+                    <position x="-226.720485070383" y="-122.367367525773" z="500"/>
+                    <rect x="0" y="0" width="372" height="54"/>
+                    <relativesize width="0.659296926289496" height="0.271092502786228" centerx="0.365571886568171" centery="0.217762746238475" posx="0.0359234234234234" posy="0.0822164948453608" leftx="0.0359234234234234" lefty="0.353308997631589" rightx="0.695220349712919" righty="0.353308997631589" fixaspect="false" lockpostodata="false"/>
                     <transform m11="1" m12="0" m13="0" m21="0" m22="1" m23="0" m31="0" m32="0" m33="1"/>
                     <pen style="1" width="1" miterlimit="2" cap="16" joinStyle="64">
                         <brush color="#000000" style="1"/>
                     </pen>
                     <brush color="#ffffff" style="1"/>
-                    <relation tag="angular acceleration vs INDEX (C11)"/>
-                    <relation tag="angular acceleration-Covar vs INDEX (C13)"/>
-                    <relation tag="angular acceleration+Covar vs INDEX (C12)"/>
                 </legend>
                 <cartesianrender name="Cartesian Plot" type="1">
-                    <relation tag="angular acceleration vs INDEX (C11)"/>
-                    <relation tag="angular acceleration-Covar vs INDEX (C13)"/>
-                    <relation tag="angular acceleration+Covar vs INDEX (C12)"/>
+                    <relation tag="dtheta\_dot vs INDEX (C11)"/>
+                    <relation tag="dtheta\_dot+2s vs INDEX (C12)"/>
+                    <relation tag="dtheta\_dot-2s vs INDEX (C13)"/>
                 </cartesianrender>
                 <plotaxis id="xaxis" visible="true" log="false" reversed="false" autobaseoffset="true" baseoffset="false" forceoffsetmin="false" interpret="false" interpretation="1" display="4" displayformatstring="hh:mm:ss.zzz" majortickmode="5" minortickcount="5" autominortickcount="true" drawmajorticks="true" drawminorticks="true" drawmajorgridlines="true" drawminorgridlines="false" drawmajorgridlinecolor="#a0a0a4" drawminorgridlinecolor="#a0a0a4" drawmajorgridlinestyle="2" drawminorgridlinestyle="2" drawmajorgridlinewidth="1" drawminorgridlinewidth="1" significantdigits="9" rotation="0" zoommode="0" timezonename="GMT" timezoneoffset="0">
                     <plotmarkers xaxis="true" linecolor="#000000" linestyle="1" linewidth="1" curvemode="0"/>
@@ -250,7 +239,7 @@
                 <plotlabel id="toplabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="bottomlabel" visible="true" overridetext="INDEX" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="numberlabel" visible="true" overridetext="" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
-                <projectionrect x="0" y="-0.006706225" width="270" height="0.01605345"/>
+                <projectionrect x="0" y="-0.0066402" width="1696" height="0.0132804"/>
             </plot>
         </view>
         <view name="IF" width="1357" height="580" color="#ffffff" style="1">
@@ -264,9 +253,9 @@
                 </pen>
                 <brush color="#ffffff" style="1"/>
                 <legend auto="true" title="" font="Noto Sans,10,-1,0,50,0,0,0,0,0" fontscale="9.6" color="#000000" verticaldisplay="false" name="Legend">
-                    <position x="-218.009875595733" y="-112.946182175503" z="500"/>
-                    <rect x="0" y="0" width="443" height="54"/>
-                    <relativesize width="0.794707285357949" height="0.270657698206642" centerx="0.432682192527917" centery="0.220840732101493" posx="0.0353285498489426" posy="0.0855118829981719" leftx="0.0353285498489426" lefty="0.356169581204814" rightx="0.830035835206891" righty="0.356169581204814" fixaspect="false" lockpostodata="false"/>
+                    <position x="-225.048962583554" y="-112.946182175503" z="500"/>
+                    <rect x="0" y="0" width="442" height="29"/>
+                    <relativesize width="0.782668219548883" height="0.14535320829616" centerx="0.426662659623384" centery="0.158188487146252" posx="0.0353285498489426" posy="0.0855118829981719" leftx="0.0353285498489426" lefty="0.230865091294332" rightx="0.817996769397826" righty="0.230865091294332" fixaspect="false" lockpostodata="false"/>
                     <transform m11="1" m12="0" m13="0" m21="0" m22="1" m23="0" m31="0" m32="0" m33="1"/>
                     <pen style="1" width="1" miterlimit="2" cap="16" joinStyle="64">
                         <brush color="#000000" style="1"/>
@@ -274,22 +263,22 @@
                     <brush color="#ffffff" style="1"/>
                 </legend>
                 <cartesianrender name="Cartesian Plot" type="1">
-                    <relation tag="angular rate vs INDEX (C20)"/>
-                    <relation tag="angular rate+Covar vs INDEX (C21)"/>
-                    <relation tag="angular rate-Covar vs INDEX (C22)"/>
+                    <relation tag="dtheta vs INDEX (C20)"/>
+                    <relation tag="dtheta-2s vs INDEX (C22)"/>
+                    <relation tag="dtheta+2s vs INDEX (C21)"/>
                 </cartesianrender>
                 <plotaxis id="xaxis" visible="true" log="false" reversed="false" autobaseoffset="true" baseoffset="false" forceoffsetmin="false" interpret="false" interpretation="1" display="4" displayformatstring="hh:mm:ss.zzz" majortickmode="5" minortickcount="5" autominortickcount="true" drawmajorticks="true" drawminorticks="true" drawmajorgridlines="true" drawminorgridlines="false" drawmajorgridlinecolor="#a0a0a4" drawminorgridlinecolor="#a0a0a4" drawmajorgridlinestyle="2" drawminorgridlinestyle="2" drawmajorgridlinewidth="1" drawminorgridlinewidth="1" significantdigits="9" rotation="0" zoommode="0" timezonename="GMT" timezoneoffset="0">
                     <plotmarkers xaxis="true" linecolor="#000000" linestyle="1" linewidth="1" curvemode="0"/>
                 </plotaxis>
                 <plotaxis id="yaxis" visible="true" log="false" reversed="false" autobaseoffset="true" baseoffset="false" forceoffsetmin="false" interpret="false" interpretation="1" display="4" displayformatstring="hh:mm:ss.zzz" majortickmode="5" minortickcount="5" autominortickcount="true" drawmajorticks="true" drawminorticks="true" drawmajorgridlines="true" drawminorgridlines="false" drawmajorgridlinecolor="#a0a0a4" drawminorgridlinecolor="#a0a0a4" drawmajorgridlinestyle="2" drawminorgridlinestyle="2" drawmajorgridlinewidth="1" drawminorgridlinewidth="1" significantdigits="9" rotation="0" zoommode="1" timezonename="GMT" timezoneoffset="0">
-                    <plotmarkers xaxis="false" linecolor="#000000" linestyle="1" linewidth="1" curvemode="58002864"/>
+                    <plotmarkers xaxis="false" linecolor="#000000" linestyle="1" linewidth="1" curvemode="0"/>
                 </plotaxis>
                 <plotlabel id="leftlabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="rightlabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="toplabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="bottomlabel" visible="true" overridetext="INDEX" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="numberlabel" visible="true" overridetext="" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
-                <projectionrect x="0" y="-171448.830252" width="270" height="342897.660504"/>
+                <projectionrect x="0" y="-0.00029715" width="1696" height="0.0005943"/>
             </plot>
             <plot tiedxzoom="false" tiedyzoom="false" leftlabelvisible="true" bottomlabelvisible="true" rightlabelvisible="true" toplabelvisible="true" globalfont="Noto Sans,12,-1,5,50,0,0,0,0,0" globalfontscale="16" globalfontcolor="#000000" showlegend="true" hidebottomaxislabel="false" hidetopaxislabel="false" hideleftaxislabel="false" hiderightaxislabel="false" numberaxislabelscale="true" initialPlotNum="5" name="Plot">
                 <position x="340.7222" y="146.5282" z="500"/>
@@ -301,9 +290,9 @@
                 </pen>
                 <brush color="#ffffff" style="1"/>
                 <legend auto="true" title="" font="Noto Sans,10,-1,0,50,0,0,0,0,0" fontscale="9.6" color="#000000" verticaldisplay="false" name="Legend">
-                    <position x="-218.009875595733" y="-112.946182175503" z="500"/>
-                    <rect x="0" y="0" width="375" height="54"/>
-                    <relativesize width="0.672720614016322" height="0.270657698206642" centerx="0.371688856857104" centery="0.220840732101493" posx="0.0353285498489426" posy="0.0855118829981719" leftx="0.0353285498489426" lefty="0.356169581204814" rightx="0.708049163865265" righty="0.356169581204814" fixaspect="false" lockpostodata="false"/>
+                    <position x="-225.048962583554" y="-112.946182175503" z="500"/>
+                    <rect x="0" y="0" width="350" height="29"/>
+                    <relativesize width="0.619759902357713" height="0.14535320829616" centerx="0.345208501027799" centery="0.158188487146252" posx="0.0353285498489426" posy="0.0855118829981719" leftx="0.0353285498489426" lefty="0.230865091294332" rightx="0.655088452206655" righty="0.230865091294332" fixaspect="false" lockpostodata="false"/>
                     <transform m11="1" m12="0" m13="0" m21="0" m22="1" m23="0" m31="0" m32="0" m33="1"/>
                     <pen style="1" width="1" miterlimit="2" cap="16" joinStyle="64">
                         <brush color="#000000" style="1"/>
@@ -311,22 +300,22 @@
                     <brush color="#ffffff" style="1"/>
                 </legend>
                 <cartesianrender name="Cartesian Plot" type="1">
-                    <relation tag="velocity vs INDEX (C14)"/>
-                    <relation tag="velocity+Covar vs INDEX (C15)"/>
-                    <relation tag="velocity-Covar vs INDEX (C16)"/>
+                    <relation tag="dr vs INDEX (C14)"/>
+                    <relation tag="dr+2s vs INDEX (C15)"/>
+                    <relation tag="dr-2s vs INDEX (C16)"/>
                 </cartesianrender>
                 <plotaxis id="xaxis" visible="true" log="false" reversed="false" autobaseoffset="true" baseoffset="false" forceoffsetmin="false" interpret="false" interpretation="1" display="4" displayformatstring="hh:mm:ss.zzz" majortickmode="5" minortickcount="5" autominortickcount="true" drawmajorticks="true" drawminorticks="true" drawmajorgridlines="true" drawminorgridlines="false" drawmajorgridlinecolor="#a0a0a4" drawminorgridlinecolor="#a0a0a4" drawmajorgridlinestyle="2" drawminorgridlinestyle="2" drawmajorgridlinewidth="1" drawminorgridlinewidth="1" significantdigits="9" rotation="0" zoommode="0" timezonename="GMT" timezoneoffset="0">
                     <plotmarkers xaxis="true" linecolor="#000000" linestyle="1" linewidth="1" curvemode="0"/>
                 </plotaxis>
                 <plotaxis id="yaxis" visible="true" log="false" reversed="false" autobaseoffset="true" baseoffset="false" forceoffsetmin="false" interpret="false" interpretation="1" display="4" displayformatstring="hh:mm:ss.zzz" majortickmode="5" minortickcount="5" autominortickcount="true" drawmajorticks="true" drawminorticks="true" drawmajorgridlines="true" drawminorgridlines="false" drawmajorgridlinecolor="#a0a0a4" drawminorgridlinecolor="#a0a0a4" drawmajorgridlinestyle="2" drawminorgridlinestyle="2" drawmajorgridlinewidth="1" drawminorgridlinewidth="1" significantdigits="9" rotation="0" zoommode="1" timezonename="GMT" timezoneoffset="0">
-                    <plotmarkers xaxis="false" linecolor="#000000" linestyle="1" linewidth="1" curvemode="9751680"/>
+                    <plotmarkers xaxis="false" linecolor="#000000" linestyle="1" linewidth="1" curvemode="617383289"/>
                 </plotaxis>
                 <plotlabel id="leftlabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="rightlabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="toplabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="bottomlabel" visible="true" overridetext="INDEX" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="numberlabel" visible="true" overridetext="" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
-                <projectionrect x="0" y="-0.5938543" width="270" height="8.0835426"/>
+                <projectionrect x="0" y="-1.0260917" width="1696" height="1.0606554"/>
             </plot>
             <plot tiedxzoom="false" tiedyzoom="false" leftlabelvisible="true" bottomlabelvisible="true" rightlabelvisible="true" toplabelvisible="true" globalfont="Noto Sans,12,-1,5,50,0,0,0,0,0" globalfontscale="16" globalfontcolor="#000000" showlegend="true" hidebottomaxislabel="false" hidetopaxislabel="false" hideleftaxislabel="false" hiderightaxislabel="false" numberaxislabelscale="true" initialPlotNum="6" name="Plot">
                 <position x="1016.1914" y="146.5282" z="500"/>
@@ -338,9 +327,9 @@
                 </pen>
                 <brush color="#ffffff" style="1"/>
                 <legend auto="true" title="" font="Noto Sans,10,-1,0,50,0,0,0,0,0" fontscale="9.6" color="#000000" verticaldisplay="false" name="Legend">
-                    <position x="-218.009875595733" y="-112.946182175503" z="500"/>
-                    <rect x="0" y="0" width="440" height="54"/>
-                    <relativesize width="0.789325520445818" height="0.270657698206642" centerx="0.429991310071852" centery="0.220840732101493" posx="0.0353285498489426" posy="0.0855118829981719" leftx="0.0353285498489426" lefty="0.356169581204814" rightx="0.824654070294761" righty="0.356169581204814" fixaspect="false" lockpostodata="false"/>
+                    <position x="-225.048962583554" y="-112.946182175503" z="500"/>
+                    <rect x="0" y="0" width="441" height="29"/>
+                    <relativesize width="0.780897476970718" height="0.14535320829616" centerx="0.425777288334302" centery="0.158188487146252" posx="0.0353285498489426" posy="0.0855118829981719" leftx="0.0353285498489426" lefty="0.230865091294332" rightx="0.816226026819661" righty="0.230865091294332" fixaspect="false" lockpostodata="false"/>
                     <transform m11="1" m12="0" m13="0" m21="0" m22="1" m23="0" m31="0" m32="0" m33="1"/>
                     <pen style="1" width="1" miterlimit="2" cap="16" joinStyle="64">
                         <brush color="#000000" style="1"/>
@@ -348,9 +337,9 @@
                     <brush color="#ffffff" style="1"/>
                 </legend>
                 <cartesianrender name="Cartesian Plot" type="1">
-                    <relation tag="acceleration vs INDEX (C17)"/>
-                    <relation tag="acceleration-Covar vs INDEX (C19)"/>
-                    <relation tag="acceleration+Covar vs INDEX (C18)"/>
+                    <relation tag="dr\_dot vs INDEX (C17)"/>
+                    <relation tag="dr\_dot-2s vs INDEX (C19)"/>
+                    <relation tag="dr\_dot+2s vs INDEX (C18)"/>
                 </cartesianrender>
                 <plotaxis id="xaxis" visible="true" log="false" reversed="false" autobaseoffset="true" baseoffset="false" forceoffsetmin="false" interpret="false" interpretation="1" display="4" displayformatstring="hh:mm:ss.zzz" majortickmode="5" minortickcount="5" autominortickcount="true" drawmajorticks="true" drawminorticks="true" drawmajorgridlines="true" drawminorgridlines="false" drawmajorgridlinecolor="#a0a0a4" drawminorgridlinecolor="#a0a0a4" drawmajorgridlinestyle="2" drawminorgridlinestyle="2" drawmajorgridlinewidth="1" drawminorgridlinewidth="1" significantdigits="9" rotation="0" zoommode="0" timezonename="GMT" timezoneoffset="0">
                     <plotmarkers xaxis="true" linecolor="#000000" linestyle="1" linewidth="1" curvemode="0"/>
@@ -363,7 +352,7 @@
                 <plotlabel id="toplabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="bottomlabel" visible="true" overridetext="INDEX" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="numberlabel" visible="true" overridetext="" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
-                <projectionrect x="0" y="-0.591848375" width="270" height="7.99925175"/>
+                <projectionrect x="0" y="-47.66219185" width="1696" height="48.9468357"/>
             </plot>
             <plot tiedxzoom="false" tiedyzoom="false" leftlabelvisible="true" bottomlabelvisible="true" rightlabelvisible="true" toplabelvisible="true" globalfont="Noto Sans,12,-1,5,50,0,0,0,0,0" globalfontscale="16" globalfontcolor="#000000" showlegend="true" hidebottomaxislabel="false" hidetopaxislabel="false" hideleftaxislabel="false" hiderightaxislabel="false" numberaxislabelscale="true" initialPlotNum="8" name="Plot">
                 <position x="1016.1914" y="433.4841" z="500"/>
@@ -375,9 +364,9 @@
                 </pen>
                 <brush color="#ffffff" style="1"/>
                 <legend auto="true" title="" font="Noto Sans,10,-1,0,50,0,0,0,0,0" fontscale="9.6" color="#000000" verticaldisplay="false" name="Legend">
-                    <position x="-218.009875595733" y="-112.946182175503" z="500"/>
-                    <rect x="0" y="0" width="558" height="54"/>
-                    <relativesize width="1.00100827365629" height="0.270657698206642" centerx="0.535832686677086" centery="0.220840732101493" posx="0.0353285498489426" posy="0.0855118829981719" leftx="0.0353285498489426" lefty="0.356169581204814" rightx="1.03633682350523" righty="0.356169581204814" fixaspect="false" lockpostodata="false"/>
+                    <position x="-225.048962583554" y="-112.946182175503" z="500"/>
+                    <rect x="0" y="0" width="372" height="54"/>
+                    <relativesize width="0.65871623907734" height="0.270657698206642" centerx="0.364686669387613" centery="0.220840732101493" posx="0.0353285498489426" posy="0.0855118829981719" leftx="0.0353285498489426" lefty="0.356169581204814" rightx="0.694044788926283" righty="0.356169581204814" fixaspect="false" lockpostodata="false"/>
                     <transform m11="1" m12="0" m13="0" m21="0" m22="1" m23="0" m31="0" m32="0" m33="1"/>
                     <pen style="1" width="1" miterlimit="2" cap="16" joinStyle="64">
                         <brush color="#000000" style="1"/>
@@ -385,25 +374,25 @@
                     <brush color="#ffffff" style="1"/>
                 </legend>
                 <cartesianrender name="Cartesian Plot" type="1">
-                    <relation tag="angular acceleration vs INDEX (C23)"/>
-                    <relation tag="angular acceleration-Covar vs INDEX (C25)"/>
-                    <relation tag="angular acceleration+Covar vs INDEX (C24)"/>
+                    <relation tag="dtheta\_dot vs INDEX (C23)"/>
+                    <relation tag="dtheta\_dot-2s vs INDEX (C25)"/>
+                    <relation tag="dtheta\_dot+2s vs INDEX (C24)"/>
                 </cartesianrender>
                 <plotaxis id="xaxis" visible="true" log="false" reversed="false" autobaseoffset="true" baseoffset="false" forceoffsetmin="false" interpret="false" interpretation="1" display="4" displayformatstring="hh:mm:ss.zzz" majortickmode="5" minortickcount="5" autominortickcount="true" drawmajorticks="true" drawminorticks="true" drawmajorgridlines="true" drawminorgridlines="false" drawmajorgridlinecolor="#a0a0a4" drawminorgridlinecolor="#a0a0a4" drawmajorgridlinestyle="2" drawminorgridlinestyle="2" drawmajorgridlinewidth="1" drawminorgridlinewidth="1" significantdigits="9" rotation="0" zoommode="0" timezonename="GMT" timezoneoffset="0">
                     <plotmarkers xaxis="true" linecolor="#000000" linestyle="1" linewidth="1" curvemode="0"/>
                 </plotaxis>
                 <plotaxis id="yaxis" visible="true" log="false" reversed="false" autobaseoffset="true" baseoffset="false" forceoffsetmin="false" interpret="false" interpretation="1" display="4" displayformatstring="hh:mm:ss.zzz" majortickmode="5" minortickcount="5" autominortickcount="true" drawmajorticks="true" drawminorticks="true" drawmajorgridlines="true" drawminorgridlines="false" drawmajorgridlinecolor="#a0a0a4" drawminorgridlinecolor="#a0a0a4" drawmajorgridlinestyle="2" drawminorgridlinestyle="2" drawmajorgridlinewidth="1" drawminorgridlinewidth="1" significantdigits="9" rotation="0" zoommode="1" timezonename="GMT" timezoneoffset="0">
-                    <plotmarkers xaxis="false" linecolor="#000000" linestyle="1" linewidth="1" curvemode="657"/>
+                    <plotmarkers xaxis="false" linecolor="#000000" linestyle="1" linewidth="1" curvemode="0"/>
                 </plotaxis>
                 <plotlabel id="leftlabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="rightlabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="toplabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="bottomlabel" visible="true" overridetext="INDEX" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="numberlabel" visible="true" overridetext="" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
-                <projectionrect x="0" y="-740.42213575" width="270" height="19975.0706715"/>
+                <projectionrect x="0" y="-0.0042" width="1696" height="0.0084"/>
             </plot>
         </view>
-        <view name="SRKF" width="1357" height="580" color="#ffffff" style="1">
+        <view name="SQRT" width="1357" height="580" color="#ffffff" style="1">
             <plot tiedxzoom="false" tiedyzoom="false" leftlabelvisible="true" bottomlabelvisible="true" rightlabelvisible="true" toplabelvisible="true" globalfont="Noto Sans,12,-1,5,50,0,0,0,0,0" globalfontscale="16" globalfontcolor="#000000" showlegend="true" hidebottomaxislabel="false" hidetopaxislabel="false" hideleftaxislabel="false" hiderightaxislabel="false" numberaxislabelscale="true" initialPlotNum="11" name="Plot">
                 <position x="340.7222" y="433.4841" z="500"/>
                 <rect x="-337.7346" y="-143.507" width="675.4692" height="287.014"/>
@@ -413,36 +402,33 @@
                     <brush color="#000000" style="1"/>
                 </pen>
                 <brush color="#ffffff" style="1"/>
-                <legend auto="true" title="" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="9.6" color="#000000" verticaldisplay="false" name="Legend">
-                    <position x="30.5078125" y="29.5988748296509" z="500"/>
-                    <rect x="-221.4898738675" y="-26.9988947296509" width="443" height="54"/>
-                    <relativesize width="0.765835011046479" height="0.270657698206642" centerx="0.500017505523239" centery="0.799978849103321" posx="0.1171" posy="0.66465" leftx="0.1171" lefty="0.935307698206642" rightx="0.882935011046479" righty="0.935307698206642" fixaspect="false" lockpostodata="false"/>
+                <legend auto="true" title="" font="Noto Sans,10,-1,0,50,0,0,0,0,0" fontscale="9.6" color="#000000" verticaldisplay="false" name="Legend">
+                    <position x="-238.283049040313" y="-112.946182175503" z="500"/>
+                    <rect x="0" y="0" width="442" height="29"/>
+                    <relativesize width="0.764106263843213" height="0.14535320829616" centerx="0.417381681770549" centery="0.158188487146252" posx="0.0353285498489426" posy="0.0855118829981719" leftx="0.0353285498489426" lefty="0.230865091294332" rightx="0.799434813692156" righty="0.230865091294332" fixaspect="false" lockpostodata="false"/>
                     <transform m11="1" m12="0" m13="0" m21="0" m22="1" m23="0" m31="0" m32="0" m33="1"/>
                     <pen style="1" width="1" miterlimit="2" cap="16" joinStyle="64">
                         <brush color="#000000" style="1"/>
                     </pen>
                     <brush color="#ffffff" style="1"/>
-                    <relation tag="angular rate vs INDEX (C33)"/>
-                    <relation tag="angular rate+Covar vs INDEX (C34)"/>
-                    <relation tag="angular rate-Covar vs INDEX (C35)"/>
                 </legend>
                 <cartesianrender name="Cartesian Plot" type="1">
-                    <relation tag="angular rate vs INDEX (C33)"/>
-                    <relation tag="angular rate+Covar vs INDEX (C34)"/>
-                    <relation tag="angular rate-Covar vs INDEX (C35)"/>
+                    <relation tag="dtheta vs INDEX (C32)"/>
+                    <relation tag="dtheta+2s vs INDEX (C33)"/>
+                    <relation tag="dtheta-2s vs INDEX (C34)"/>
                 </cartesianrender>
                 <plotaxis id="xaxis" visible="true" log="false" reversed="false" autobaseoffset="true" baseoffset="false" forceoffsetmin="false" interpret="false" interpretation="1" display="4" displayformatstring="hh:mm:ss.zzz" majortickmode="5" minortickcount="5" autominortickcount="true" drawmajorticks="true" drawminorticks="true" drawmajorgridlines="true" drawminorgridlines="false" drawmajorgridlinecolor="#a0a0a4" drawminorgridlinecolor="#a0a0a4" drawmajorgridlinestyle="2" drawminorgridlinestyle="2" drawmajorgridlinewidth="1" drawminorgridlinewidth="1" significantdigits="9" rotation="0" zoommode="0" timezonename="GMT" timezoneoffset="0">
                     <plotmarkers xaxis="true" linecolor="#000000" linestyle="1" linewidth="1" curvemode="0"/>
                 </plotaxis>
                 <plotaxis id="yaxis" visible="true" log="false" reversed="false" autobaseoffset="true" baseoffset="false" forceoffsetmin="false" interpret="false" interpretation="1" display="4" displayformatstring="hh:mm:ss.zzz" majortickmode="5" minortickcount="5" autominortickcount="true" drawmajorticks="true" drawminorticks="true" drawmajorgridlines="true" drawminorgridlines="false" drawmajorgridlinecolor="#a0a0a4" drawminorgridlinecolor="#a0a0a4" drawmajorgridlinestyle="2" drawminorgridlinestyle="2" drawmajorgridlinewidth="1" drawminorgridlinewidth="1" significantdigits="9" rotation="0" zoommode="1" timezonename="GMT" timezoneoffset="0">
-                    <plotmarkers xaxis="false" linecolor="#000000" linestyle="1" linewidth="1" curvemode="385"/>
+                    <plotmarkers xaxis="false" linecolor="#000000" linestyle="1" linewidth="1" curvemode="0"/>
                 </plotaxis>
                 <plotlabel id="leftlabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="rightlabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="toplabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="bottomlabel" visible="true" overridetext="INDEX" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="numberlabel" visible="true" overridetext="" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
-                <projectionrect x="0" y="-0.21000315" width="270" height="0.4200063"/>
+                <projectionrect x="0" y="-0.00283915" width="1696" height="0.0031983"/>
             </plot>
             <plot tiedxzoom="false" tiedyzoom="false" leftlabelvisible="true" bottomlabelvisible="true" rightlabelvisible="true" toplabelvisible="true" globalfont="Noto Sans,12,-1,5,50,0,0,0,0,0" globalfontscale="16" globalfontcolor="#000000" showlegend="true" hidebottomaxislabel="false" hidetopaxislabel="false" hideleftaxislabel="false" hiderightaxislabel="false" numberaxislabelscale="true" initialPlotNum="9" name="Plot">
                 <position x="340.7222" y="146.5282" z="500"/>
@@ -453,36 +439,33 @@
                     <brush color="#000000" style="1"/>
                 </pen>
                 <brush color="#ffffff" style="1"/>
-                <legend auto="true" title="" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="9.6" color="#000000" verticaldisplay="false" name="Legend">
-                    <position x="-50.7649147875" y="29.6042" z="500"/>
-                    <rect x="-187.50572633625" y="-27.0042199" width="375" height="54"/>
-                    <relativesize width="0.648280201224446" height="0.270657698206642" centerx="0.359490100612223" centery="0.799978849103321" posx="0.03535" posy="0.66465" leftx="0.03535" lefty="0.935307698206642" rightx="0.683630201224446" righty="0.935307698206642" fixaspect="false" lockpostodata="false"/>
+                <legend auto="true" title="" font="Noto Sans,10,-1,0,50,0,0,0,0,0" fontscale="9.6" color="#000000" verticaldisplay="false" name="Legend">
+                    <position x="-238.283049040313" y="-112.946182175503" z="500"/>
+                    <rect x="0" y="0" width="350" height="29"/>
+                    <relativesize width="0.605061521142816" height="0.14535320829616" centerx="0.337859310420351" centery="0.158188487146252" posx="0.0353285498489426" posy="0.0855118829981719" leftx="0.0353285498489426" lefty="0.230865091294332" rightx="0.640390070991759" righty="0.230865091294332" fixaspect="false" lockpostodata="false"/>
                     <transform m11="1" m12="0" m13="0" m21="0" m22="1" m23="0" m31="0" m32="0" m33="1"/>
                     <pen style="1" width="1" miterlimit="2" cap="16" joinStyle="64">
                         <brush color="#000000" style="1"/>
                     </pen>
                     <brush color="#ffffff" style="1"/>
-                    <relation tag="velocity vs INDEX (C27)"/>
-                    <relation tag="velocity+Covar vs INDEX (C28)"/>
-                    <relation tag="velocity-Covar vs INDEX (C29)"/>
                 </legend>
                 <cartesianrender name="Cartesian Plot" type="1">
-                    <relation tag="velocity vs INDEX (C27)"/>
-                    <relation tag="velocity+Covar vs INDEX (C28)"/>
-                    <relation tag="velocity-Covar vs INDEX (C29)"/>
+                    <relation tag="dr vs INDEX (C26)"/>
+                    <relation tag="dr+2s vs INDEX (C27)"/>
+                    <relation tag="dr-2s vs INDEX (C28)"/>
                 </cartesianrender>
                 <plotaxis id="xaxis" visible="true" log="false" reversed="false" autobaseoffset="true" baseoffset="false" forceoffsetmin="false" interpret="false" interpretation="1" display="4" displayformatstring="hh:mm:ss.zzz" majortickmode="5" minortickcount="5" autominortickcount="true" drawmajorticks="true" drawminorticks="true" drawmajorgridlines="true" drawminorgridlines="false" drawmajorgridlinecolor="#a0a0a4" drawminorgridlinecolor="#a0a0a4" drawmajorgridlinestyle="2" drawminorgridlinestyle="2" drawmajorgridlinewidth="1" drawminorgridlinewidth="1" significantdigits="9" rotation="0" zoommode="0" timezonename="GMT" timezoneoffset="0">
-                    <plotmarkers xaxis="true" linecolor="#000000" linestyle="1" linewidth="1" curvemode="33"/>
+                    <plotmarkers xaxis="true" linecolor="#000000" linestyle="1" linewidth="1" curvemode="0"/>
                 </plotaxis>
                 <plotaxis id="yaxis" visible="true" log="false" reversed="false" autobaseoffset="true" baseoffset="false" forceoffsetmin="false" interpret="false" interpretation="1" display="4" displayformatstring="hh:mm:ss.zzz" majortickmode="5" minortickcount="5" autominortickcount="true" drawmajorticks="true" drawminorticks="true" drawmajorgridlines="true" drawminorgridlines="false" drawmajorgridlinecolor="#a0a0a4" drawminorgridlinecolor="#a0a0a4" drawmajorgridlinestyle="2" drawminorgridlinestyle="2" drawmajorgridlinewidth="1" drawminorgridlinewidth="1" significantdigits="9" rotation="0" zoommode="1" timezonename="GMT" timezoneoffset="0">
-                    <plotmarkers xaxis="false" linecolor="#000000" linestyle="1" linewidth="1" curvemode="0"/>
+                    <plotmarkers xaxis="false" linecolor="#000000" linestyle="1" linewidth="1" curvemode="58399040"/>
                 </plotaxis>
                 <plotlabel id="leftlabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="rightlabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="toplabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="bottomlabel" visible="true" overridetext="INDEX" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="numberlabel" visible="true" overridetext="" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
-                <projectionrect x="0" y="-0.15997395" width="270" height="0.1730379"/>
+                <projectionrect x="0" y="-0.2576528" width="1696" height="5.3848956"/>
             </plot>
             <plot tiedxzoom="false" tiedyzoom="false" leftlabelvisible="true" bottomlabelvisible="true" rightlabelvisible="true" toplabelvisible="true" globalfont="Noto Sans,12,-1,5,50,0,0,0,0,0" globalfontscale="16" globalfontcolor="#000000" showlegend="true" hidebottomaxislabel="false" hidetopaxislabel="false" hideleftaxislabel="false" hiderightaxislabel="false" numberaxislabelscale="true" initialPlotNum="10" name="Plot">
                 <position x="1016.1914" y="146.5282" z="500"/>
@@ -493,36 +476,33 @@
                     <brush color="#000000" style="1"/>
                 </pen>
                 <brush color="#ffffff" style="1"/>
-                <legend auto="true" title="" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="9.6" color="#000000" verticaldisplay="false" name="Legend">
-                    <position x="30.5078125" y="29.5988748296509" z="500"/>
-                    <rect x="-219.9858945725" y="-26.9988947296509" width="440" height="54"/>
-                    <relativesize width="0.760648769436683" height="0.270657698206642" centerx="0.500024384718341" centery="0.799978849103321" posx="0.1197" posy="0.66465" leftx="0.1197" lefty="0.935307698206642" rightx="0.880348769436683" righty="0.935307698206642" fixaspect="false" lockpostodata="false"/>
+                <legend auto="true" title="" font="Noto Sans,10,-1,0,50,0,0,0,0,0" fontscale="9.6" color="#000000" verticaldisplay="false" name="Legend">
+                    <position x="-238.283049040313" y="-112.946182175503" z="500"/>
+                    <rect x="0" y="0" width="441" height="29"/>
+                    <relativesize width="0.762377516639948" height="0.14535320829616" centerx="0.416517308168917" centery="0.158188487146252" posx="0.0353285498489426" posy="0.0855118829981719" leftx="0.0353285498489426" lefty="0.230865091294332" rightx="0.797706066488891" righty="0.230865091294332" fixaspect="false" lockpostodata="false"/>
                     <transform m11="1" m12="0" m13="0" m21="0" m22="1" m23="0" m31="0" m32="0" m33="1"/>
                     <pen style="1" width="1" miterlimit="2" cap="16" joinStyle="64">
                         <brush color="#000000" style="1"/>
                     </pen>
                     <brush color="#ffffff" style="1"/>
-                    <relation tag="acceleration vs INDEX (C30)"/>
-                    <relation tag="acceleration+Covar vs INDEX (C31)"/>
-                    <relation tag="acceleration-Covar vs INDEX (C32)"/>
                 </legend>
                 <cartesianrender name="Cartesian Plot" type="1">
-                    <relation tag="acceleration vs INDEX (C30)"/>
-                    <relation tag="acceleration+Covar vs INDEX (C31)"/>
-                    <relation tag="acceleration-Covar vs INDEX (C32)"/>
+                    <relation tag="dr\_dot vs INDEX (C29)"/>
+                    <relation tag="dr\_dot-2s vs INDEX (C31)"/>
+                    <relation tag="dr\_dot+2s vs INDEX (C30)"/>
                 </cartesianrender>
                 <plotaxis id="xaxis" visible="true" log="false" reversed="false" autobaseoffset="true" baseoffset="false" forceoffsetmin="false" interpret="false" interpretation="1" display="4" displayformatstring="hh:mm:ss.zzz" majortickmode="5" minortickcount="5" autominortickcount="true" drawmajorticks="true" drawminorticks="true" drawmajorgridlines="true" drawminorgridlines="false" drawmajorgridlinecolor="#a0a0a4" drawminorgridlinecolor="#a0a0a4" drawmajorgridlinestyle="2" drawminorgridlinestyle="2" drawmajorgridlinewidth="1" drawminorgridlinewidth="1" significantdigits="9" rotation="0" zoommode="0" timezonename="GMT" timezoneoffset="0">
                     <plotmarkers xaxis="true" linecolor="#000000" linestyle="1" linewidth="1" curvemode="0"/>
                 </plotaxis>
                 <plotaxis id="yaxis" visible="true" log="false" reversed="false" autobaseoffset="true" baseoffset="false" forceoffsetmin="false" interpret="false" interpretation="1" display="4" displayformatstring="hh:mm:ss.zzz" majortickmode="5" minortickcount="5" autominortickcount="true" drawmajorticks="true" drawminorticks="true" drawmajorgridlines="true" drawminorgridlines="false" drawmajorgridlinecolor="#a0a0a4" drawminorgridlinecolor="#a0a0a4" drawmajorgridlinestyle="2" drawminorgridlinestyle="2" drawmajorgridlinewidth="1" drawminorgridlinewidth="1" significantdigits="9" rotation="0" zoommode="1" timezonename="GMT" timezoneoffset="0">
-                    <plotmarkers xaxis="false" linecolor="#000000" linestyle="1" linewidth="1" curvemode="32"/>
+                    <plotmarkers xaxis="false" linecolor="#000000" linestyle="1" linewidth="1" curvemode="56099968"/>
                 </plotaxis>
                 <plotlabel id="leftlabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="rightlabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="toplabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="bottomlabel" visible="true" overridetext="INDEX" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="numberlabel" visible="true" overridetext="" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
-                <projectionrect x="0" y="-1.81825455" width="270" height="3.6365091"/>
+                <projectionrect x="0" y="-1.81825455" width="1696" height="3.6365091"/>
             </plot>
             <plot tiedxzoom="false" tiedyzoom="false" leftlabelvisible="true" bottomlabelvisible="true" rightlabelvisible="true" toplabelvisible="true" globalfont="Noto Sans,12,-1,5,50,0,0,0,0,0" globalfontscale="16" globalfontcolor="#000000" showlegend="true" hidebottomaxislabel="false" hidetopaxislabel="false" hideleftaxislabel="false" hiderightaxislabel="false" numberaxislabelscale="true" initialPlotNum="12" name="Plot">
                 <position x="1016.1914" y="433.4841" z="500"/>
@@ -535,8 +515,8 @@
                 <brush color="#ffffff" style="1"/>
                 <legend auto="true" title="" font="Noto Sans,10,-1,0,50,0,0,0,0,0" fontscale="9.6" color="#000000" verticaldisplay="false" name="Legend">
                     <position x="-238.283049040313" y="-112.946182175503" z="500"/>
-                    <rect x="0" y="0" width="558" height="54"/>
-                    <relativesize width="0.964640939421975" height="0.270657698206642" centerx="0.51764901955993" centery="0.220840732101493" posx="0.0353285498489426" posy="0.0855118829981719" leftx="0.0353285498489426" lefty="0.356169581204814" rightx="0.999969489270918" righty="0.356169581204814" fixaspect="false" lockpostodata="false"/>
+                    <rect x="0" y="0" width="372" height="54"/>
+                    <relativesize width="0.64309395961465" height="0.270657698206642" centerx="0.356875529656268" centery="0.220840732101493" posx="0.0353285498489426" posy="0.0855118829981719" leftx="0.0353285498489426" lefty="0.356169581204814" rightx="0.678422509463593" righty="0.356169581204814" fixaspect="false" lockpostodata="false"/>
                     <transform m11="1" m12="0" m13="0" m21="0" m22="1" m23="0" m31="0" m32="0" m33="1"/>
                     <pen style="1" width="1" miterlimit="2" cap="16" joinStyle="64">
                         <brush color="#000000" style="1"/>
@@ -544,22 +524,22 @@
                     <brush color="#ffffff" style="1"/>
                 </legend>
                 <cartesianrender name="Cartesian Plot" type="1">
-                    <relation tag="angular acceleration vs INDEX (C36)"/>
-                    <relation tag="angular acceleration+Covar vs INDEX (C37)"/>
-                    <relation tag="angular acceleration-Covar vs INDEX (C38)"/>
+                    <relation tag="dtheta\_dot vs INDEX (C35)"/>
+                    <relation tag="dtheta\_dot-2s vs INDEX (C37)"/>
+                    <relation tag="dtheta\_dot+2s vs INDEX (C36)"/>
                 </cartesianrender>
                 <plotaxis id="xaxis" visible="true" log="false" reversed="false" autobaseoffset="true" baseoffset="false" forceoffsetmin="false" interpret="false" interpretation="1" display="4" displayformatstring="hh:mm:ss.zzz" majortickmode="5" minortickcount="5" autominortickcount="true" drawmajorticks="true" drawminorticks="true" drawmajorgridlines="true" drawminorgridlines="false" drawmajorgridlinecolor="#a0a0a4" drawminorgridlinecolor="#a0a0a4" drawmajorgridlinestyle="2" drawminorgridlinestyle="2" drawmajorgridlinewidth="1" drawminorgridlinewidth="1" significantdigits="9" rotation="0" zoommode="0" timezonename="GMT" timezoneoffset="0">
                     <plotmarkers xaxis="true" linecolor="#000000" linestyle="1" linewidth="1" curvemode="0"/>
                 </plotaxis>
                 <plotaxis id="yaxis" visible="true" log="false" reversed="false" autobaseoffset="true" baseoffset="false" forceoffsetmin="false" interpret="false" interpretation="1" display="4" displayformatstring="hh:mm:ss.zzz" majortickmode="5" minortickcount="5" autominortickcount="true" drawmajorticks="true" drawminorticks="true" drawmajorgridlines="true" drawminorgridlines="false" drawmajorgridlinecolor="#a0a0a4" drawminorgridlinecolor="#a0a0a4" drawmajorgridlinestyle="2" drawminorgridlinestyle="2" drawmajorgridlinewidth="1" drawminorgridlinewidth="1" significantdigits="9" rotation="0" zoommode="1" timezonename="GMT" timezoneoffset="0">
-                    <plotmarkers xaxis="false" linecolor="#000000" linestyle="1" linewidth="1" curvemode="96"/>
+                    <plotmarkers xaxis="false" linecolor="#000000" linestyle="1" linewidth="1" curvemode="7667728"/>
                 </plotaxis>
                 <plotlabel id="leftlabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="rightlabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="toplabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="bottomlabel" visible="true" overridetext="INDEX" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="numberlabel" visible="true" overridetext="" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
-                <projectionrect x="0" y="-0.0066402" width="270" height="0.0132804"/>
+                <projectionrect x="0" y="-0.0066402" width="1696" height="0.0132804"/>
             </plot>
         </view>
     </graphics>

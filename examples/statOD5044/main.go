@@ -11,30 +11,29 @@ import (
 func main() {
 	// Prepare the estimate channels.
 	var wg sync.WaitGroup
-	//truthEstChan := make(chan (gokalman.Estimate), 1)
+	truthEstChan := make(chan (gokalman.Estimate), 1)
 	vanillaEstChan := make(chan (gokalman.Estimate), 1)
 	informationEstChan := make(chan (gokalman.Estimate), 1)
 	sqrtEstChan := make(chan (gokalman.Estimate), 1)
 
 	processEst := func(fn string, estChan chan (gokalman.Estimate)) {
 		wg.Add(1)
-		// TODO: Generate another file which will plot the 2D orbit.
-		ce, _ := gokalman.NewCSVExporter([]string{"position", "velocity", "angle", "angular rate"}, ".", fn+".csv")
+		//oe, _ := gokalman.NewCSVExporter([]string{"positionX", "positionY"}, ".", fn+"-orbit.csv")
+		ce, _ := gokalman.NewCSVExporter([]string{"dr", "dr_dot", "dtheta", "dtheta_dot"}, ".", fn+".csv")
 		for {
 			est, more := <-estChan
 			if !more {
+				//oe.Close()
 				ce.Close()
 				wg.Done()
 				break
 			}
+			//r := est.State().At(0, 0)
+			//sν, cν := math.Sincos(est.State().At(1, 0))
+			//oe.WriteRawLn(fmt.Sprintf("%.5f,%.5f", r*cν, r*sν))
 			ce.Write(est)
 		}
 	}
-
-	//go processEst("truth", truthEstChan)
-	go processEst("vanilla", vanillaEstChan)
-	go processEst("information", informationEstChan)
-	go processEst("sqrt", sqrtEstChan)
 
 	// DT system
 	Δt := 0.1
@@ -43,7 +42,7 @@ func main() {
 	H := mat64.NewDense(2, 4, []float64{1, 0, 0, 0, 0, 0, 1, 0})
 	// Noise
 	Q := mat64.NewSymDense(4, []float64{6.669e-16, 1.001e-14, 3.823e-19, 5.150e-18, 1.001e-14, 2.002e-13, 1.030e-17, 1.545e-16, 3.862e-19, 1.030e-17, 6.667e-19, 1.000e-17, 5.150e-18, 1.545e-16, 1.000e-17, 2.000e-16})
-	R := mat64.NewSymDense(2, []float64{2e-6, 0, 0, 2e9})
+	R := mat64.NewSymDense(2, []float64{2e-6, 0, 0, 2e-9})
 	R.ScaleSym(1/Δt, R)
 
 	// Control matrix
@@ -56,7 +55,8 @@ func main() {
 	Gcl := mat64.NewDense(4, 2, nil)
 
 	// Initial conditions
-	x0 := mat64.NewVector(4, []float64{6678, 0, 0, 0.001156909175835434})
+	//x0 := mat64.NewVector(4, []float64{6678, 0, 0, 0.001156909175835434})
+	x0 := mat64.NewVector(4, []float64{5, 0.50, 0, 0.0})
 	P0 := mat64.NewSymDense(4, []float64{5, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0.01, 0, 0, 0, 0, 0.00001})
 
 	// Truth generation, via a vanilla KF with AWGN.
@@ -66,20 +66,29 @@ func main() {
 		panic(err)
 	}
 
-	scPeriod := 5.431e3                 // Spacecraft period.
-	samples := int((scPeriod / 8) / Δt) // Propagation time in samples.
+	scPeriod := 5.431e3                  // Spacecraft period.
+	samples := int((scPeriod / 32) / Δt) // Propagation time in samples.
 	stateTruth := make([]*mat64.Vector, samples)
 	measurements := make([]*mat64.Vector, samples)
+	go processEst("truth", truthEstChan)
 
 	for k := 0; k < samples; k++ {
 		est, kferr := truthKF.Update(mat64.NewVector(2, nil), mat64.NewVector(4, nil))
 		if kferr != nil {
 			panic(fmt.Errorf("k=%d %s", k, kferr))
 		}
-		//truthEstChan <- est
+		truthEstChan <- est
 		stateTruth[k] = est.State()
 		measurements[k] = est.Measurement()
 	}
+
+	// KF part
+	close(truthEstChan)
+	wg.Wait()
+
+	go processEst("vanilla", vanillaEstChan)
+	go processEst("information", informationEstChan)
+	go processEst("sqrt", sqrtEstChan)
 
 	truth := gokalman.NewBatchGroundTruth(stateTruth, measurements)
 
@@ -109,6 +118,8 @@ func main() {
 
 	// Generate for a quarter of orbit.
 	for k := 0; k < samples; k++ {
+		// Plot the orbits with the three different KFs by adding each to an array of estimates
+		// and then doing the X,Y computation.
 		for i, kf := range filters {
 			kfChan := chans[i]
 			est, err := kf.Update(measurements[k], mat64.NewVector(4, nil))

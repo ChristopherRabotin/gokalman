@@ -22,7 +22,7 @@ type CSVExporter struct {
 
 // Close closes the file.
 func (e CSVExporter) Close() (err error) {
-	_, err = e.hdlr.WriteString(fmt.Sprintf("# Closing date (UTC): %s\n", time.Now().UTC()))
+	err = e.WriteRawLn(fmt.Sprintf("# Closing date (UTC): %s\n", time.Now().UTC()))
 	if err != nil {
 		return
 	}
@@ -40,6 +40,12 @@ func (e CSVExporter) Write(est Estimate) error {
 		vals[i+2] = fmt.Sprintf("%f", -1*covar)
 	}
 	_, err := e.hdlr.WriteString(strings.Join(vals, e.delimiter) + "\n")
+	return err
+}
+
+// WriteRawLn writes a raw line to the CSV file.
+func (e CSVExporter) WriteRawLn(s string) error {
+	_, err := e.hdlr.WriteString(s + "\n")
 	return err
 }
 

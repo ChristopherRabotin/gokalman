@@ -54,7 +54,6 @@ func (mc MonteCarloRuns) StdDev(step int) (mean []float64) {
 	devs := make([]float64, rows)
 	for i := 0; i < rows; i++ {
 		devs[i] = stat.StdDev(states[i], nil)
-		fmt.Printf("%d stddev %d = %f from %+v\n", step, i, devs[i], states[i])
 	}
 	return devs
 }

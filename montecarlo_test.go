@@ -17,7 +17,7 @@ func TestMCRuns(t *testing.T) {
 	noise := NewAWGN(Q, R)
 	x0 := mat64.NewVector(3, []float64{0, 0.35, 0})
 	P0 := ScaledIdentity(3, 10)
-	kf, _ := NewVanilla(x0, P0, F, G, H, noise)
+	kf, _, _ := NewPurePredictorVanilla(x0, P0, F, G, H, noise)
 
 	runs := NewMonteCarloRuns(5, 10, 1, 1, kf)
 	if len(runs.Runs) != 5 {

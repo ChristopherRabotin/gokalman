@@ -18,16 +18,16 @@ import (
 // - G: control matrix (if all zeros, then control vector will not be used)
 // - H: measurement update matrix
 // - noise: Noise
-func NewInformation(i0 *mat64.Vector, I0 mat64.Symmetric, F, G, H mat64.Matrix, noise Noise) (*Information, error) {
+func NewInformation(i0 *mat64.Vector, I0 mat64.Symmetric, F, G, H mat64.Matrix, noise Noise) (*Information, *InformationEstimate, error) {
 	// Let's check the dimensions of everything here to panic ASAP.
 	if err := checkMatDims(i0, I0, "i0", "I0", rows2cols); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if err := checkMatDims(F, I0, "F", "I0", rows2cols); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if err := checkMatDims(H, i0, "H", "i0", cols2rows); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Populate with the initial values.
@@ -48,7 +48,7 @@ func NewInformation(i0 *mat64.Vector, I0 mat64.Symmetric, F, G, H mat64.Matrix, 
 		panic(fmt.Errorf("R not invertible: %s", err))
 	}
 
-	return &Information{&Finv, G, H, &Qinv, &Rinv, noise, !IsNil(G), est0, 0}, nil
+	return &Information{&Finv, G, H, &Qinv, &Rinv, noise, !IsNil(G), est0, 0}, &est0, nil
 }
 
 // NewInformationFromState returns a new Information KF. To get the next estimate, call
@@ -61,7 +61,7 @@ func NewInformation(i0 *mat64.Vector, I0 mat64.Symmetric, F, G, H mat64.Matrix, 
 // - G: control matrix (if all zeros, then control vector will not be used)
 // - H: measurement update matrix
 // - noise: Noise
-func NewInformationFromState(x0 *mat64.Vector, P0 mat64.Symmetric, F, G, H mat64.Matrix, noise Noise) (*Information, error) {
+func NewInformationFromState(x0 *mat64.Vector, P0 mat64.Symmetric, F, G, H mat64.Matrix, noise Noise) (*Information, *InformationEstimate, error) {
 
 	var I0 *mat64.SymDense
 	var I0temp mat64.Dense

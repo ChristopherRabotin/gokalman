@@ -107,25 +107,28 @@ func main() {
 	// Vanilla KF
 	x0 := mat64.NewVector(4, []float64{0, 0.45, 0, 0.09})
 	Covar0 := gokalman.ScaledIdentity(4, 10)
-	vanillaKF, err := gokalman.NewVanilla(x0, Covar0, F, G, H2, noise2)
+	vanillaKF, vest0, err := gokalman.NewVanilla(x0, Covar0, F, G, H2, noise2)
 	fmt.Printf("Vanilla: \n%s", vanillaKF)
 	if err != nil {
 		panic(err)
 	}
+	vanillaEstChan <- vest0
 
 	// Information KF
 	i0 := mat64.NewVector(4, nil)
 	I0 := mat64.NewSymDense(4, nil)
-	infoKF, err := gokalman.NewInformation(i0, I0, F, G, H2, noise2)
+	infoKF, iest0, err := gokalman.NewInformation(i0, I0, F, G, H2, noise2)
 	if err != nil {
 		panic(err)
 	}
+	informationEstChan <- iest0
 
 	// SquareRoot KF
-	sqrtKF, err := gokalman.NewSquareRoot(x0, Covar0, F, G, H2, noise2)
+	sqrtKF, sest0, err := gokalman.NewSquareRoot(x0, Covar0, F, G, H2, noise2)
 	if err != nil {
 		panic(err)
 	}
+	sqrtEstChan <- sest0
 
 	filters := []gokalman.KalmanFilter{vanillaKF, infoKF, sqrtKF}
 	chans := [](chan gokalman.Estimate){vanillaEstChan, informationEstChan, sqrtEstChan}

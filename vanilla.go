@@ -18,34 +18,55 @@ import (
 // - G: control matrix (if all zeros, then control vector will not be used)
 // - H: measurement update matrix
 // - n: Noise
-func NewVanilla(x0 *mat64.Vector, Covar0 mat64.Symmetric, F, G, H mat64.Matrix, noise Noise) (*Vanilla, error) {
+func NewVanilla(x0 *mat64.Vector, Covar0 mat64.Symmetric, F, G, H mat64.Matrix, noise Noise) (*Vanilla, *VanillaEstimate, error) {
 	// Let's check the dimensions of everything here to panic ASAP.
 	if err := checkMatDims(x0, Covar0, "x0", "Covar0", rows2cols); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if err := checkMatDims(F, Covar0, "F", "Covar0", rows2cols); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if err := checkMatDims(H, x0, "H", "x0", cols2rows); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Populate with the initial values.
 	rowsH, _ := H.Dims()
 	est0 := VanillaEstimate{x0, mat64.NewVector(rowsH, nil), Covar0, nil}
 
-	return &Vanilla{F, G, H, noise, !IsNil(G), est0, 0}, nil
+	return &Vanilla{F, G, H, noise, !IsNil(G), est0, 0, false}, &est0, nil
+}
+
+// NewPurePredictorVanilla returns a new Vanilla KF which only does prediction.
+func NewPurePredictorVanilla(x0 *mat64.Vector, Covar0 mat64.Symmetric, F, G, H mat64.Matrix, noise Noise) (*Vanilla, *VanillaEstimate, error) {
+	// Let's check the dimensions of everything here to panic ASAP.
+	if err := checkMatDims(x0, Covar0, "x0", "Covar0", rows2cols); err != nil {
+		return nil, nil, err
+	}
+	if err := checkMatDims(F, Covar0, "F", "Covar0", rows2cols); err != nil {
+		return nil, nil, err
+	}
+	if err := checkMatDims(H, x0, "H", "x0", cols2rows); err != nil {
+		return nil, nil, err
+	}
+
+	// Populate with the initial values.
+	rowsH, _ := H.Dims()
+	est0 := VanillaEstimate{x0, mat64.NewVector(rowsH, nil), Covar0, nil}
+
+	return &Vanilla{F, G, H, noise, !IsNil(G), est0, 0, true}, &est0, nil
 }
 
 // Vanilla defines a vanilla kalman filter. Use NewVanilla to initialize.
 type Vanilla struct {
-	F        mat64.Matrix
-	G        mat64.Matrix
-	H        mat64.Matrix
-	Noise    Noise
-	needCtrl bool
-	prevEst  VanillaEstimate
-	step     int
+	F              mat64.Matrix
+	G              mat64.Matrix
+	H              mat64.Matrix
+	Noise          Noise
+	needCtrl       bool
+	prevEst        VanillaEstimate
+	step           int
+	predictionOnly bool
 }
 
 func (kf *Vanilla) String() string {
@@ -112,6 +133,14 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 		panic(fmt.Errorf("could not invert `H*P_kp1_minus*H' + R`: %s", ierr))
 	}
 	Kkp1.Mul(&PHt, &HPHt)
+
+	if kf.predictionOnly {
+		Pkp1MinusSym, _ := AsSymDense(&Pkp1Minus)
+		est = VanillaEstimate{&xKp1Minus, &ykHat, Pkp1MinusSym, &Kkp1}
+		kf.prevEst = est.(VanillaEstimate)
+		kf.step++
+		return
+	}
 
 	// Measurement update
 	var xkp1Plus, xkp1Plus1, xkp1Plus2 mat64.Vector

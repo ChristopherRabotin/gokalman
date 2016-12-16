@@ -120,6 +120,11 @@ func (kf *Information) SetNoise(n Noise) {
 	kf.Noise = n
 }
 
+// GetNoise updates the F matrix.
+func (kf *Information) GetNoise() Noise {
+	return kf.Noise
+}
+
 // Update implements the KalmanFilter interface.
 func (kf *Information) Update(measurement, control *mat64.Vector) (est Estimate, err error) {
 	if err = checkMatDims(control, kf.G, "control (u)", "G", rows2cols); kf.needCtrl && err != nil {

@@ -9,11 +9,6 @@ import (
 	"github.com/gonum/matrix/mat64"
 )
 
-const (
-	// MONTECARLO determines whether to generate MCs or not.
-	MONTECARLO = true
-)
-
 func main() {
 	// Prepare the estimate channels.
 	var wg sync.WaitGroup
@@ -75,25 +70,23 @@ func main() {
 	stateTruth := make([]*mat64.Vector, samples)
 	measurements := make([]*mat64.Vector, samples)
 
-	if MONTECARLO {
-		vanillaKF, _, _ := gokalman.NewPurePredictorVanilla(x0, P0, F, G, H, gokalman.NewAWGN(Q, R))
-		runs := gokalman.NewMonteCarloRuns(15, samples, 2, 2, vanillaKF)
-		// Write the information in N files.
-		headers := []string{"dr", "dr_dot", "dtheta", "dtheta_dot"}
-		for fNo, contents := range runs.AsCSV(headers) {
-			f, _ := os.Create(fmt.Sprintf("./mc-noctrl-%s.csv", headers[fNo]))
-			f.WriteString(contents)
-			f.Close()
-		}
+	vanillaMCKF, _, _ := gokalman.NewPurePredictorVanilla(x0, P0, F, G, H, gokalman.NewAWGN(Q, R))
+	runs := gokalman.NewMonteCarloRuns(15, samples, 2, 2, vanillaMCKF)
+	// Write the information in N files.
+	headers := []string{"dr", "dr_dot", "dtheta", "dtheta_dot"}
+	for fNo, contents := range runs.AsCSV(headers) {
+		f, _ := os.Create(fmt.Sprintf("./mc-noctrl-%s.csv", headers[fNo]))
+		f.WriteString(contents)
+		f.Close()
+	}
 
-		// With control via Fcl/Gcl
-		vanillaKF, _, _ = gokalman.NewPurePredictorVanilla(x0, P0, &Fcl, Gcl, H, gokalman.NewAWGN(Q, R))
-		runs = gokalman.NewMonteCarloRuns(15, samples, 2, 2, vanillaKF)
-		for fNo, contents := range runs.AsCSV(headers) {
-			f, _ := os.Create(fmt.Sprintf("./mc-ctrl-%s.csv", headers[fNo]))
-			f.WriteString(contents)
-			f.Close()
-		}
+	// With control via Fcl/Gcl
+	vanillaMCKF, _, _ = gokalman.NewPurePredictorVanilla(x0, P0, &Fcl, Gcl, H, gokalman.NewAWGN(Q, R))
+	runs = gokalman.NewMonteCarloRuns(15, samples, 2, 2, vanillaMCKF)
+	for fNo, contents := range runs.AsCSV(headers) {
+		f, _ := os.Create(fmt.Sprintf("./mc-ctrl-%s.csv", headers[fNo]))
+		f.WriteString(contents)
+		f.Close()
 	}
 
 	for k := 0; k < samples; k++ {
@@ -149,10 +142,10 @@ func main() {
 		// and then doing the X,Y computation.
 		for i, kf := range filters {
 			kfChan := chans[i]
-			est, err := kf.Update(measurements[k], mat64.NewVector(4, nil))
+			est, ferr := kf.Update(measurements[k], mat64.NewVector(4, nil))
 			kfChan <- truth.Error(k, est)
-			if err != nil {
-				panic(fmt.Errorf("k=%d %s", k, err))
+			if ferr != nil {
+				panic(fmt.Errorf("k=%d %s", k, ferr))
 			}
 		}
 	}
@@ -163,4 +156,19 @@ func main() {
 	}
 
 	wg.Wait()
+
+	// Let's now compute the NIS and NEES.
+	//r1 := 0.559692408852221
+	//r2 := 0.440307591147779
+	NISmeans, NEESmeans, err := gokalman.NewChiSquare(vanillaKF, runs, 2, true, true)
+	if err != nil {
+		panic(err)
+	}
+	// Output the NIS and NEES to a CSV file.
+	f, _ := os.Create("./chisquare.csv")
+	f.WriteString("NIS,NEES\n")
+	for k := 0; k < len(NISmeans); k++ {
+		f.WriteString(fmt.Sprintf("%f,%f\n", NISmeans[k], NEESmeans[k]))
+	}
+	f.Close()
 }

@@ -37,6 +37,9 @@
         <source reader="ASCII file" updateType="0" file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/mc-ctrl-dtheta_dot.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/mc-ctrl-dtheta_dot.csv">
             <properties vector="INDEX" interpretation="1" delimiters="#" columntype="2" columndelimiter="," headerstart="1" fields="0" readfields="true" usedot="true" columnwidthisconst="false" readunits="false" units="0" limitFileBuffer="false" limitFileBufferSize="0" useThreads="0" asciiTimeFormat="hh:mm:ss.zzz" dataRate="1" offsetDateTime="false" offsetFileDate="false" offsetRelavive="true" dateTimeOffset="2016-12-16T10:33:15Z" relativeOffset="0" nanValue="0" updateType="0"/>
         </source>
+        <source reader="ASCII file" updateType="0" file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/chisquare.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/chisquare.csv">
+            <properties vector="INDEX" interpretation="1" delimiters="#" columntype="2" columndelimiter="," headerstart="1" fields="0" readfields="true" usedot="true" columnwidthisconst="false" readunits="false" units="0" limitFileBuffer="false" limitFileBufferSize="0" useThreads="0" asciiTimeFormat="hh:mm:ss.zzz" dataRate="1" offsetDateTime="false" offsetFileDate="false" offsetRelavive="true" dateTimeOffset="2016-12-16T13:49:27Z" relativeOffset="0" nanValue="0" updateType="0"/>
+        </source>
     </data>
     <variables>
         <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/vanilla.csv" field="INDEX" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="1" initialXNum="1"/>
@@ -301,6 +304,8 @@
         <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/mc-ctrl-dtheta_dot.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/mc-ctrl-dtheta_dot.csv" field="dtheta_dot-14" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="264" initialXNum="3157"/>
         <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/mc-ctrl-dtheta_dot.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/mc-ctrl-dtheta_dot.csv" field="dtheta_dot-mean" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="265" initialXNum="3169"/>
         <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/mc-ctrl-dtheta_dot.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/mc-ctrl-dtheta_dot.csv" field="dtheta_dot-stddev" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="266" initialXNum="3181"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/chisquare.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/chisquare.csv" field="NIS" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="267" initialXNum="3193"/>
+        <datavector file="/home/chris/go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/chisquare.csv" fileRelative="go/src/github.com/ChristopherRabotin/gokalman/examples/statOD5044/chisquare.csv" field="NEES" start="0" count="-1" skip="-1" doAve="false" startUnits="" rangeUnits="" initialVNum="268" initialXNum="3205"/>
     </variables>
     <objects>
         <plugin type="Exponential Fit" initialVNum="161" initialXNum="1921" initialPNum="1">
@@ -576,6 +581,8 @@
         <curve xvector="INDEX (V1)" yvector="dtheta\_dot-14 (V264)" color="#008000" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="1" linestyle="0" haspoints="false" pointtype="1" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="178377232" initialCNum="257"/>
         <curve xvector="INDEX (V1)" yvector="dtheta\_dot-mean (V265)" color="#000000" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="1" linestyle="0" haspoints="false" pointtype="2" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="47858736" initialCNum="258"/>
         <curve xvector="INDEX (V1)" yvector="dtheta\_dot-stddev (V266)" color="#ff00ff" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="true" linewidth="1" linestyle="0" haspoints="false" pointtype="3" pointdensity="0" pointsize="12" hasbars="false" ignoreautoscale="false" hashead="false" headtype="0" initialCNum="259"/>
+        <curve xvector="INDEX (V1)" yvector="NIS (V267)" color="#501010" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="false" linewidth="1" linestyle="0" haspoints="true" pointtype="2" pointdensity="0" pointsize="5" hasbars="false" ignoreautoscale="false" hashead="false" headtype="0" initialCNum="260"/>
+        <curve xvector="INDEX (V1)" yvector="NEES (V268)" color="#105010" alpha="255" headcolor="#000000" headalpha="255" barfillcolor="#000000" barfillalpha="255" haslines="false" linewidth="1" linestyle="0" haspoints="true" pointtype="2" pointdensity="0" pointsize="5" hasbars="false" ignoreautoscale="false" hashead="false" headtype="0" initialCNum="261"/>
     </relations>
     <graphics>
         <view name="VKF" width="1357" height="580" color="#ffffff" style="1">
@@ -764,7 +771,7 @@
                 <plotlabel id="toplabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="bottomlabel" visible="true" overridetext="step" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="numberlabel" visible="true" overridetext="" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
-                <projectionrect x="0" y="-0.0296982" width="1086" height="0.0593964"/>
+                <projectionrect x="0" y="-0.0296982" width="1090" height="0.0593964"/>
             </plot>
             <plot tiedxzoom="false" tiedyzoom="false" leftlabelvisible="true" bottomlabelvisible="true" rightlabelvisible="true" toplabelvisible="true" globalfont="Noto Sans,12,-1,5,50,0,0,0,0,0" globalfontscale="16" globalfontcolor="#000000" showlegend="true" hidebottomaxislabel="false" hidetopaxislabel="false" hideleftaxislabel="false" hiderightaxislabel="false" numberaxislabelscale="true" initialPlotNum="5" name="Plot">
                 <position x="340.72" y="146.523" z="500"/>
@@ -1093,7 +1100,7 @@
                 <plotlabel id="toplabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="bottomlabel" visible="true" overridetext="step" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="numberlabel" visible="true" overridetext="" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
-                <projectionrect x="0" y="-8.89956885" width="1086" height="459.8818917"/>
+                <projectionrect x="0" y="-8.89956885" width="1090" height="459.8818917"/>
             </plot>
             <plot tiedxzoom="false" tiedyzoom="false" leftlabelvisible="true" bottomlabelvisible="true" rightlabelvisible="true" toplabelvisible="true" globalfont="Noto Sans,12,-1,5,50,0,0,0,0,0" globalfontscale="16" globalfontcolor="#000000" showlegend="true" hidebottomaxislabel="false" hidetopaxislabel="false" hideleftaxislabel="false" hiderightaxislabel="false" numberaxislabelscale="true" initialPlotNum="18" name="Plot">
                 <position x="3" y="290" z="500"/>
@@ -1144,7 +1151,7 @@
                 <plotlabel id="toplabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="bottomlabel" visible="true" overridetext="step" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="numberlabel" visible="true" overridetext="" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
-                <projectionrect x="0" y="-0.1767766" width="1086" height="0.2399292"/>
+                <projectionrect x="0" y="-0.1767766" width="1090" height="0.2399292"/>
             </plot>
         </view>
         <view name="MC No ctrl dot" width="1357" height="580" color="#ffffff" style="1">
@@ -1197,7 +1204,7 @@
                 <plotlabel id="toplabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="bottomlabel" visible="true" overridetext="step" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="numberlabel" visible="true" overridetext="" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
-                <projectionrect x="0" y="-0.164441075" width="1086" height="0.68069715"/>
+                <projectionrect x="0" y="-0.164441075" width="1090" height="0.68069715"/>
             </plot>
             <plot tiedxzoom="false" tiedyzoom="false" leftlabelvisible="true" bottomlabelvisible="true" rightlabelvisible="true" toplabelvisible="true" globalfont="Noto Sans,12,-1,5,50,0,0,0,0,0" globalfontscale="16" globalfontcolor="#000000" showlegend="true" hidebottomaxislabel="false" hidetopaxislabel="false" hideleftaxislabel="false" hiderightaxislabel="false" numberaxislabelscale="true" initialPlotNum="22" name="Plot">
                 <position x="3" y="290" z="500"/>
@@ -1248,7 +1255,7 @@
                 <plotlabel id="toplabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="bottomlabel" visible="true" overridetext="step" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="numberlabel" visible="true" overridetext="" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
-                <projectionrect x="0" y="-0.0001571" width="1086" height="0.0002142"/>
+                <projectionrect x="0" y="-0.0001571" width="1090" height="0.0002142"/>
             </plot>
         </view>
         <view name="MC ctrl" width="1357" height="580" color="#ffffff" style="1">
@@ -1301,7 +1308,7 @@
                 <plotlabel id="toplabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="bottomlabel" visible="true" overridetext="step" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="numberlabel" visible="true" overridetext="" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
-                <projectionrect x="0" y="-0.128637575" width="1086" height="2.23224015"/>
+                <projectionrect x="0" y="-0.128637575" width="1090" height="2.23224015"/>
             </plot>
             <plot tiedxzoom="false" tiedyzoom="false" leftlabelvisible="true" bottomlabelvisible="true" rightlabelvisible="true" toplabelvisible="true" globalfont="Noto Sans,12,-1,5,50,0,0,0,0,0" globalfontscale="16" globalfontcolor="#000000" showlegend="true" hidebottomaxislabel="false" hidetopaxislabel="false" hideleftaxislabel="false" hiderightaxislabel="false" numberaxislabelscale="true" initialPlotNum="24" name="Plot">
                 <position x="3" y="290" z="500"/>
@@ -1352,7 +1359,7 @@
                 <plotlabel id="toplabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="bottomlabel" visible="true" overridetext="step" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="numberlabel" visible="true" overridetext="" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
-                <projectionrect x="0" y="-1.3675e-05" width="1086" height="0.00057435"/>
+                <projectionrect x="0" y="-1.3675e-05" width="1090" height="0.00057435"/>
             </plot>
         </view>
         <view name="MC ctrl dot" width="1357" height="580" color="#ffffff" style="1">
@@ -1405,7 +1412,7 @@
                 <plotlabel id="toplabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="bottomlabel" visible="true" overridetext="step" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="numberlabel" visible="true" overridetext="" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
-                <projectionrect x="0" y="-0.951878975" width="1086" height="1.22526495"/>
+                <projectionrect x="0" y="-0.951878975" width="1090" height="1.22526495"/>
             </plot>
             <plot tiedxzoom="false" tiedyzoom="false" leftlabelvisible="true" bottomlabelvisible="true" rightlabelvisible="true" toplabelvisible="true" globalfont="Noto Sans,12,-1,5,50,0,0,0,0,0" globalfontscale="16" globalfontcolor="#000000" showlegend="true" hidebottomaxislabel="false" hidetopaxislabel="false" hideleftaxislabel="false" hiderightaxislabel="false" numberaxislabelscale="true" initialPlotNum="26" name="Plot">
                 <position x="339.5" y="435.75" z="500"/>
@@ -1456,7 +1463,79 @@
                 <plotlabel id="toplabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="bottomlabel" visible="true" overridetext="step" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="numberlabel" visible="true" overridetext="" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
-                <projectionrect x="0" y="-2.5e-08" width="1086" height="1.05e-06"/>
+                <projectionrect x="0" y="-2.5e-08" width="1090" height="1.05e-06"/>
+            </plot>
+        </view>
+        <view name="Xi Square" width="1357" height="580" color="#ffffff" style="1">
+            <plot tiedxzoom="false" tiedyzoom="false" leftlabelvisible="true" bottomlabelvisible="true" rightlabelvisible="true" toplabelvisible="true" globalfont="Noto Sans,12,-1,5,50,0,0,0,0,0" globalfontscale="16" globalfontcolor="#000000" showlegend="true" hidebottomaxislabel="false" hidetopaxislabel="false" hideleftaxislabel="false" hiderightaxislabel="false" numberaxislabelscale="true" initialPlotNum="27" name="Plot">
+                <position x="678.4568" y="146.5282" z="500"/>
+                <rect x="-675.4692" y="-143.507" width="1350.9384" height="287.014"/>
+                <relativesize width="0.9948" height="0.494" centerx="0.4996" centery="0.2522" posx="0.00219999999999995" posy="0.00519999999999999" leftx="0.00219999999999995" lefty="0.4992" rightx="0.997" righty="0.4992" fixaspect="false" lockpostodata="false"/>
+                <transform m11="1" m12="0" m13="0" m21="0" m22="1" m23="0" m31="0" m32="0" m33="1"/>
+                <pen style="1" width="1" miterlimit="2" cap="16" joinStyle="64">
+                    <brush color="#000000" style="1"/>
+                </pen>
+                <brush color="#ffffff" style="1"/>
+                <legend auto="true" title="" font="Noto Sans,10,-1,0,50,0,0,0,0,0" fontscale="9.6" color="#000000" verticaldisplay="false" name="Legend">
+                    <position x="-433.958594628037" y="-100.627013345521" z="500"/>
+                    <rect x="0" y="0" width="114" height="29"/>
+                    <relativesize width="0.10130511198036" height="0.14535320829616" centerx="0.0807647055228905" centery="0.219934373800731" posx="0.0301121495327103" posy="0.147257769652651" leftx="0.0301121495327103" lefty="0.292610977948811" rightx="0.131417261513071" righty="0.292610977948811" fixaspect="false" lockpostodata="false"/>
+                    <transform m11="1" m12="0" m13="0" m21="0" m22="1" m23="0" m31="0" m32="0" m33="1"/>
+                    <pen style="1" width="1" miterlimit="2" cap="16" joinStyle="64">
+                        <brush color="#000000" style="1"/>
+                    </pen>
+                    <brush color="#ffffff" style="1"/>
+                </legend>
+                <cartesianrender name="Cartesian Plot" type="1">
+                    <relation tag="NIS vs INDEX (C260)"/>
+                </cartesianrender>
+                <plotaxis id="xaxis" visible="true" log="false" reversed="false" autobaseoffset="true" baseoffset="false" forceoffsetmin="false" interpret="false" interpretation="1" display="4" displayformatstring="hh:mm:ss.zzz" majortickmode="5" minortickcount="5" autominortickcount="true" drawmajorticks="true" drawminorticks="true" drawmajorgridlines="true" drawminorgridlines="false" drawmajorgridlinecolor="#a0a0a4" drawminorgridlinecolor="#a0a0a4" drawmajorgridlinestyle="2" drawminorgridlinestyle="2" drawmajorgridlinewidth="1" drawminorgridlinewidth="1" significantdigits="9" rotation="0" zoommode="0" timezonename="GMT" timezoneoffset="0">
+                    <plotmarkers xaxis="true" linecolor="#000000" linestyle="1" linewidth="1" curvemode="-3808708"/>
+                </plotaxis>
+                <plotaxis id="yaxis" visible="true" log="false" reversed="false" autobaseoffset="true" baseoffset="false" forceoffsetmin="false" interpret="false" interpretation="1" display="4" displayformatstring="hh:mm:ss.zzz" majortickmode="5" minortickcount="5" autominortickcount="true" drawmajorticks="true" drawminorticks="true" drawmajorgridlines="true" drawminorgridlines="false" drawmajorgridlinecolor="#a0a0a4" drawminorgridlinecolor="#a0a0a4" drawmajorgridlinestyle="2" drawminorgridlinestyle="2" drawmajorgridlinewidth="1" drawminorgridlinewidth="1" significantdigits="9" rotation="0" zoommode="1" timezonename="GMT" timezoneoffset="0">
+                    <plotmarkers xaxis="false" linecolor="#000000" linestyle="1" linewidth="1" curvemode="0"/>
+                </plotaxis>
+                <plotlabel id="leftlabel" visible="true" overridetext="NIS" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
+                <plotlabel id="rightlabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
+                <plotlabel id="toplabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
+                <plotlabel id="bottomlabel" visible="true" overridetext="step" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
+                <plotlabel id="numberlabel" visible="true" overridetext="" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
+                <projectionrect x="0" y="1837656769.16513" width="1090" height="36696199788.0422"/>
+            </plot>
+            <plot tiedxzoom="false" tiedyzoom="false" leftlabelvisible="true" bottomlabelvisible="true" rightlabelvisible="true" toplabelvisible="true" globalfont="Noto Sans,12,-1,5,50,0,0,0,0,0" globalfontscale="16" globalfontcolor="#000000" showlegend="true" hidebottomaxislabel="false" hidetopaxislabel="false" hideleftaxislabel="false" hiderightaxislabel="false" numberaxislabelscale="true" initialPlotNum="28" name="Plot">
+                <position x="678.4568" y="433.4841" z="500"/>
+                <rect x="-675.4692" y="-143.507" width="1350.9384" height="287.014"/>
+                <relativesize width="0.9948" height="0.494" centerx="0.4996" centery="0.7461" posx="0.00219999999999995" posy="0.4991" leftx="0.00219999999999995" lefty="0.9931" rightx="0.997" righty="0.9931" fixaspect="false" lockpostodata="false"/>
+                <transform m11="1" m12="0" m13="0" m21="0" m22="1" m23="0" m31="0" m32="0" m33="1"/>
+                <pen style="1" width="1" miterlimit="2" cap="16" joinStyle="64">
+                    <brush color="#000000" style="1"/>
+                </pen>
+                <brush color="#ffffff" style="1"/>
+                <legend auto="true" title="" font="Noto Sans,10,-1,0,50,0,0,0,0,0" fontscale="9.6" color="#000000" verticaldisplay="false" name="Legend">
+                    <position x="-433.958594628037" y="-100.627013345521" z="500"/>
+                    <rect x="0" y="0" width="125" height="29"/>
+                    <relativesize width="0.111080166645132" height="0.14535320829616" centerx="0.0856522328552762" centery="0.219934373800731" posx="0.0301121495327103" posy="0.147257769652651" leftx="0.0301121495327103" lefty="0.292610977948811" rightx="0.141192316177842" righty="0.292610977948811" fixaspect="false" lockpostodata="false"/>
+                    <transform m11="1" m12="0" m13="0" m21="0" m22="1" m23="0" m31="0" m32="0" m33="1"/>
+                    <pen style="1" width="1" miterlimit="2" cap="16" joinStyle="64">
+                        <brush color="#000000" style="1"/>
+                    </pen>
+                    <brush color="#ffffff" style="1"/>
+                </legend>
+                <cartesianrender name="Cartesian Plot" type="1">
+                    <relation tag="NEES vs INDEX (C261)"/>
+                </cartesianrender>
+                <plotaxis id="xaxis" visible="true" log="false" reversed="false" autobaseoffset="true" baseoffset="false" forceoffsetmin="false" interpret="false" interpretation="1" display="4" displayformatstring="hh:mm:ss.zzz" majortickmode="5" minortickcount="5" autominortickcount="true" drawmajorticks="true" drawminorticks="true" drawmajorgridlines="true" drawminorgridlines="false" drawmajorgridlinecolor="#a0a0a4" drawminorgridlinecolor="#a0a0a4" drawmajorgridlinestyle="2" drawminorgridlinestyle="2" drawmajorgridlinewidth="1" drawminorgridlinewidth="1" significantdigits="9" rotation="0" zoommode="0" timezonename="GMT" timezoneoffset="0">
+                    <plotmarkers xaxis="true" linecolor="#000000" linestyle="1" linewidth="1" curvemode="0"/>
+                </plotaxis>
+                <plotaxis id="yaxis" visible="true" log="false" reversed="false" autobaseoffset="true" baseoffset="false" forceoffsetmin="false" interpret="false" interpretation="1" display="4" displayformatstring="hh:mm:ss.zzz" majortickmode="5" minortickcount="5" autominortickcount="true" drawmajorticks="true" drawminorticks="true" drawmajorgridlines="true" drawminorgridlines="false" drawmajorgridlinecolor="#a0a0a4" drawminorgridlinecolor="#a0a0a4" drawmajorgridlinestyle="2" drawminorgridlinestyle="2" drawmajorgridlinewidth="1" drawminorgridlinewidth="1" significantdigits="9" rotation="0" zoommode="1" timezonename="GMT" timezoneoffset="0">
+                    <plotmarkers xaxis="false" linecolor="#000000" linestyle="1" linewidth="1" curvemode="0"/>
+                </plotaxis>
+                <plotlabel id="leftlabel" visible="true" overridetext="NEES" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
+                <plotlabel id="rightlabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
+                <plotlabel id="toplabel" visible="true" overridetext="" autolabel="true" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
+                <plotlabel id="bottomlabel" visible="true" overridetext="step" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
+                <plotlabel id="numberlabel" visible="true" overridetext="" autolabel="false" font="Noto Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
+                <projectionrect x="0" y="-8775429347.0984" width="1090" height="368568032605.488"/>
             </plot>
         </view>
     </graphics>

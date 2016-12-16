@@ -97,6 +97,11 @@ func (kf *SquareRoot) SetNoise(n Noise) {
 	kf.sqrtR = &sqrtR
 }
 
+// GetNoise updates the F matrix.
+func (kf *SquareRoot) GetNoise() Noise {
+	return kf.Noise
+}
+
 // Update implements the KalmanFilter interface.
 func (kf *SquareRoot) Update(measurement, control *mat64.Vector) (est Estimate, err error) {
 	// Check for matrix dimensions errors.

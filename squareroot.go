@@ -18,16 +18,16 @@ import (
 // - G: control matrix (if all zeros, then control vector will not be used)
 // - H: measurement update matrix
 // - noise: Noise
-func NewSquareRoot(x0 *mat64.Vector, P0 mat64.Symmetric, F, G, H mat64.Matrix, noise Noise) (*SquareRoot, error) {
+func NewSquareRoot(x0 *mat64.Vector, P0 mat64.Symmetric, F, G, H mat64.Matrix, noise Noise) (*SquareRoot, *SquareRootEstimate, error) {
 	// Check the dimensions of each matrix to avoid errors.
 	if err := checkMatDims(x0, P0, "x0", "P0", rows2cols); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if err := checkMatDims(F, P0, "F", "P0", rows2cols); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if err := checkMatDims(H, x0, "H", "x0", cols2rows); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Get s0 from Covariance
@@ -45,7 +45,7 @@ func NewSquareRoot(x0 *mat64.Vector, P0 mat64.Symmetric, F, G, H mat64.Matrix, n
 	// Return the state and estimate to the SquareRoot structure.
 	sqrt := SquareRoot{F, G, H, nil, nil, nil, !IsNil(G), est0, 0}
 	sqrt.SetNoise(noise) // Computes the Cholesky decompositions of the noise.
-	return &sqrt, nil
+	return &sqrt, &est0, nil
 }
 
 // SquareRoot defines a square root kalman filter. Use NewSqrt to initialize.

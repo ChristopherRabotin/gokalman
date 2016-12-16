@@ -2,10 +2,16 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"sync"
 
 	"github.com/ChristopherRabotin/gokalman"
 	"github.com/gonum/matrix/mat64"
+)
+
+const (
+	// MONTECARLO determines whether to generate MCs or not.
+	MONTECARLO = true
 )
 
 func main() {
@@ -13,12 +19,10 @@ func main() {
 	var wg sync.WaitGroup
 	truthEstChan := make(chan (gokalman.Estimate), 1)
 	vanillaEstChan := make(chan (gokalman.Estimate), 1)
-	informationEstChan := make(chan (gokalman.Estimate), 1)
 	sqrtEstChan := make(chan (gokalman.Estimate), 1)
 
 	processEst := func(fn string, estChan chan (gokalman.Estimate)) {
 		wg.Add(1)
-		//oe, _ := gokalman.NewCSVExporter([]string{"positionX", "positionY"}, ".", fn+"-orbit.csv")
 		ce, _ := gokalman.NewCSVExporter([]string{"dr", "dr_dot", "dtheta", "dtheta_dot"}, ".", fn+".csv")
 		for {
 			est, more := <-estChan
@@ -28,9 +32,6 @@ func main() {
 				wg.Done()
 				break
 			}
-			//r := est.State().At(0, 0)
-			//sν, cν := math.Sincos(est.State().At(1, 0))
-			//oe.WriteRawLn(fmt.Sprintf("%.5f,%.5f", r*cν, r*sν))
 			ce.Write(est)
 		}
 	}
@@ -42,7 +43,8 @@ func main() {
 	H := mat64.NewDense(2, 4, []float64{1, 0, 0, 0, 0, 0, 1, 0})
 	// Noise
 	Q := mat64.NewSymDense(4, []float64{6.669e-16, 1.001e-14, 3.823e-19, 5.150e-18, 1.001e-14, 2.002e-13, 1.030e-17, 1.545e-16, 3.862e-19, 1.030e-17, 6.667e-19, 1.000e-17, 5.150e-18, 1.545e-16, 1.000e-17, 2.000e-16})
-	R := mat64.NewSymDense(2, []float64{2e-6, 0, 0, 2e-9})
+	//R := mat64.NewSymDense(2, []float64{2e-6, 0, 0, 2e-9})
+	R := mat64.NewSymDense(2, []float64{2e-3, 0, 0, 2e-5})
 	R.ScaleSym(1/Δt, R)
 
 	// Control matrix
@@ -55,22 +57,43 @@ func main() {
 	Gcl := mat64.NewDense(4, 2, nil)
 
 	// Initial conditions
-	//x0 := mat64.NewVector(4, []float64{6678, 0, 0, 0.001156909175835434})
-	x0 := mat64.NewVector(4, []float64{5, 0.50, 0, 0.0})
+	x0 := mat64.NewVector(4, []float64{2, 0.50, 0, 0.0})
 	P0 := mat64.NewSymDense(4, []float64{5, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0.01, 0, 0, 0, 0, 0.00001})
 
 	// Truth generation, via a vanilla KF with AWGN.
 	truthNoise := gokalman.NewAWGN(Q, R)
-	truthKF, err := gokalman.NewVanilla(x0, P0, &Fcl, Gcl, H, truthNoise)
+	truthKF, est0, err := gokalman.NewPurePredictorVanilla(x0, P0, &Fcl, Gcl, H, truthNoise)
 	if err != nil {
 		panic(err)
 	}
+	go processEst("truth", truthEstChan)
+	truthEstChan <- est0
 
 	scPeriod := 5.431e3                  // Spacecraft period.
-	samples := int((scPeriod / 32) / Δt) // Propagation time in samples.
+	samples := int((scPeriod / 50) / Δt) // Propagation time in samples.
 	stateTruth := make([]*mat64.Vector, samples)
 	measurements := make([]*mat64.Vector, samples)
-	go processEst("truth", truthEstChan)
+
+	if MONTECARLO {
+		vanillaKF, _, _ := gokalman.NewPurePredictorVanilla(x0, P0, F, G, H, gokalman.NewAWGN(Q, R))
+		runs := gokalman.NewMonteCarloRuns(15, samples, 2, 2, vanillaKF)
+		// Write the information in N files.
+		headers := []string{"dr", "dr_dot", "dtheta", "dtheta_dot"}
+		for fNo, contents := range runs.AsCSV(headers) {
+			f, _ := os.Create(fmt.Sprintf("./mc-noctrl-%s.csv", headers[fNo]))
+			f.WriteString(contents)
+			f.Close()
+		}
+
+		// With control via Fcl/Gcl
+		vanillaKF, _, _ = gokalman.NewPurePredictorVanilla(x0, P0, &Fcl, Gcl, H, gokalman.NewAWGN(Q, R))
+		runs = gokalman.NewMonteCarloRuns(15, samples, 2, 2, vanillaKF)
+		for fNo, contents := range runs.AsCSV(headers) {
+			f, _ := os.Create(fmt.Sprintf("./mc-ctrl-%s.csv", headers[fNo]))
+			f.WriteString(contents)
+			f.Close()
+		}
+	}
 
 	for k := 0; k < samples; k++ {
 		est, kferr := truthKF.Update(mat64.NewVector(2, nil), mat64.NewVector(4, nil))
@@ -87,34 +110,27 @@ func main() {
 	wg.Wait()
 
 	go processEst("vanilla", vanillaEstChan)
-	go processEst("information", informationEstChan)
 	go processEst("sqrt", sqrtEstChan)
 
 	truth := gokalman.NewBatchGroundTruth(stateTruth, measurements)
 
 	// Vanilla KF
 	noiseKF := gokalman.NewNoiseless(Q, R)
-	vanillaKF, err := gokalman.NewVanilla(x0, P0, &Fcl, Gcl, H, noiseKF)
+	vanillaKF, vest0, err := gokalman.NewVanilla(x0, P0, &Fcl, Gcl, H, noiseKF)
 	if err != nil {
 		panic(err)
 	}
-
-	// Information KF.
-	i0 := mat64.NewVector(4, nil)
-	I0 := mat64.NewSymDense(4, nil)
-	infoKF, err := gokalman.NewInformation(i0, I0, &Fcl, Gcl, H, noiseKF)
-	if err != nil {
-		panic(err)
-	}
+	vanillaEstChan <- vest0
 
 	// SquareRoot KF
-	sqrtKF, err := gokalman.NewSquareRoot(x0, P0, &Fcl, Gcl, H, noiseKF)
+	sqrtKF, sest0, err := gokalman.NewSquareRoot(x0, P0, &Fcl, Gcl, H, noiseKF)
 	if err != nil {
 		panic(err)
 	}
+	sqrtEstChan <- sest0
 
-	filters := []gokalman.KalmanFilter{vanillaKF, infoKF, sqrtKF}
-	chans := [](chan gokalman.Estimate){vanillaEstChan, informationEstChan, sqrtEstChan}
+	filters := []gokalman.KalmanFilter{vanillaKF, sqrtKF}
+	chans := [](chan gokalman.Estimate){vanillaEstChan, sqrtEstChan}
 
 	// Generate for a quarter of orbit.
 	for k := 0; k < samples; k++ {

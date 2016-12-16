@@ -54,8 +54,8 @@ func NewCSVExporter(headers []string, filepath, filename string) (e *CSVExporter
 	hdr := make([]string, len(headers)*3)
 	for i := 0; i < len(headers)*3; i += 3 {
 		hdr[i] = headers[i/3]
-		hdr[i+1] = hdr[i] + "+Covar"
-		hdr[i+2] = hdr[i] + "-Covar"
+		hdr[i+1] = hdr[i] + "+2s"
+		hdr[i+2] = hdr[i] + "-2s"
 	}
 	f.WriteString(fmt.Sprintf("# Creation date (UTC): %s\n%s\n", time.Now(), strings.Join(hdr, delimiter)))
 	e = &CSVExporter{delimiter, f}

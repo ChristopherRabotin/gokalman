@@ -19,7 +19,6 @@ func main() {
 	var wg sync.WaitGroup
 	truthEstChan := make(chan (gokalman.Estimate), 1)
 	vanillaEstChan := make(chan (gokalman.Estimate), 1)
-	informationEstChan := make(chan (gokalman.Estimate), 1)
 	sqrtEstChan := make(chan (gokalman.Estimate), 1)
 
 	processEst := func(fn string, estChan chan (gokalman.Estimate)) {
@@ -111,7 +110,6 @@ func main() {
 	wg.Wait()
 
 	go processEst("vanilla", vanillaEstChan)
-	go processEst("information", informationEstChan)
 	go processEst("sqrt", sqrtEstChan)
 
 	truth := gokalman.NewBatchGroundTruth(stateTruth, measurements)
@@ -124,15 +122,6 @@ func main() {
 	}
 	vanillaEstChan <- vest0
 
-	// Information KF.
-	i0 := mat64.NewVector(4, nil)
-	I0 := mat64.NewSymDense(4, nil)
-	infoKF, iest0, err := gokalman.NewInformation(i0, I0, &Fcl, Gcl, H, noiseKF)
-	if err != nil {
-		panic(err)
-	}
-	informationEstChan <- iest0
-
 	// SquareRoot KF
 	sqrtKF, sest0, err := gokalman.NewSquareRoot(x0, P0, &Fcl, Gcl, H, noiseKF)
 	if err != nil {
@@ -140,8 +129,8 @@ func main() {
 	}
 	sqrtEstChan <- sest0
 
-	filters := []gokalman.KalmanFilter{vanillaKF, infoKF, sqrtKF}
-	chans := [](chan gokalman.Estimate){vanillaEstChan, informationEstChan, sqrtEstChan}
+	filters := []gokalman.KalmanFilter{vanillaKF, sqrtKF}
+	chans := [](chan gokalman.Estimate){vanillaEstChan, sqrtEstChan}
 
 	// Generate for a quarter of orbit.
 	for k := 0; k < samples; k++ {

@@ -55,6 +55,7 @@ func main() {
 	// Initial conditions
 	x0 := mat64.NewVector(4, []float64{2, 0.50, 0, 0.0})
 	P0 := mat64.NewSymDense(4, []float64{5, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0.01, 0, 0, 0, 0, 0.00001})
+	P0.ScaleSym(1e10, P0)
 
 	// Truth generation, via a vanilla KF with AWGN.
 	truthNoise := gokalman.NewAWGN(Q, R)
@@ -71,7 +72,7 @@ func main() {
 	measurements := make([]*mat64.Vector, samples)
 
 	vanillaMCKF, _, _ := gokalman.NewPurePredictorVanilla(x0, P0, F, G, H, gokalman.NewAWGN(Q, R))
-	numMC := 500
+	numMC := 15
 	runs := gokalman.NewMonteCarloRuns(numMC, samples, 2, 2, vanillaMCKF)
 	// Write the information in N files.
 	headers := []string{"dr", "dr_dot", "dtheta", "dtheta_dot"}

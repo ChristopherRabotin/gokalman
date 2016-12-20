@@ -24,10 +24,7 @@ func NewChiSquare(kf *Vanilla, runs MonteCarloRuns, colsG int, withNEES, withNIS
 	for rNo, run := range runs.Runs {
 		for k, mcEst := range run.Estimates {
 
-			est, err := kf.Update(mcEst.Measurement(), mat64.NewVector(colsG, nil))
-			if err != nil {
-				panic(err)
-			}
+			est, _ := kf.Update(mcEst.Measurement(), mat64.NewVector(colsG, nil))
 
 			// Store the innovation.
 			var innovation mat64.Vector

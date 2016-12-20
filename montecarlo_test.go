@@ -18,8 +18,8 @@ func TestMCRuns(t *testing.T) {
 	x0 := mat64.NewVector(3, []float64{0, 0.35, 0})
 	P0 := ScaledIdentity(3, 10)
 	kf, _, _ := NewPurePredictorVanilla(x0, P0, F, G, H, noise)
-
-	runs := NewMonteCarloRuns(5, 10, 1, 1, kf)
+	steps := 10
+	runs := NewMonteCarloRuns(5, steps, 1, 1, kf)
 	if len(runs.Runs) != 5 {
 		t.Fatal("requesting 5 runs did not generate five")
 	}
@@ -35,5 +35,18 @@ func TestMCRuns(t *testing.T) {
 
 	if len(strings.Split(files[0], "\n")) != 11 {
 		t.Fatalf("unexpected number of lines in the file: %d", len(files[0]))
+	}
+
+	// Test chisquare:
+	NISmeans, NEESmeans, err := NewChiSquare(kf, runs, 1, true, true)
+	if err != nil {
+		panic(err)
+	}
+	if len(NISmeans) != len(NEESmeans) || len(NISmeans) != steps {
+		t.Fatal("invalid number of steps returned from ChiSquare tests")
+	}
+
+	if _, _, err := NewChiSquare(kf, runs, 1, false, false); err == nil {
+		t.Fatal("attempting to run Chisquare with neither NIS nor NEES fails")
 	}
 }

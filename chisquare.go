@@ -35,8 +35,6 @@ func NewChiSquare(kf *Vanilla, runs MonteCarloRuns, colsG int, withNEES, withNIS
 			if err != nil {
 				panic(err)
 			}
-			fmt.Printf("McEst=%s\n", mcEst)
-			fmt.Printf("est=%s\n", est)
 
 			// Compute the innovation: mcEst is used as the truth/sensor report,
 			// and est is what we're computing from the PurePrediction KF.
@@ -50,7 +48,6 @@ func NewChiSquare(kf *Vanilla, runs MonteCarloRuns, colsG int, withNEES, withNIS
 				var mkp1Plus, mkp1Plus0 mat64.Vector
 				vest := est.(VanillaEstimate)
 				mkp1Plus0.MulVec(vest.Gain(), &innovation)
-				//fmt.Printf("0=%v\n1=%+v", mat64.Formatted(&mkp1Plus0, mat64.Prefix("  ")), mat64.Formatted(&mkp1Plus, mat64.Prefix("  ")))
 				mkp1Plus.AddVec(vest.State(), &mkp1Plus0)
 
 				// Recompute the Pkp1Plus
@@ -60,16 +57,15 @@ func NewChiSquare(kf *Vanilla, runs MonteCarloRuns, colsG int, withNEES, withNIS
 				rows, _ := KH.Dims()
 				KH.Sub(Identity(rows), &KH)
 				Pkp1Plus.Mul(&KH, vest.Covariance())
-				fmt.Printf("Pk=%v\n", mat64.Formatted(&Pkp1Plus, mat64.Prefix("  ")))
 
 				if ierr := PInv.Inverse(&Pkp1Plus); ierr != nil {
 					fmt.Printf("covariance might be singular: %s\nP=%v\n", ierr, mat64.Formatted(est.Covariance(), mat64.Prefix("  ")))
 				}
-				var nees, nees0 mat64.Vector
-				nees0.MulVec(&PInv, &mkp1Plus)
-				nees.MulVec(mkp1Plus.T(), &nees0)
-				fmt.Printf("nees=%v\n", mat64.Formatted(&nees, mat64.Prefix("     ")))
-				NEESsamples[k][rNo] = nees.At(0, 0) // Should just be a scalar.
+				var nees, nees0, nees1 mat64.Vector
+				nees0.SubVec(mcEst.State(), &mkp1Plus)
+				nees1.MulVec(&PInv, &nees0)
+				nees.MulVec(nees0.T(), &nees1)
+				NEESsamples[k][rNo] = nees.At(0, 0) // Will be just a scalar.
 			}
 
 			if withNIS {
@@ -89,7 +85,6 @@ func NewChiSquare(kf *Vanilla, runs MonteCarloRuns, colsG int, withNEES, withNIS
 				var nis, nis0 mat64.Vector
 				nis0.MulVec(&PyyInv, &innovation)
 				nis.MulVec(innovation.T(), &nis0)
-				fmt.Printf("nis=%v\n", mat64.Formatted(&nis, mat64.Prefix("    ")))
 				NISsamples[k][rNo] = nis.At(0, 0) // Will be just be a scalar.
 			}
 		}

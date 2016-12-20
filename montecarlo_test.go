@@ -46,7 +46,12 @@ func TestMCRuns(t *testing.T) {
 		t.Fatal("invalid number of steps returned from ChiSquare tests")
 	}
 
+	// Test errors
 	if _, _, err := NewChiSquare(kf, runs, 1, false, false); err == nil {
 		t.Fatal("attempting to run Chisquare with neither NIS nor NEES fails")
+	}
+	kf.predictionOnly = false
+	if _, _, err := NewChiSquare(kf, runs, 1, false, true); err == nil {
+		t.Fatal("attempting to run Chisquare with a non pure-predictor does not fail")
 	}
 }

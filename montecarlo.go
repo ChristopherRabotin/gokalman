@@ -89,13 +89,22 @@ func (mc MonteCarloRuns) AsCSV(headers []string) []string {
 }
 
 // NewMonteCarloRuns run monte carlos on the provided filter.
-// WARNING: Currently does not support control vectors (yet).
-func NewMonteCarloRuns(samples, steps, colsG, rowsH int, kf KalmanFilter) MonteCarloRuns {
+func NewMonteCarloRuns(samples, steps, rowsH int, controls []*mat64.Vector, kf KalmanFilter) MonteCarloRuns {
 	runs := make([]MonteCarloRun, samples)
+	if len(controls) < 1 {
+		panic("must provide at least one control vector for size")
+	} else if len(controls) == 1 {
+		ctrlSize, _ := controls[0].Dims()
+		controls = make([]*mat64.Vector, steps)
+		// Populate with zero controls
+		for k := 0; k < steps; k++ {
+			controls[k] = mat64.NewVector(ctrlSize, nil)
+		}
+	}
 	for sample := 0; sample < samples; sample++ {
 		MCRun := MonteCarloRun{Estimates: make([]Estimate, steps)}
 		for k := 0; k < steps; k++ {
-			est, _ := kf.Update(mat64.NewVector(rowsH, nil), mat64.NewVector(colsG, nil))
+			est, _ := kf.Update(mat64.NewVector(rowsH, nil), controls[k])
 			MCRun.Estimates[k] = est
 		}
 		runs[sample] = MCRun

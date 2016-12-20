@@ -19,7 +19,7 @@ func TestMCRuns(t *testing.T) {
 	P0 := ScaledIdentity(3, 10)
 	kf, _, _ := NewPurePredictorVanilla(x0, P0, F, G, H, noise)
 	steps := 10
-	runs := NewMonteCarloRuns(5, steps, 1, 1, kf)
+	runs := NewMonteCarloRuns(5, steps, 1, []*mat64.Vector{mat64.NewVector(1, nil)}, kf)
 	if len(runs.Runs) != 5 {
 		t.Fatal("requesting 5 runs did not generate five")
 	}

@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"os"
+	"math"
 
 	"github.com/ChristopherRabotin/gokalman"
 	"github.com/gonum/matrix/mat64"
@@ -18,20 +18,28 @@ func main() {
 	Q := mat64.NewSymDense(2, []float64{5e-3, 0, 0, 1e-3})
 	noise := gokalman.NewAWGN(Q, R)
 	x0 := mat64.NewVector(2, []float64{0, 0})
-	P0 := gokalman.Identity(2)
-	kf, _, _ := gokalman.NewPurePredictorVanilla(x0, P0, F, G, H, noise)
-	runs := gokalman.NewMonteCarloRuns(50, 120, 1, 1, kf)
+	P0 := gokalman.ScaledIdentity(2, 2)
+	mcKF, _, _ := gokalman.NewVanilla(x0, P0, F, G, H, noise)
+	chiKF, _, _ := gokalman.NewPurePredictorVanilla(x0, P0, F, G, H, noise)
+	steps := 1
+	sims := 1
+	controls := make([]*mat64.Vector, steps)
+	for k := 0; k < steps; k++ {
+		controls[k] = mat64.NewVector(1, []float64{math.Cos(0.75 * float64(k+1) * 0.1)})
+	}
+
+	runs := gokalman.NewMonteCarloRuns(sims, steps, 1, controls, mcKF)
 	fmt.Printf("runs: %d\testimates: %d\n", len(runs.Runs), len(runs.Runs[0].Estimates))
 	// Run the Chi square tests.
-	NISmeans, NEESmeans, err := gokalman.NewChiSquare(kf, runs, 1, true, true)
+	_, _, err := gokalman.NewChiSquare(chiKF, runs, 1, true, true)
 	if err != nil {
 		panic(err)
 	}
 	// Output the NIS and NEES to a CSV file.
-	f, _ := os.Create("./chisquare.csv")
+	/*f, _ := os.Create("./chisquare.csv")
 	f.WriteString("NIS,NEES\n")
 	for k := 0; k < len(NISmeans); k++ {
 		f.WriteString(fmt.Sprintf("%f,%f\n", NISmeans[k], NEESmeans[k]))
 	}
-	f.Close()
+	f.Close()*/
 }

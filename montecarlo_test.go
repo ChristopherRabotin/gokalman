@@ -24,8 +24,8 @@ func TestMCRuns(t *testing.T) {
 		t.Fatal("requesting 5 runs did not generate five")
 	}
 	for r, run := range runs.Runs {
-		if len(run.Estimates) != 10 {
-			t.Fatalf("sample #%d does not have 10 steps", r)
+		if len(run.Estimates) != steps {
+			t.Fatalf("sample #%d does not have %d steps", r, steps)
 		}
 	}
 	files := runs.AsCSV([]string{"x", "y", "z"})

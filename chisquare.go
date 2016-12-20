@@ -24,7 +24,10 @@ func NewChiSquare(kf *Vanilla, runs MonteCarloRuns, colsG int, withNEES, withNIS
 	for rNo, run := range runs.Runs {
 		for k, mcEst := range run.Estimates {
 
-			est, _ := kf.Update(mcEst.Measurement(), mat64.NewVector(colsG, nil))
+			est, err := kf.Update(mcEst.Measurement(), mat64.NewVector(colsG, nil))
+			if err != nil {
+				panic(err)
+			}
 
 			// Store the innovation.
 			var innovation mat64.Vector
@@ -75,7 +78,7 @@ func NewChiSquare(kf *Vanilla, runs MonteCarloRuns, colsG int, withNEES, withNIS
 				var nis, nis0 mat64.Vector
 				nis0.MulVec(&PyyInv, &innovation)
 				nis.MulVec(innovation.T(), &nis0)
-				NISsamples[k][rNo] = nis.At(0, 0) // Should just be a scalar.
+				NISsamples[k][rNo] = nis.At(0, 0) // Will be just be a scalar.
 			}
 		}
 	}

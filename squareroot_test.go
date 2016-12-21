@@ -40,9 +40,9 @@ func TestSquareRoot(t *testing.T) {
 	}
 
 	// Test setters
-	kf.SetF(F)
-	kf.SetG(G)
-	kf.SetH(H)
+	kf.SetMeasurementMatrix(F)
+	kf.SetInputControl(G)
+	kf.SetMeasurementMatrix(H)
 	kf.SetNoise(noise)
 
 	var est Estimate

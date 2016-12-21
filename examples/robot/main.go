@@ -15,13 +15,13 @@ func main() {
 	G := mat64.NewDense(2, 1, []float64{0.5 * Δt * Δt, Δt})
 	H := mat64.NewDense(1, 2, []float64{1, 0})
 	R := mat64.NewSymDense(1, []float64{0.005 / Δt})
-	//Q := mat64.NewSymDense(2, []float64{3e-4, 5e-3, 5e-3, 0.1})
-	Q := mat64.NewSymDense(2, []float64{5e-3, 0, 0, 1e-3})
+	Q := mat64.NewSymDense(2, []float64{3e-4, 5e-3, 5e-3, 0.1}) // Q true
+	//Q := mat64.NewSymDense(2, []float64{5e-3, 0, 0, 1e-3}) // Q small
 	noise := gokalman.NewAWGN(Q, R)
 	x0 := mat64.NewVector(2, []float64{0, 0})
 	P0 := gokalman.ScaledIdentity(2, 2)
-	mcKF, _, _ := gokalman.NewVanilla(x0, P0, F, G, H, noise)
-	chiKF, _, _ := gokalman.NewPurePredictorVanilla(x0, P0, F, G, H, noise)
+	mcKF, _, _ := gokalman.NewPurePredictorVanilla(x0, P0, F, G, H, noise)
+	chiKF, _, _ := gokalman.NewVanilla(x0, P0, F, G, H, noise)
 	steps := 120
 	sims := 50
 	controls := make([]*mat64.Vector, steps)

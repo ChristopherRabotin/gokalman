@@ -96,8 +96,24 @@ func (kf *Information) String() string {
 	return fmt.Sprintf("inv(F)=%v\nG=%v\nH=%v\n%s", mat64.Formatted(kf.Finv, mat64.Prefix("      ")), mat64.Formatted(kf.G, mat64.Prefix("  ")), mat64.Formatted(kf.H, mat64.Prefix("  ")), kf.Noise)
 }
 
-// SetF updates the F matrix.
-func (kf *Information) SetF(F mat64.Matrix) {
+// GetStateTransition returns the F matrix.
+// *WARNING:* Returns the *INVERSE* of F for the information filter.
+func (kf *Information) GetStateTransition() mat64.Matrix {
+	return kf.Finv
+}
+
+// GetInputControl returns the G matrix.
+func (kf *Information) GetInputControl() mat64.Matrix {
+	return kf.G
+}
+
+// GetMeasurementMatrix returns the H matrix.
+func (kf *Information) GetMeasurementMatrix() mat64.Matrix {
+	return kf.H
+}
+
+// SetStateTransition updates the F matrix.
+func (kf *Information) SetStateTransition(F mat64.Matrix) {
 	var Finv mat64.Dense
 	if err := Finv.Inverse(mat64.DenseCopyOf(F)); err != nil {
 		fmt.Printf("F *might* not invertible: %s\n", err)
@@ -105,13 +121,13 @@ func (kf *Information) SetF(F mat64.Matrix) {
 	kf.Finv = &Finv
 }
 
-// SetG updates the F matrix.
-func (kf *Information) SetG(G mat64.Matrix) {
+// SetInputControl updates the G matrix.
+func (kf *Information) SetInputControl(G mat64.Matrix) {
 	kf.G = G
 }
 
-// SetH updates the F matrix.
-func (kf *Information) SetH(H mat64.Matrix) {
+// SetMeasurementMatrix updates the H matrix.
+func (kf *Information) SetMeasurementMatrix(H mat64.Matrix) {
 	kf.H = H
 }
 

@@ -14,7 +14,7 @@ import (
 // of both the NEES and NIS tests.
 // Returns NEESmeans, NISmeans and an error if applicable
 // TODO: Change order of parameters.
-func NewChiSquare(kf *Vanilla, runs MonteCarloRuns, colsG int, withNEES, withNIS bool) ([]float64, []float64, error) {
+func NewChiSquare(kf KalmanFilter, runs MonteCarloRuns, colsG int, withNEES, withNIS bool) ([]float64, []float64, error) {
 	if !withNEES && !withNIS {
 		return nil, nil, errors.New("Chi Square requires either NEES or NIS or both")
 	}
@@ -32,33 +32,17 @@ func NewChiSquare(kf *Vanilla, runs MonteCarloRuns, colsG int, withNEES, withNIS
 				panic(err)
 			}
 
-			// Compute the innovation: mcEst is used as the truth/sensor report,
-			// and est is what we're computing from the PurePrediction KF.
-			var innovation mat64.Vector
-			innovation.SubVec(mcTruth.Measurement(), est.Measurement())
-
 			if withNEES {
 				if NEESsamples[k] == nil {
 					NEESsamples[k] = make([]float64, numRuns)
 				}
-				var mkp1Plus, mkp1Plus0 mat64.Vector
-				vest := est.(VanillaEstimate)
-				mkp1Plus0.MulVec(vest.Gain(), &innovation)
-				mkp1Plus.AddVec(vest.State(), &mkp1Plus0)
-
-				// Recompute the Pkp1Plus
-				//Pkp1_plus = (eye(2) - Kkp1*H)*Pkp1_minus; %compute update to covar
-				var Pkp1Plus, KH, PInv mat64.Dense
-				KH.Mul(vest.Gain(), kf.H)
-				rows, _ := KH.Dims()
-				KH.Sub(Identity(rows), &KH)
-				Pkp1Plus.Mul(&KH, vest.Covariance())
-
-				if ierr := PInv.Inverse(&Pkp1Plus); ierr != nil {
+				var PInv mat64.Dense
+				if ierr := PInv.Inverse(est.Covariance()); ierr != nil {
 					fmt.Printf("covariance might be singular: %s\nP=%v\n", ierr, mat64.Formatted(est.Covariance(), mat64.Prefix("  ")))
 				}
+
 				var nees, nees0, nees1 mat64.Vector
-				nees0.SubVec(mcTruth.State(), &mkp1Plus)
+				nees0.SubVec(mcTruth.State(), est.State())
 				nees1.MulVec(&PInv, &nees0)
 				nees.MulVec(nees0.T(), &nees1)
 				NEESsamples[k][rNo] = nees.At(0, 0) // Will be just a scalar.
@@ -70,17 +54,18 @@ func NewChiSquare(kf *Vanilla, runs MonteCarloRuns, colsG int, withNEES, withNIS
 				}
 				// Compute the actual NIS.
 				var Pyy, Pyy0, PyyInv mat64.Dense
-				Pyy0.Mul(est.Covariance(), kf.H.T())
-				Pyy.Mul(kf.H, &Pyy0)
-				Pyy.Add(&Pyy, kf.Noise.MeasurementMatrix())
+				H := kf.GetMeasurementMatrix()
+				Pyy0.Mul(est.Covariance(), H.T())
+				Pyy.Mul(H, &Pyy0)
+				Pyy.Add(&Pyy, kf.GetNoise().MeasurementMatrix())
 				// This corresponds to the pure prediction: H*Pkp1_minus*H' + Rtrue;
 				// Which we can find as the covariance of the MC run estimate.
 				if ierr := PyyInv.Inverse(&Pyy); ierr != nil {
 					fmt.Printf("Pyy might be singular: %s\n", ierr)
 				}
 				var nis, nis0 mat64.Vector
-				nis0.MulVec(&PyyInv, &innovation)
-				nis.MulVec(innovation.T(), &nis0)
+				nis0.MulVec(&PyyInv, est.Innovation())
+				nis.MulVec(est.Innovation().T(), &nis0)
 				NISsamples[k][rNo] = nis.At(0, 0) // Will be just be a scalar.
 			}
 		}

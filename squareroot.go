@@ -65,18 +65,33 @@ func (kf *SquareRoot) String() string {
 	return fmt.Sprintf("F=%v\nG=%v\nH=%v\n%s", mat64.Formatted(kf.F, mat64.Prefix(" ")), mat64.Formatted(kf.G, mat64.Prefix(" ")), mat64.Formatted(kf.H, mat64.Prefix(" ")), kf.Noise)
 }
 
-// SetF updates the F matrix.
-func (kf *SquareRoot) SetF(F mat64.Matrix) {
+// GetStateTransition returns the F matrix.
+func (kf *SquareRoot) GetStateTransition() mat64.Matrix {
+	return kf.F
+}
+
+// GetInputControl returns the G matrix.
+func (kf *SquareRoot) GetInputControl() mat64.Matrix {
+	return kf.G
+}
+
+// GetMeasurementMatrix returns the H matrix.
+func (kf *SquareRoot) GetMeasurementMatrix() mat64.Matrix {
+	return kf.H
+}
+
+// SetStateTransition updates the F matrix.
+func (kf *SquareRoot) SetStateTransition(F mat64.Matrix) {
 	kf.F = F
 }
 
-// SetG updates the G matrix.
-func (kf *SquareRoot) SetG(G mat64.Matrix) {
+// SetInputControl updates the G matrix.
+func (kf *SquareRoot) SetInputControl(G mat64.Matrix) {
 	kf.G = G
 }
 
-// SetH updates the H matrix.
-func (kf *SquareRoot) SetH(H mat64.Matrix) {
+// SetMeasurementMatrix updates the H matrix.
+func (kf *SquareRoot) SetMeasurementMatrix(H mat64.Matrix) {
 	kf.H = H
 }
 

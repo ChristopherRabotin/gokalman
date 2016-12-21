@@ -73,18 +73,33 @@ func (kf *Vanilla) String() string {
 	return fmt.Sprintf("F=%v\nG=%v\nH=%v\n%s", mat64.Formatted(kf.F, mat64.Prefix("  ")), mat64.Formatted(kf.G, mat64.Prefix("  ")), mat64.Formatted(kf.H, mat64.Prefix("  ")), kf.Noise)
 }
 
-// SetF updates the F matrix.
-func (kf *Vanilla) SetF(F mat64.Matrix) {
+// GetStateTransition returns the F matrix.
+func (kf *Vanilla) GetStateTransition() mat64.Matrix {
+	return kf.F
+}
+
+// GetInputControl returns the G matrix.
+func (kf *Vanilla) GetInputControl() mat64.Matrix {
+	return kf.G
+}
+
+// GetMeasurementMatrix returns the H matrix.
+func (kf *Vanilla) GetMeasurementMatrix() mat64.Matrix {
+	return kf.H
+}
+
+// SetStateTransition updates the F matrix.
+func (kf *Vanilla) SetStateTransition(F mat64.Matrix) {
 	kf.F = F
 }
 
-// SetG updates the F matrix.
-func (kf *Vanilla) SetG(G mat64.Matrix) {
+// SetInputControl updates the F matrix.
+func (kf *Vanilla) SetInputControl(G mat64.Matrix) {
 	kf.G = G
 }
 
-// SetH updates the F matrix.
-func (kf *Vanilla) SetH(H mat64.Matrix) {
+// SetMeasurementMatrix updates the H matrix.
+func (kf *Vanilla) SetMeasurementMatrix(H mat64.Matrix) {
 	kf.H = H
 }
 

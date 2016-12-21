@@ -6,9 +6,12 @@ import "github.com/gonum/matrix/mat64"
 type KalmanFilter interface {
 	Update(measurement, control *mat64.Vector) (Estimate, error)
 	GetNoise() Noise
-	SetF(mat64.Matrix)
-	SetG(mat64.Matrix)
-	SetH(mat64.Matrix)
+	GetStateTransition() mat64.Matrix
+	GetInputControl() mat64.Matrix
+	GetMeasurementMatrix() mat64.Matrix
+	SetStateTransition(mat64.Matrix)
+	SetInputControl(mat64.Matrix)
+	SetMeasurementMatrix(mat64.Matrix)
 	SetNoise(Noise)
 	String() string
 }

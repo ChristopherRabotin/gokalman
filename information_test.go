@@ -50,9 +50,9 @@ func TestInformation(t *testing.T) {
 	I0 := mat64.NewSymDense(3, nil)
 	kfZ, _, err := NewInformation(i0, I0, F, G, H, noise)
 
-	kfZ.SetF(F)
-	kfZ.SetG(G)
-	kfZ.SetH(H)
+	kfZ.SetStateTransition(F)
+	kfZ.SetInputControl(G)
+	kfZ.SetMeasurementMatrix(H)
 	kfZ.SetNoise(noise)
 
 	for _, kf := range []Information{*kfS, *kfZ} {

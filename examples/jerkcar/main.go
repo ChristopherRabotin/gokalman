@@ -140,7 +140,7 @@ func main() {
 
 			if (k+1)%10 == 0 {
 				// Switch to using H1
-				kf.SetH(H1)
+				kf.SetMeasurementMatrix(H1)
 				kf.SetNoise(noise1)
 				measurement = mat64.NewVector(2, []float64{ypos[k], yaccK})
 			} else {
@@ -154,7 +154,7 @@ func main() {
 
 			if (k+1)%10 == 0 {
 				// Reset noise.
-				kf.SetH(H2)
+				kf.SetMeasurementMatrix(H2)
 				kf.SetNoise(noise2)
 			}
 		}

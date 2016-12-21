@@ -234,6 +234,11 @@ func (e InformationEstimate) Measurement() *mat64.Vector {
 	return e.meas
 }
 
+// Innovation implements the Estimate interface.
+func (e InformationEstimate) Innovation() *mat64.Vector {
+	return e.infoState
+}
+
 // Covariance implements the Estimate interface.
 // *NOTE:* With the IF, one cannot view the covariance matrix until there is enough information.
 func (e InformationEstimate) Covariance() mat64.Symmetric {

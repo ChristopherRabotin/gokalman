@@ -41,7 +41,7 @@ func NewSquareRoot(x0 *mat64.Vector, P0 mat64.Symmetric, F, G, H mat64.Matrix, n
 
 	// Populate with the initial values.
 	rowsH, _ := H.Dims()
-	est0 := NewSqrtEstimate(x0, mat64.NewVector(rowsH, nil), &stddev, nil)
+	est0 := NewSqrtEstimate(x0, mat64.NewVector(rowsH, nil), mat64.NewVector(rowsH, nil), &stddev, nil)
 	// Return the state and estimate to the SquareRoot structure.
 	sqrt := SquareRoot{F, G, H, nil, nil, nil, !IsNil(G), est0, 0}
 	sqrt.SetNoise(noise) // Computes the Cholesky decompositions of the noise.
@@ -210,6 +210,11 @@ func (kf *SquareRoot) Update(measurement, control *mat64.Vector) (est Estimate, 
 	Syy.Clone(SyyT.T())
 	Wkp1Plus.Clone(Wkp1PlusT.T())
 
+	// Compute estimated measurement update \hat{y}_{k}
+	var ykHat mat64.Vector
+	ykHat.MulVec(kf.H, kf.prevEst.State())
+	ykHat.AddVec(&ykHat, kf.Noise.Measurement(kf.step))
+
 	// Compute Kalman gain.
 	var SyyInv mat64.Dense
 	if invErr := SyyInv.Inverse(&Syy); err != nil {
@@ -224,22 +229,22 @@ func (kf *SquareRoot) Update(measurement, control *mat64.Vector) (est Estimate, 
 	}
 
 	// Measurement update
-	var xkp1Plus, xkp1Plus1, xkp1Plus2 mat64.Vector
+	var innovation, xkp1Plus, xkp1Plus1, xkp1Plus2 mat64.Vector
 	xkp1Plus1.MulVec(kf.H, &xKp1Minus)
-	xkp1Plus1.SubVec(measurement, &xkp1Plus1)
-	if rX, _ := xkp1Plus1.Dims(); rX == 1 {
-		// xkp1Plus1 is a scalar and mat64 won't be happy.
+	innovation.SubVec(measurement, &xkp1Plus1)
+	if rX, _ := innovation.Dims(); rX == 1 {
+		// innovation is a scalar and mat64 won't be happy.
 		var sKkp1 mat64.Dense
-		sKkp1.Scale(xkp1Plus1.At(0, 0), &Kkp1)
+		sKkp1.Scale(innovation.At(0, 0), &Kkp1)
 		rGain, _ := sKkp1.Dims()
 		xkp1Plus2.AddVec(sKkp1.ColView(0), mat64.NewVector(rGain, nil))
 	} else {
-		xkp1Plus2.MulVec(&Kkp1, &xkp1Plus1)
+		xkp1Plus2.MulVec(&Kkp1, &innovation)
 	}
 	xkp1Plus.AddVec(&xKp1Minus, &xkp1Plus2)
 	xkp1Plus.AddVec(&xkp1Plus, kf.Noise.Process(kf.step))
 
-	est = NewSqrtEstimate(&xkp1Plus, measurement, &Skp1Plus, &Kkp1)
+	est = NewSqrtEstimate(&xkp1Plus, &ykHat, &innovation, &Skp1Plus, &Kkp1)
 	kf.prevEst = est.(SquareRootEstimate)
 	kf.step++
 	return
@@ -248,10 +253,10 @@ func (kf *SquareRoot) Update(measurement, control *mat64.Vector) (est Estimate, 
 // SquareRootEstimate is the output of each update state of the SquareRoot KF.
 // It implements the Estimate interface.
 type SquareRootEstimate struct {
-	state, meas *mat64.Vector
-	stddev      *mat64.Dense
-	gain        mat64.Matrix
-	cachedCovar mat64.Symmetric
+	state, meas, innovation *mat64.Vector
+	stddev                  *mat64.Dense
+	gain                    mat64.Matrix
+	cachedCovar             mat64.Symmetric
 }
 
 // IsWithin2σ returns whether the estimation is within the 2σ bounds.
@@ -273,6 +278,11 @@ func (e SquareRootEstimate) State() *mat64.Vector {
 // Measurement implements the Estimate interface.
 func (e SquareRootEstimate) Measurement() *mat64.Vector {
 	return e.meas
+}
+
+// Innovation implements the Estimate interface.
+func (e SquareRootEstimate) Innovation() *mat64.Vector {
+	return e.innovation
 }
 
 // Covariance implements the Estimate interface.
@@ -302,6 +312,6 @@ func (e SquareRootEstimate) String() string {
 }
 
 // NewSqrtEstimate initializes a new InformationEstimate.
-func NewSqrtEstimate(state, meas *mat64.Vector, stddev, gain *mat64.Dense) SquareRootEstimate {
-	return SquareRootEstimate{state, meas, stddev, gain, nil}
+func NewSqrtEstimate(state, meas, innovation *mat64.Vector, stddev, gain *mat64.Dense) SquareRootEstimate {
+	return SquareRootEstimate{state, meas, innovation, stddev, gain, nil}
 }

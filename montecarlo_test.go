@@ -37,6 +37,11 @@ func TestMCRuns(t *testing.T) {
 		t.Fatalf("unexpected number of lines in the file: %d", len(files[0]))
 	}
 
+	assertPanic(t, func() {
+		kf.predictionOnly = false
+		NewMonteCarloRuns(5, steps, 1, []*mat64.Vector{mat64.NewVector(1, nil)}, kf)
+	})
+
 	// Test chisquare:
 	NISmeans, NEESmeans, err := NewChiSquare(kf, runs, 1, true, true)
 	if err != nil {
@@ -50,8 +55,5 @@ func TestMCRuns(t *testing.T) {
 	if _, _, err := NewChiSquare(kf, runs, 1, false, false); err == nil {
 		t.Fatal("attempting to run Chisquare with neither NIS nor NEES fails")
 	}
-	kf.predictionOnly = false
-	if _, _, err := NewChiSquare(kf, runs, 1, false, true); err == nil {
-		t.Fatal("attempting to run Chisquare with a non pure-predictor does not fail")
-	}
+
 }

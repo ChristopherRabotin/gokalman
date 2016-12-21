@@ -89,7 +89,11 @@ func (mc MonteCarloRuns) AsCSV(headers []string) []string {
 }
 
 // NewMonteCarloRuns run monte carlos on the provided filter.
-func NewMonteCarloRuns(samples, steps, rowsH int, controls []*mat64.Vector, kf KalmanFilter) MonteCarloRuns {
+func NewMonteCarloRuns(samples, steps, rowsH int, controls []*mat64.Vector, kf *Vanilla) MonteCarloRuns {
+	if !kf.predictionOnly {
+		panic("the Kalman filter needed for the Monte Carlo runs must be a pure predictor")
+	}
+
 	runs := make([]MonteCarloRun, samples)
 	if len(controls) < 1 {
 		panic("must provide at least one control vector for size")

@@ -19,6 +19,7 @@ type Estimate interface {
 	IsWithin2σ() bool            // IsWithin2σ returns whether the estimation is within the 2σ bounds.
 	State() *mat64.Vector        // Returns \hat{x}_{k+1}^{+}
 	Measurement() *mat64.Vector  // Returns \hat{y}_{k}^{+}
+	Innovation() *mat64.Vector   // Returns y_{k} - H*\hat{x}_{k+1}^{-}
 	Covariance() mat64.Symmetric // Return P_{k+1}^{+}
 	String() string              // Must implement the stringer interface.
 }

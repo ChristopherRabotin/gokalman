@@ -19,19 +19,15 @@ func NewChiSquare(kf *Vanilla, runs MonteCarloRuns, colsG int, withNEES, withNIS
 		return nil, nil, errors.New("Chi Square requires either NEES or NIS or both")
 	}
 
-	if !kf.predictionOnly {
-		return nil, nil, errors.New("the Kalman filter needed for the Chi square test must be a pure predictor")
-	}
-
 	numRuns := runs.runs
 	numSteps := len(runs.Runs[0].Estimates)
 	NISsamples := make(map[int][]float64)
 	NEESsamples := make(map[int][]float64)
 
 	for rNo, run := range runs.Runs {
-		for k, mcEst := range run.Estimates {
+		for k, mcTruth := range run.Estimates {
 
-			est, err := kf.Update(mcEst.Measurement(), mat64.NewVector(colsG, nil))
+			est, err := kf.Update(mcTruth.Measurement(), mat64.NewVector(colsG, nil))
 			if err != nil {
 				panic(err)
 			}
@@ -39,7 +35,7 @@ func NewChiSquare(kf *Vanilla, runs MonteCarloRuns, colsG int, withNEES, withNIS
 			// Compute the innovation: mcEst is used as the truth/sensor report,
 			// and est is what we're computing from the PurePrediction KF.
 			var innovation mat64.Vector
-			innovation.SubVec(mcEst.Measurement(), est.Measurement())
+			innovation.SubVec(mcTruth.Measurement(), est.Measurement())
 
 			if withNEES {
 				if NEESsamples[k] == nil {
@@ -62,7 +58,7 @@ func NewChiSquare(kf *Vanilla, runs MonteCarloRuns, colsG int, withNEES, withNIS
 					fmt.Printf("covariance might be singular: %s\nP=%v\n", ierr, mat64.Formatted(est.Covariance(), mat64.Prefix("  ")))
 				}
 				var nees, nees0, nees1 mat64.Vector
-				nees0.SubVec(mcEst.State(), &mkp1Plus)
+				nees0.SubVec(mcTruth.State(), &mkp1Plus)
 				nees1.MulVec(&PInv, &nees0)
 				nees.MulVec(nees0.T(), &nees1)
 				NEESsamples[k][rNo] = nees.At(0, 0) // Will be just a scalar.

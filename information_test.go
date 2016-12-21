@@ -7,7 +7,7 @@ import (
 )
 
 func TestNewInformationEstimateErrors(t *testing.T) {
-	est := NewInformationEstimate(mat64.NewVector(1, nil), mat64.NewVector(1, nil), mat64.NewSymDense(1, nil))
+	est := NewInformationEstimate(mat64.NewVector(1, nil), mat64.NewVector(1, nil), mat64.NewSymDense(1, nil), mat64.NewSymDense(1, nil))
 	cov := est.Covariance()
 	if !IsNil(cov) {
 		t.Fatal("singular information matrix should return an empty covariance matrix")
@@ -18,18 +18,26 @@ func TestNewInformationErrors(t *testing.T) {
 	F, G, _ := Robot1DMatrices()
 	H := mat64.NewDense(2, 2, nil)
 	x0 := mat64.NewVector(2, nil)
-	Covar0 := mat64.NewSymDense(3, nil)
-	if _, _, err := NewInformation(x0, Covar0, F, G, H, Noiseless{}); err == nil {
+	Covar0 := mat64.NewSymDense(2, []float64{1, 0, 0, 0})
+	R := mat64.NewSymDense(1, []float64{0.05})
+	Q := mat64.NewSymDense(2, []float64{3e-4, 5e-3, 5e-3, 0.1}) // Q true
+	noise := NewNoiseless(Q, R)
+	_, _, err := NewInformationFromState(x0, Covar0, F, G, H, noise)
+	if err != nil {
+		t.Fatal("singular Covar0 failed (should have only displayed a warning)")
+	}
+	Covar0 = mat64.NewSymDense(3, nil)
+	if _, _, err := NewInformation(x0, Covar0, F, G, H, noise); err == nil {
 		t.Fatal("x0 and Covar0 of incompatible sizes does not fail")
 	}
 	x0 = mat64.NewVector(3, nil)
-	if _, _, err := NewInformation(x0, Covar0, F, G, H, Noiseless{}); err == nil {
+	if _, _, err := NewInformation(x0, Covar0, F, G, H, noise); err == nil {
 		t.Fatal("F and Covar0 of incompatible sizes does not fail")
 	}
 	x0 = mat64.NewVector(2, nil)
 	Covar0 = mat64.NewSymDense(2, nil)
 	H = mat64.NewDense(3, 3, nil)
-	if _, _, err := NewInformation(x0, Covar0, F, G, H, Noiseless{}); err == nil {
+	if _, _, err := NewInformation(x0, Covar0, F, G, H, noise); err == nil {
 		t.Fatal("H and x0 of incompatible sizes does not fail")
 	}
 }

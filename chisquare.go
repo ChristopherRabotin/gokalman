@@ -2,7 +2,6 @@ package gokalman
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/gonum/matrix/mat64"
 	"github.com/gonum/stat"
@@ -37,9 +36,7 @@ func NewChiSquare(kf KalmanFilter, runs MonteCarloRuns, colsG int, withNEES, wit
 					NEESsamples[k] = make([]float64, numRuns)
 				}
 				var PInv mat64.Dense
-				if ierr := PInv.Inverse(est.Covariance()); ierr != nil {
-					fmt.Printf("covariance might be singular: %s\nP=%v\n", ierr, mat64.Formatted(est.Covariance(), mat64.Prefix("  ")))
-				}
+				PInv.Inverse(est.Covariance())
 
 				var nees, nees0, nees1 mat64.Vector
 				nees0.SubVec(mcTruth.State(), est.State())
@@ -55,14 +52,11 @@ func NewChiSquare(kf KalmanFilter, runs MonteCarloRuns, colsG int, withNEES, wit
 				// Compute the actual NIS.
 				var Pyy, Pyy0, PyyInv mat64.Dense
 				H := kf.GetMeasurementMatrix()
-				Pyy0.Mul(est.Covariance(), H.T())
+				Pyy0.Mul(est.PredCovariance(), H.T())
 				Pyy.Mul(H, &Pyy0)
 				Pyy.Add(&Pyy, kf.GetNoise().MeasurementMatrix())
 				// This corresponds to the pure prediction: H*Pkp1_minus*H' + Rtrue;
-				// Which we can find as the covariance of the MC run estimate.
-				if ierr := PyyInv.Inverse(&Pyy); ierr != nil {
-					fmt.Printf("Pyy might be singular: %s\n", ierr)
-				}
+				PyyInv.Inverse(&Pyy)
 				var nis, nis0 mat64.Vector
 				nis0.MulVec(&PyyInv, est.Innovation())
 				nis.MulVec(est.Innovation().T(), &nis0)

@@ -14,7 +14,7 @@ func TestBatchError(t *testing.T) {
 	})
 
 	iest := InformationEstimate{cachedState: mat64.NewVector(2, []float64{1, 1}), meas: mat64.NewVector(2, []float64{4, 4}), cachedCovar: ScaledIdentity(2, 1)}
-	sqest := NewSqrtEstimate(mat64.NewVector(2, []float64{1, 1}), mat64.NewVector(2, []float64{4, 4}), mat64.NewVector(2, []float64{4, 4}), mat64.NewDense(2, 2, []float64{1, 0, 0, 0}), mat64.NewDense(2, 2, nil))
+	sqest := NewSqrtEstimate(mat64.NewVector(2, []float64{1, 1}), mat64.NewVector(2, []float64{4, 4}), mat64.NewVector(2, []float64{4, 4}), mat64.NewDense(2, 2, []float64{1, 0, 0, 0}), mat64.NewDense(2, 2, []float64{1, 0, 0, 0}), mat64.NewDense(2, 2, nil))
 
 	for kest, est := range []Estimate{iest, sqest} {
 		for kexp, exp := range []struct {

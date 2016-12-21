@@ -38,10 +38,11 @@ func NewSquareRoot(x0 *mat64.Vector, P0 mat64.Symmetric, F, G, H mat64.Matrix, n
 	stddevL.LFromCholesky(&sqrtP0)
 	var stddev mat64.Dense
 	stddev.Clone(&stddevL)
+	stdr, stdc := stddev.Dims()
 
 	// Populate with the initial values.
 	rowsH, _ := H.Dims()
-	est0 := NewSqrtEstimate(x0, mat64.NewVector(rowsH, nil), mat64.NewVector(rowsH, nil), &stddev, nil)
+	est0 := NewSqrtEstimate(x0, mat64.NewVector(rowsH, nil), mat64.NewVector(rowsH, nil), &stddev, mat64.NewDense(stdr, stdc, nil), nil)
 	// Return the state and estimate to the SquareRoot structure.
 	sqrt := SquareRoot{F, G, H, nil, nil, nil, !IsNil(G), est0, 0}
 	sqrt.SetNoise(noise) // Computes the Cholesky decompositions of the noise.
@@ -259,7 +260,7 @@ func (kf *SquareRoot) Update(measurement, control *mat64.Vector) (est Estimate, 
 	xkp1Plus.AddVec(&xKp1Minus, &xkp1Plus2)
 	xkp1Plus.AddVec(&xkp1Plus, kf.Noise.Process(kf.step))
 
-	est = NewSqrtEstimate(&xkp1Plus, &ykHat, &innovation, &Skp1Plus, &Kkp1)
+	est = NewSqrtEstimate(&xkp1Plus, &ykHat, &innovation, &Skp1Plus, SKp1Minus.(*mat64.Dense), &Kkp1)
 	kf.prevEst = est.(SquareRootEstimate)
 	kf.step++
 	return
@@ -268,10 +269,10 @@ func (kf *SquareRoot) Update(measurement, control *mat64.Vector) (est Estimate, 
 // SquareRootEstimate is the output of each update state of the SquareRoot KF.
 // It implements the Estimate interface.
 type SquareRootEstimate struct {
-	state, meas, innovation *mat64.Vector
-	stddev                  *mat64.Dense
-	gain                    mat64.Matrix
-	cachedCovar             mat64.Symmetric
+	state, meas, innovation      *mat64.Vector
+	stddev, predStddev           *mat64.Dense
+	gain                         mat64.Matrix
+	cachedCovar, predCachedCovar mat64.Symmetric
 }
 
 // IsWithin2σ returns whether the estimation is within the 2σ bounds.
@@ -313,6 +314,19 @@ func (e SquareRootEstimate) Covariance() mat64.Symmetric {
 	return e.cachedCovar
 }
 
+// PredCovariance implements the Estimate interface.
+func (e SquareRootEstimate) PredCovariance() mat64.Symmetric {
+	if e.predCachedCovar == nil {
+		var predCovar mat64.Dense
+		predCovar.Mul(e.predStddev, e.predStddev.T())
+		// We don't check whether AsSymDense fails because it Skp1Plus comes from QR,
+		// it's the bottom triangle of the upper triangular R. Hence, s*s^T will be symmetric.
+		predCachedCovar, _ := AsSymDense(&predCovar)
+		e.predCachedCovar = predCachedCovar
+	}
+	return e.predCachedCovar
+}
+
 // Gain the Estimate interface.
 func (e SquareRootEstimate) Gain() mat64.Matrix {
 	return e.gain
@@ -327,6 +341,6 @@ func (e SquareRootEstimate) String() string {
 }
 
 // NewSqrtEstimate initializes a new InformationEstimate.
-func NewSqrtEstimate(state, meas, innovation *mat64.Vector, stddev, gain *mat64.Dense) SquareRootEstimate {
-	return SquareRootEstimate{state, meas, innovation, stddev, gain, nil}
+func NewSqrtEstimate(state, meas, innovation *mat64.Vector, stddev, predStddev, gain *mat64.Dense) SquareRootEstimate {
+	return SquareRootEstimate{state, meas, innovation, stddev, predStddev, gain, nil, nil}
 }

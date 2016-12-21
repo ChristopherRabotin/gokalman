@@ -32,7 +32,9 @@ func NewVanilla(x0 *mat64.Vector, Covar0 mat64.Symmetric, F, G, H mat64.Matrix, 
 
 	// Populate with the initial values.
 	rowsH, _ := H.Dims()
-	est0 := VanillaEstimate{x0, mat64.NewVector(rowsH, nil), mat64.NewVector(rowsH, nil), Covar0, nil}
+	cr, _ := Covar0.Dims()
+	predCovar := mat64.NewSymDense(cr, nil)
+	est0 := VanillaEstimate{x0, mat64.NewVector(rowsH, nil), mat64.NewVector(rowsH, nil), Covar0, predCovar, nil}
 
 	return &Vanilla{F, G, H, noise, !IsNil(G), est0, 0, false}, &est0, nil
 }
@@ -52,7 +54,9 @@ func NewPurePredictorVanilla(x0 *mat64.Vector, Covar0 mat64.Symmetric, F, G, H m
 
 	// Populate with the initial values.
 	rowsH, _ := H.Dims()
-	est0 := VanillaEstimate{x0, mat64.NewVector(rowsH, nil), mat64.NewVector(rowsH, nil), Covar0, nil}
+	cr, _ := Covar0.Dims()
+	predCovar := mat64.NewSymDense(cr, nil)
+	est0 := VanillaEstimate{x0, mat64.NewVector(rowsH, nil), mat64.NewVector(rowsH, nil), Covar0, predCovar, nil}
 
 	return &Vanilla{F, G, H, noise, !IsNil(G), est0, 0, true}, &est0, nil
 }
@@ -155,9 +159,11 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 	Kkp1.Mul(&PHt, &HPHt)
 
 	if kf.predictionOnly {
+		// Note that in the case of a pure prediction, we set the prediction
+		// covariance and the covariance to Pkp1Minus.
 		Pkp1MinusSym, _ := AsSymDense(&Pkp1Minus)
 		rowsH, _ := kf.H.Dims()
-		est = VanillaEstimate{&xKp1Minus, &ykHat, mat64.NewVector(rowsH, nil), Pkp1MinusSym, &Kkp1}
+		est = VanillaEstimate{&xKp1Minus, &ykHat, mat64.NewVector(rowsH, nil), Pkp1MinusSym, Pkp1MinusSym, &Kkp1}
 		kf.prevEst = est.(VanillaEstimate)
 		kf.step++
 		return
@@ -189,11 +195,16 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 	Kkp1RKkp1.Mul(&Kkp1R, Kkp1.T())
 	Pkp1Plus.Add(&Pkp1Plus, &Kkp1RKkp1)
 
+	Pkp1MinusSym, err := AsSymDense(&Pkp1Minus)
+	if err != nil {
+		return nil, err
+	}
+
 	Pkp1PlusSym, err := AsSymDense(&Pkp1Plus)
 	if err != nil {
 		return nil, err
 	}
-	est = VanillaEstimate{&xkp1Plus, &ykHat, &innov, Pkp1PlusSym, &Kkp1}
+	est = VanillaEstimate{&xkp1Plus, &ykHat, &innov, Pkp1PlusSym, Pkp1MinusSym, &Kkp1}
 	kf.prevEst = est.(VanillaEstimate)
 	kf.step++
 	return
@@ -203,7 +214,7 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 // It implements the Estimate interface.
 type VanillaEstimate struct {
 	state, meas, innovation *mat64.Vector
-	covar                   mat64.Symmetric
+	covar, predCovar        mat64.Symmetric
 	gain                    mat64.Matrix
 }
 
@@ -236,6 +247,11 @@ func (e VanillaEstimate) Innovation() *mat64.Vector {
 // Covariance implements the Estimate interface.
 func (e VanillaEstimate) Covariance() mat64.Symmetric {
 	return e.covar
+}
+
+// PredCovariance implements the Estimate interface.
+func (e VanillaEstimate) PredCovariance() mat64.Symmetric {
+	return e.predCovar
 }
 
 // Gain the Estimate interface.

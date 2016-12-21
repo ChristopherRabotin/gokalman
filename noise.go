@@ -3,7 +3,6 @@ package gokalman
 import (
 	"fmt"
 	"math/rand"
-	"time"
 
 	"github.com/gonum/matrix/mat64"
 	"github.com/gonum/stat/distmv"
@@ -107,14 +106,15 @@ type AWGN struct {
 
 // NewAWGN creates new AWGN noise from the provided Q and R.
 func NewAWGN(Q, R mat64.Symmetric) *AWGN {
-	randomSeed := rand.New(rand.NewSource(time.Now().UnixNano()))
+	//randomSeed := rand.New(rand.NewSource(time.Now().UnixNano()))
+	seed := rand.New(rand.NewSource(1)) // TODO: Restore the random seed after debugging.
 	sizeQ, _ := Q.Dims()
-	process, ok := distmv.NewNormal(make([]float64, sizeQ), Q, randomSeed)
+	process, ok := distmv.NewNormal(make([]float64, sizeQ), Q, seed)
 	if !ok {
 		panic("process noise invalid")
 	}
 	sizeR, _ := R.Dims()
-	meas, ok := distmv.NewNormal(make([]float64, sizeR), R, randomSeed)
+	meas, ok := distmv.NewNormal(make([]float64, sizeR), R, seed)
 	if !ok {
 		panic("measurement noise invalid")
 	}

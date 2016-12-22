@@ -58,10 +58,24 @@ func TestInformation(t *testing.T) {
 	I0 := mat64.NewSymDense(3, nil)
 	kfZ, _, err := NewInformation(i0, I0, F, G, H, noise)
 
+	var Finv mat64.Dense
+	Finv.Inverse(mat64.DenseCopyOf(F))
 	kfZ.SetStateTransition(F)
+	if !mat64.Equal(&Finv, kfZ.GetStateTransition()) {
+		t.Fatal("SetStateTransition did not return the expected Finv")
+	}
 	kfZ.SetInputControl(G)
+	if !mat64.Equal(G, kfZ.GetInputControl()) {
+		t.Fatal("SetInputControl did not return the expected G")
+	}
 	kfZ.SetMeasurementMatrix(H)
+	if !mat64.Equal(H, kfZ.GetMeasurementMatrix()) {
+		t.Fatal("GetMeasurementMatrix did not return the expected H")
+	}
 	kfZ.SetNoise(noise)
+	if !mat64.Equal(noise.MeasurementMatrix(), kfZ.GetNoise().MeasurementMatrix()) {
+		t.Fatal("GetNoise/SetNoise issue")
+	}
 
 	for _, kf := range []Information{*kfS, *kfZ} {
 		var est Estimate

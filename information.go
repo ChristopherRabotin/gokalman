@@ -311,7 +311,9 @@ func (e InformationEstimate) String() string {
 	state := mat64.Formatted(e.State(), mat64.Prefix("  "))
 	meas := mat64.Formatted(e.Measurement(), mat64.Prefix("  "))
 	covar := mat64.Formatted(e.Covariance(), mat64.Prefix("  "))
-	return fmt.Sprintf("{\ns=%v\ny=%v\nP=%v\n}", state, meas, covar)
+	innov := mat64.Formatted(e.Innovation(), mat64.Prefix("  "))
+	predp := mat64.Formatted(e.PredCovariance(), mat64.Prefix("  "))
+	return fmt.Sprintf("{\ns=%v\ny=%v\nP=%v\nP-=%v\ni=%v\n}", state, meas, covar, predp, innov)
 }
 
 // NewInformationEstimate initializes a new InformationEstimate.

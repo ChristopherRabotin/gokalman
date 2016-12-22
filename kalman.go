@@ -13,6 +13,7 @@ type KalmanFilter interface {
 	SetInputControl(mat64.Matrix)
 	SetMeasurementMatrix(mat64.Matrix)
 	SetNoise(Noise)
+	Reset()
 	String() string
 }
 

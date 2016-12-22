@@ -22,8 +22,8 @@ func main() {
 	P0 := gokalman.ScaledIdentity(2, 2)
 	mcKF, _, _ := gokalman.NewPurePredictorVanilla(x0, P0, F, G, H, noise)
 	chiKF, _, _ := gokalman.NewVanilla(x0, P0, F, G, H, noise)
-	steps := 2
-	sims := 1
+	steps := 120
+	sims := 50
 	controls := make([]*mat64.Vector, steps)
 	for k := 0; k < steps; k++ {
 		controls[k] = mat64.NewVector(1, []float64{math.Cos(0.75 * float64(k+1) * 0.1)})

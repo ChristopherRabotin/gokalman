@@ -44,21 +44,21 @@ func NewSquareRoot(x0 *mat64.Vector, P0 mat64.Symmetric, F, G, H mat64.Matrix, n
 	rowsH, _ := H.Dims()
 	est0 := NewSqrtEstimate(x0, mat64.NewVector(rowsH, nil), mat64.NewVector(rowsH, nil), &stddev, mat64.NewDense(stdr, stdc, nil), nil)
 	// Return the state and estimate to the SquareRoot structure.
-	sqrt := SquareRoot{F, G, H, nil, nil, nil, !IsNil(G), est0, 0}
+	sqrt := SquareRoot{F, G, H, nil, nil, nil, !IsNil(G), est0, est0, 0}
 	sqrt.SetNoise(noise) // Computes the Cholesky decompositions of the noise.
 	return &sqrt, &est0, nil
 }
 
 // SquareRoot defines a square root kalman filter. Use NewSqrt to initialize.
 type SquareRoot struct {
-	F            mat64.Matrix
-	G            mat64.Matrix
-	H            mat64.Matrix
-	Noise        Noise
-	sqrtQ, sqrtR mat64.Matrix
-	needCtrl     bool
-	prevEst      SquareRootEstimate
-	step         int
+	F                mat64.Matrix
+	G                mat64.Matrix
+	H                mat64.Matrix
+	Noise            Noise
+	sqrtQ, sqrtR     mat64.Matrix
+	needCtrl         bool
+	prevEst, initEst SquareRootEstimate
+	step             int
 }
 
 // Prints the output.
@@ -116,6 +116,12 @@ func (kf *SquareRoot) SetNoise(n Noise) {
 // GetNoise updates the F matrix.
 func (kf *SquareRoot) GetNoise() Noise {
 	return kf.Noise
+}
+
+// Reset reinitializes the KF with its initial estimate.
+func (kf *SquareRoot) Reset() {
+	kf.prevEst = kf.initEst
+	kf.step = 0
 }
 
 // Update implements the KalmanFilter interface.
@@ -338,7 +344,7 @@ func (e SquareRootEstimate) String() string {
 	covar := mat64.Formatted(e.Covariance(), mat64.Prefix("  "))
 	gain := mat64.Formatted(e.Gain(), mat64.Prefix("  "))
 	innov := mat64.Formatted(e.Innovation(), mat64.Prefix("  "))
-	predp := mat64.Formatted(e.PredCovariance(), mat64.Prefix("  "))
+	predp := mat64.Formatted(e.PredCovariance(), mat64.Prefix("   "))
 	return fmt.Sprintf("{\ns=%v\ny=%v\nP=%v\nK=%v\nP-=%v\ni=%v\n}", state, meas, covar, gain, predp, innov)
 }
 

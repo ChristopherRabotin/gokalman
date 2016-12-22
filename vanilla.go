@@ -36,7 +36,7 @@ func NewVanilla(x0 *mat64.Vector, Covar0 mat64.Symmetric, F, G, H mat64.Matrix, 
 	predCovar := mat64.NewSymDense(cr, nil)
 	est0 := VanillaEstimate{x0, mat64.NewVector(rowsH, nil), mat64.NewVector(rowsH, nil), Covar0, predCovar, nil}
 
-	return &Vanilla{F, G, H, noise, !IsNil(G), est0, 0, false}, &est0, nil
+	return &Vanilla{F, G, H, noise, !IsNil(G), est0, est0, 0, false}, &est0, nil
 }
 
 // NewPurePredictorVanilla returns a new Vanilla KF which only does prediction.
@@ -58,19 +58,19 @@ func NewPurePredictorVanilla(x0 *mat64.Vector, Covar0 mat64.Symmetric, F, G, H m
 	predCovar := mat64.NewSymDense(cr, nil)
 	est0 := VanillaEstimate{x0, mat64.NewVector(rowsH, nil), mat64.NewVector(rowsH, nil), Covar0, predCovar, nil}
 
-	return &Vanilla{F, G, H, noise, !IsNil(G), est0, 0, true}, &est0, nil
+	return &Vanilla{F, G, H, noise, !IsNil(G), est0, est0, 0, true}, &est0, nil
 }
 
 // Vanilla defines a vanilla kalman filter. Use NewVanilla to initialize.
 type Vanilla struct {
-	F              mat64.Matrix
-	G              mat64.Matrix
-	H              mat64.Matrix
-	Noise          Noise
-	needCtrl       bool
-	prevEst        VanillaEstimate
-	step           int
-	predictionOnly bool
+	F                mat64.Matrix
+	G                mat64.Matrix
+	H                mat64.Matrix
+	Noise            Noise
+	needCtrl         bool
+	prevEst, initEst VanillaEstimate
+	step             int
+	predictionOnly   bool
 }
 
 func (kf *Vanilla) String() string {
@@ -115,6 +115,12 @@ func (kf *Vanilla) SetNoise(n Noise) {
 // GetNoise updates the F matrix.
 func (kf *Vanilla) GetNoise() Noise {
 	return kf.Noise
+}
+
+// Reset reinitializes the KF with its initial estimate.
+func (kf *Vanilla) Reset() {
+	kf.prevEst = kf.initEst
+	kf.step = 0
 }
 
 // Update implements the KalmanFilter interface.
@@ -265,6 +271,6 @@ func (e VanillaEstimate) String() string {
 	covar := mat64.Formatted(e.Covariance(), mat64.Prefix("  "))
 	gain := mat64.Formatted(e.Gain(), mat64.Prefix("  "))
 	innov := mat64.Formatted(e.Innovation(), mat64.Prefix("  "))
-	predp := mat64.Formatted(e.PredCovariance(), mat64.Prefix("  "))
+	predp := mat64.Formatted(e.PredCovariance(), mat64.Prefix("   "))
 	return fmt.Sprintf("{\ns=%v\ny=%v\nP=%v\nK=%v\nP-=%v\ni=%v\n}", state, meas, covar, gain, predp, innov)
 }

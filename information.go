@@ -49,7 +49,7 @@ func NewInformation(i0 *mat64.Vector, I0 mat64.Symmetric, F, G, H mat64.Matrix, 
 		fmt.Printf("R *might* not invertible: %s\n", err)
 	}
 
-	return &Information{&Finv, G, H, &Qinv, &Rinv, noise, !IsNil(G), est0, 0}, &est0, nil
+	return &Information{&Finv, G, H, &Qinv, &Rinv, noise, !IsNil(G), est0, est0, 0}, &est0, nil
 }
 
 // NewInformationFromState returns a new Information KF. To get the next estimate, call
@@ -82,15 +82,15 @@ func NewInformationFromState(x0 *mat64.Vector, P0 mat64.Symmetric, F, G, H mat64
 
 // Information defines a vanilla kalman filter. Use NewVanilla to initialize.
 type Information struct {
-	Finv     mat64.Matrix
-	G        mat64.Matrix
-	H        mat64.Matrix
-	Qinv     mat64.Matrix
-	Rinv     mat64.Matrix
-	Noise    Noise
-	needCtrl bool
-	prevEst  InformationEstimate
-	step     int
+	Finv             mat64.Matrix
+	G                mat64.Matrix
+	H                mat64.Matrix
+	Qinv             mat64.Matrix
+	Rinv             mat64.Matrix
+	Noise            Noise
+	needCtrl         bool
+	prevEst, initEst InformationEstimate
+	step             int
 }
 
 func (kf *Information) String() string {
@@ -140,6 +140,12 @@ func (kf *Information) SetNoise(n Noise) {
 // GetNoise updates the F matrix.
 func (kf *Information) GetNoise() Noise {
 	return kf.Noise
+}
+
+// Reset reinitializes the KF with its initial estimate.
+func (kf *Information) Reset() {
+	kf.prevEst = kf.initEst
+	kf.step = 0
 }
 
 // Update implements the KalmanFilter interface.
@@ -312,7 +318,7 @@ func (e InformationEstimate) String() string {
 	meas := mat64.Formatted(e.Measurement(), mat64.Prefix("  "))
 	covar := mat64.Formatted(e.Covariance(), mat64.Prefix("  "))
 	innov := mat64.Formatted(e.Innovation(), mat64.Prefix("  "))
-	predp := mat64.Formatted(e.PredCovariance(), mat64.Prefix("  "))
+	predp := mat64.Formatted(e.PredCovariance(), mat64.Prefix("   "))
 	return fmt.Sprintf("{\ns=%v\ny=%v\nP=%v\nP-=%v\ni=%v\n}", state, meas, covar, predp, innov)
 }
 

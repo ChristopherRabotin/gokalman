@@ -2,6 +2,7 @@ package gokalman
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/gonum/matrix/mat64"
 	"github.com/gonum/stat"
@@ -26,6 +27,10 @@ func NewChiSquare(kf KalmanFilter, runs MonteCarloRuns, colsG int, withNEES, wit
 	for rNo, run := range runs.Runs {
 		for k, mcTruth := range run.Estimates {
 
+			if k < 2 {
+				fmt.Printf("---\n%d / %d\n%s\n", rNo, k, mcTruth)
+			}
+
 			est, err := kf.Update(mcTruth.Measurement(), mat64.NewVector(colsG, nil))
 			if err != nil {
 				panic(err)
@@ -43,6 +48,7 @@ func NewChiSquare(kf KalmanFilter, runs MonteCarloRuns, colsG int, withNEES, wit
 				nees1.MulVec(&PInv, &nees0)
 				nees.MulVec(nees0.T(), &nees1)
 				NEESsamples[k][rNo] = nees.At(0, 0) // Will be just a scalar.
+				//fmt.Printf("nees=%f\n", nees.At(0, 0))
 			}
 
 			if withNIS {
@@ -63,6 +69,7 @@ func NewChiSquare(kf KalmanFilter, runs MonteCarloRuns, colsG int, withNEES, wit
 				NISsamples[k][rNo] = nis.At(0, 0) // Will be just be a scalar.
 			}
 		}
+		kf.Reset()
 	}
 
 	// Let's compute the means for each step.
@@ -70,13 +77,16 @@ func NewChiSquare(kf KalmanFilter, runs MonteCarloRuns, colsG int, withNEES, wit
 	NEESmeans := make([]float64, numSteps)
 
 	for k := 0; k < numSteps; k++ {
+		if withNEES {
+			NEESmeans[k] = stat.Mean(NEESsamples[k], nil)
+			fmt.Printf("nees[%d]=%f\n", k, NEESmeans[k])
+		}
 		if withNIS {
 			NISmeans[k] = stat.Mean(NISsamples[k], nil)
 		}
-		if withNEES {
-			NEESmeans[k] = stat.Mean(NEESsamples[k], nil)
-		}
 	}
+
+	fmt.Printf("avr=%f\n", stat.Mean(NEESmeans, nil))
 
 	return NISmeans, NEESmeans, nil
 }

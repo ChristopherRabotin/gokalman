@@ -112,6 +112,8 @@ func NewMonteCarloRuns(samples, steps, rowsH int, controls []*mat64.Vector, kf *
 			MCRun.Estimates[k] = est
 		}
 		runs[sample] = MCRun
+		// Must reinitialize the KF at every new sample.
+		kf.Reset()
 	}
 	return MonteCarloRuns{samples, steps, runs}
 }

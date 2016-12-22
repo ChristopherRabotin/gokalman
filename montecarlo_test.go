@@ -53,6 +53,10 @@ func TestMCRuns(t *testing.T) {
 	}
 
 	assertPanic(t, func() {
+		NewMonteCarloRuns(sims, steps, 1, []*mat64.Vector{mat64.NewVector(1, nil), mat64.NewVector(1, nil)}, kf)
+	})
+
+	assertPanic(t, func() {
 		kf.predictionOnly = false
 		NewMonteCarloRuns(sims, steps, 1, []*mat64.Vector{mat64.NewVector(1, nil)}, kf)
 	})
@@ -60,7 +64,7 @@ func TestMCRuns(t *testing.T) {
 	// Test chisquare:
 	NISmeans, NEESmeans, err := NewChiSquare(kf, runs, []*mat64.Vector{mat64.NewVector(1, nil)}, true, true)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 	if len(NISmeans) != len(NEESmeans) || len(NISmeans) != steps {
 		t.Fatal("invalid number of steps returned from ChiSquare tests")
@@ -70,5 +74,16 @@ func TestMCRuns(t *testing.T) {
 	if _, _, err := NewChiSquare(kf, runs, []*mat64.Vector{mat64.NewVector(1, nil)}, false, false); err == nil {
 		t.Fatal("attempting to run Chisquare with neither NIS nor NEES fails")
 	}
+
+	// Test errors
+	if _, _, err := NewChiSquare(kf, runs, []*mat64.Vector{mat64.NewVector(1, nil), mat64.NewVector(1, nil)}, true, false); err == nil {
+		t.Fatal("using too little controls does not fail")
+	}
+
+	assertPanic(t, func() {
+		G := mat64.NewDense(2, 1, []float64{0.5 * Δt * Δt, Δt})
+		kf, _, _ := NewVanilla(x0, P0, F, G, H, noise)
+		NewChiSquare(kf, runs, []*mat64.Vector{mat64.NewVector(2, nil)}, true, false)
+	})
 
 }

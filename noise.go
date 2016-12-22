@@ -144,7 +144,6 @@ func (n *AWGN) Measurement(k int) *mat64.Vector {
 // Reset does nothing for a Noiseless signal.
 func (n *AWGN) Reset() {
 	seed := rand.New(rand.NewSource(time.Now().UnixNano()))
-	//seed := rand.New(rand.NewSource(1)) // TODO: Restore the random seed after debugging.
 	sizeQ, _ := n.Q.Dims()
 	process, ok := distmv.NewNormal(make([]float64, sizeQ), n.Q, seed)
 	if !ok {

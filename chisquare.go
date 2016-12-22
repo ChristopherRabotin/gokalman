@@ -2,7 +2,6 @@ package gokalman
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/gonum/matrix/mat64"
 	"github.com/gonum/stat"
@@ -32,7 +31,7 @@ func NewChiSquare(kf KalmanFilter, runs MonteCarloRuns, controls []*mat64.Vector
 			controls[k] = mat64.NewVector(ctrlSize, nil)
 		}
 	} else if len(controls) != steps {
-		panic("must provide as much control vectors as steps, or just one control vector")
+		return nil, nil, errors.New("must provide as much control vectors as steps, or just one control vector")
 	}
 
 	for rNo, run := range runs.Runs {
@@ -53,11 +52,10 @@ func NewChiSquare(kf KalmanFilter, runs MonteCarloRuns, controls []*mat64.Vector
 
 				var nees, nees0, nees1 mat64.Vector
 				nees0.SubVec(mcTruth.State(), est.State())
-				fmt.Printf("d=%v\n", mat64.Formatted(&nees0, mat64.Prefix("  ")))
+				//				fmt.Printf("d=%v\n", mat64.Formatted(&nees0, mat64.Prefix("  ")))
 				nees1.MulVec(&PInv, &nees0)
 				nees.MulVec(nees0.T(), &nees1)
 				NEESsamples[k][rNo] = nees.At(0, 0) // Will be just a scalar.
-				fmt.Printf("nees[%d][%d]=%f\n", k, rNo, nees.At(0, 0))
 			}
 
 			if withNIS {
@@ -87,14 +85,11 @@ func NewChiSquare(kf KalmanFilter, runs MonteCarloRuns, controls []*mat64.Vector
 	for k := 0; k < steps; k++ {
 		if withNEES {
 			NEESmeans[k] = stat.Mean(NEESsamples[k], nil)
-			fmt.Printf("nees[%d]=%f\n", k, NEESmeans[k])
 		}
 		if withNIS {
 			NISmeans[k] = stat.Mean(NISsamples[k], nil)
 		}
 	}
-
-	fmt.Printf("avr=%f\n", stat.Mean(NEESmeans, nil))
 
 	return NISmeans, NEESmeans, nil
 }

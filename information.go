@@ -146,6 +146,7 @@ func (kf *Information) GetNoise() Noise {
 func (kf *Information) Reset() {
 	kf.prevEst = kf.initEst
 	kf.step = 0
+	kf.Noise.Reset()
 }
 
 // Update implements the KalmanFilter interface.

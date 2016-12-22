@@ -14,24 +14,32 @@ import (
 // of both the NEES and NIS tests.
 // Returns NEESmeans, NISmeans and an error if applicable
 // TODO: Change order of parameters.
-func NewChiSquare(kf KalmanFilter, runs MonteCarloRuns, colsG int, withNEES, withNIS bool) ([]float64, []float64, error) {
+func NewChiSquare(kf KalmanFilter, runs MonteCarloRuns, controls []*mat64.Vector, withNEES, withNIS bool) ([]float64, []float64, error) {
 	if !withNEES && !withNIS {
 		return nil, nil, errors.New("Chi Square requires either NEES or NIS or both")
 	}
 
 	numRuns := runs.runs
-	numSteps := len(runs.Runs[0].Estimates)
+	steps := len(runs.Runs[0].Estimates)
 	NISsamples := make(map[int][]float64)
 	NEESsamples := make(map[int][]float64)
 
+	if len(controls) == 1 {
+		ctrlSize, _ := controls[0].Dims()
+		controls = make([]*mat64.Vector, steps)
+		// Populate with zero controls
+		for k := 0; k < steps; k++ {
+			controls[k] = mat64.NewVector(ctrlSize, nil)
+		}
+	} else if len(controls) != steps {
+		panic("must provide as much control vectors as steps, or just one control vector")
+	}
+
 	for rNo, run := range runs.Runs {
+		kf.Reset()
 		for k, mcTruth := range run.Estimates {
 
-			if k < 2 {
-				fmt.Printf("---\n%d / %d\n%s\n", rNo, k, mcTruth)
-			}
-
-			est, err := kf.Update(mcTruth.Measurement(), mat64.NewVector(colsG, nil))
+			est, err := kf.Update(mcTruth.Measurement(), controls[k])
 			if err != nil {
 				panic(err)
 			}
@@ -41,14 +49,15 @@ func NewChiSquare(kf KalmanFilter, runs MonteCarloRuns, colsG int, withNEES, wit
 					NEESsamples[k] = make([]float64, numRuns)
 				}
 				var PInv mat64.Dense
-				PInv.Inverse(est.Covariance())
+				PInv.Inverse(est.Covariance()) // XXX: Pinv is OK
 
 				var nees, nees0, nees1 mat64.Vector
 				nees0.SubVec(mcTruth.State(), est.State())
+				fmt.Printf("d=%v\n", mat64.Formatted(&nees0, mat64.Prefix("  ")))
 				nees1.MulVec(&PInv, &nees0)
 				nees.MulVec(nees0.T(), &nees1)
 				NEESsamples[k][rNo] = nees.At(0, 0) // Will be just a scalar.
-				//fmt.Printf("nees=%f\n", nees.At(0, 0))
+				fmt.Printf("nees[%d][%d]=%f\n", k, rNo, nees.At(0, 0))
 			}
 
 			if withNIS {
@@ -69,14 +78,13 @@ func NewChiSquare(kf KalmanFilter, runs MonteCarloRuns, colsG int, withNEES, wit
 				NISsamples[k][rNo] = nis.At(0, 0) // Will be just be a scalar.
 			}
 		}
-		kf.Reset()
 	}
 
 	// Let's compute the means for each step.
-	NISmeans := make([]float64, numSteps)
-	NEESmeans := make([]float64, numSteps)
+	NISmeans := make([]float64, steps)
+	NEESmeans := make([]float64, steps)
 
-	for k := 0; k < numSteps; k++ {
+	for k := 0; k < steps; k++ {
 		if withNEES {
 			NEESmeans[k] = stat.Mean(NEESsamples[k], nil)
 			fmt.Printf("nees[%d]=%f\n", k, NEESmeans[k])

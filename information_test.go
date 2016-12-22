@@ -56,7 +56,7 @@ func TestInformation(t *testing.T) {
 	}
 	i0 := mat64.NewVector(3, nil)
 	I0 := mat64.NewSymDense(3, nil)
-	kfZ, _, err := NewInformation(i0, I0, F, G, H, noise)
+	kfZ, est0, err := NewInformation(i0, I0, F, G, H, noise)
 
 	var Finv mat64.Dense
 	Finv.Inverse(mat64.DenseCopyOf(F))
@@ -103,6 +103,15 @@ func TestInformation(t *testing.T) {
 		if _, err = kf.Update(mat64.NewVector(2, nil), mat64.NewVector(1, nil)); err == nil {
 			t.Fatal("using an invalid measurement vector does not fail")
 		}
+	}
+
+	// Test reset
+	kfZ.Reset()
+	if kfZ.step != 0 {
+		t.Fatal("reset failed: step non nil")
+	}
+	if !mat64.Equal(kfZ.prevEst.State(), est0.State()) {
+		t.Fatal("reset failed: invalid initial state")
 	}
 }
 

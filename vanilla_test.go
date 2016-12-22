@@ -77,10 +77,10 @@ func TestVanilla(t *testing.T) {
 	// Test reset
 	kf.Reset()
 	if kf.step != 0 {
-		t.Fatal("reset of Vanilla KF failed: step non nil")
+		t.Fatal("reset failed: step non nil")
 	}
 	if !mat64.Equal(kf.prevEst.State(), est0.State()) {
-		t.Fatal("reset of Vanilla KF failed: invalid initial state")
+		t.Fatal("reset failed: invalid initial state")
 	}
 
 	if _, err = kf.Update(mat64.NewVector(1, nil), mat64.NewVector(2, nil)); err == nil {

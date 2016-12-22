@@ -30,8 +30,14 @@ func main() {
 	}
 
 	runs := gokalman.NewMonteCarloRuns(sims, steps, 1, controls, mcKF)
+	headers := []string{"xi", "xi_dot"}
+	for fNo, contents := range runs.AsCSV(headers) {
+		f, _ := os.Create(fmt.Sprintf("./montecarlo-%s.csv", headers[fNo]))
+		f.WriteString(contents)
+		f.Close()
+	}
 	// Run the Chi square tests.
-	NISmeans, NEESmeans, err := gokalman.NewChiSquare(chiKF, runs, 1, true, true)
+	NISmeans, NEESmeans, err := gokalman.NewChiSquare(chiKF, runs, controls, true, true)
 	if err != nil {
 		panic(err)
 	}

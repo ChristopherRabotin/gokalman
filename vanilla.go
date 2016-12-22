@@ -121,6 +121,7 @@ func (kf *Vanilla) GetNoise() Noise {
 func (kf *Vanilla) Reset() {
 	kf.prevEst = kf.initEst
 	kf.step = 0
+	kf.Noise.Reset()
 }
 
 // Update implements the KalmanFilter interface.
@@ -142,6 +143,7 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 	} else {
 		xKp1Minus = xKp1Minus1
 	}
+	xKp1Minus.AddVec(&xKp1Minus, kf.Noise.Process(kf.step))
 
 	// P_{k+1}^{-}
 	var Pkp1Minus, FP, FPFt mat64.Dense

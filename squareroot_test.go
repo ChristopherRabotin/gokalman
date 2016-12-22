@@ -34,7 +34,7 @@ func TestSquareRoot(t *testing.T) {
 	noise := NewAWGN(Q, R)
 	x0 := mat64.NewVector(3, []float64{0, 0.35, 0})
 	Covar0 := ScaledIdentity(3, 10)
-	kf, _, err := NewSquareRoot(x0, Covar0, F, G, H, noise)
+	kf, est0, err := NewSquareRoot(x0, Covar0, F, G, H, noise)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -73,7 +73,14 @@ func TestSquareRoot(t *testing.T) {
 			t.Logf("k=%d\n%s", k, est)
 		}
 	}
-
+	// Test reset
+	kf.Reset()
+	if kf.step != 0 {
+		t.Fatal("reset failed: step non nil")
+	}
+	if !mat64.Equal(kf.prevEst.State(), est0.State()) {
+		t.Fatal("reset failed: invalid initial state")
+	}
 	if _, err = kf.Update(mat64.NewVector(1, nil), mat64.NewVector(2, nil)); err == nil {
 		t.Fatal("using an invalid control vector does not fail")
 	}

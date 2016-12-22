@@ -18,32 +18,47 @@ func TestMCRuns(t *testing.T) {
 	x0 := mat64.NewVector(3, []float64{0, 0.35, 0})
 	P0 := ScaledIdentity(3, 10)
 	kf, _, _ := NewPurePredictorVanilla(x0, P0, F, G, H, noise)
+	if kf.needCtrl {
+		t.Fatal("kf marked as needing control when it does not")
+	}
 	steps := 10
-	runs := NewMonteCarloRuns(5, steps, 1, []*mat64.Vector{mat64.NewVector(1, nil)}, kf)
-	if len(runs.Runs) != 5 {
-		t.Fatal("requesting 5 runs did not generate five")
+	sims := 5
+	runs := NewMonteCarloRuns(sims, steps, 1, []*mat64.Vector{mat64.NewVector(1, nil)}, kf)
+	if len(runs.Runs) != sims {
+		t.Fatalf("requesting %d runs did not generate five", sims)
 	}
 	for r, run := range runs.Runs {
 		if len(run.Estimates) != steps {
 			t.Fatalf("sample #%d does not have %d steps", r, steps)
 		}
 	}
+	sumStdDev := 0.0
+	for k := 0; k < steps; k++ {
+		for _, mean := range runs.StdDev(k) {
+			sumStdDev += mean
+		}
+	}
+
+	if sumStdDev == 0 {
+		t.Fatalf("standard deviation of MC runs for %d steps is nil", steps)
+	}
+
 	files := runs.AsCSV([]string{"x", "y", "z"})
 	if len(files) != 3 {
 		t.Fatal("less than 3 files returned from a three component state")
 	}
 
-	if len(strings.Split(files[0], "\n")) != 11 {
+	if len(strings.Split(files[0], "\n")) != steps+1 {
 		t.Fatalf("unexpected number of lines in the file: %d", len(files[0]))
 	}
 
 	assertPanic(t, func() {
 		kf.predictionOnly = false
-		NewMonteCarloRuns(5, steps, 1, []*mat64.Vector{mat64.NewVector(1, nil)}, kf)
+		NewMonteCarloRuns(sims, steps, 1, []*mat64.Vector{mat64.NewVector(1, nil)}, kf)
 	})
 
 	// Test chisquare:
-	NISmeans, NEESmeans, err := NewChiSquare(kf, runs, 1, true, true)
+	NISmeans, NEESmeans, err := NewChiSquare(kf, runs, []*mat64.Vector{mat64.NewVector(1, nil)}, true, true)
 	if err != nil {
 		panic(err)
 	}
@@ -52,7 +67,7 @@ func TestMCRuns(t *testing.T) {
 	}
 
 	// Test errors
-	if _, _, err := NewChiSquare(kf, runs, 1, false, false); err == nil {
+	if _, _, err := NewChiSquare(kf, runs, []*mat64.Vector{mat64.NewVector(1, nil)}, false, false); err == nil {
 		t.Fatal("attempting to run Chisquare with neither NIS nor NEES fails")
 	}
 

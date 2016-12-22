@@ -95,15 +95,15 @@ func NewMonteCarloRuns(samples, steps, rowsH int, controls []*mat64.Vector, kf *
 	}
 
 	runs := make([]MonteCarloRun, samples)
-	if len(controls) < 1 {
-		panic("must provide at least one control vector for size")
-	} else if len(controls) == 1 {
+	if len(controls) == 1 {
 		ctrlSize, _ := controls[0].Dims()
 		controls = make([]*mat64.Vector, steps)
 		// Populate with zero controls
 		for k := 0; k < steps; k++ {
 			controls[k] = mat64.NewVector(ctrlSize, nil)
 		}
+	} else if len(controls) != steps {
+		panic("must provide as much control vectors as steps, or just one control vector")
 	}
 	for sample := 0; sample < samples; sample++ {
 		MCRun := MonteCarloRun{Estimates: make([]Estimate, steps)}

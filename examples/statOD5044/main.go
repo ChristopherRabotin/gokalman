@@ -162,7 +162,7 @@ func main() {
 	// Let's now compute the NIS and NEES.
 	//r1 := 0.559692408852221
 	//r2 := 0.440307591147779
-	NISmeans, NEESmeans, err := gokalman.NewChiSquare(vanillaKF, runs, 2, true, true)
+	NISmeans, NEESmeans, err := gokalman.NewChiSquare(vanillaKF, runs, []*mat64.Vector{mat64.NewVector(2, nil)}, true, true)
 	if err != nil {
 		panic(err)
 	}

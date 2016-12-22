@@ -3,6 +3,7 @@ package gokalman
 import (
 	"fmt"
 	"math/rand"
+	"time"
 
 	"github.com/gonum/matrix/mat64"
 	"github.com/gonum/stat/distmv"
@@ -14,6 +15,7 @@ type Noise interface {
 	Measurement(k int) *mat64.Vector    // Returns the measurement noise w at step k
 	ProcessMatrix() mat64.Symmetric     // Returns the process noise matrix Q
 	MeasurementMatrix() mat64.Symmetric // Returns the measurement noise matrix R
+	Reset()                             // Reinitializes the noise
 	String() string                     // Stringer interface implementation
 }
 
@@ -52,6 +54,9 @@ func (n Noiseless) ProcessMatrix() mat64.Symmetric {
 func (n Noiseless) MeasurementMatrix() mat64.Symmetric {
 	return n.R
 }
+
+// Reset does nothing for a Noiseless signal.
+func (n Noiseless) Reset() {}
 
 // String implements the Stringer interface.
 func (n Noiseless) String() string {
@@ -92,6 +97,9 @@ func (n BatchNoise) MeasurementMatrix() mat64.Symmetric {
 	return mat64.NewSymDense(rows, nil)
 }
 
+// Reset does nothing for a BatchNoise signal.
+func (n BatchNoise) Reset() {}
+
 // String implements the Stringer interface.
 func (n BatchNoise) String() string {
 	return "BatchNoise"
@@ -106,41 +114,49 @@ type AWGN struct {
 
 // NewAWGN creates new AWGN noise from the provided Q and R.
 func NewAWGN(Q, R mat64.Symmetric) *AWGN {
-	//randomSeed := rand.New(rand.NewSource(time.Now().UnixNano()))
-	seed := rand.New(rand.NewSource(1)) // TODO: Restore the random seed after debugging.
-	sizeQ, _ := Q.Dims()
-	process, ok := distmv.NewNormal(make([]float64, sizeQ), Q, seed)
-	if !ok {
-		panic("process noise invalid")
-	}
-	sizeR, _ := R.Dims()
-	meas, ok := distmv.NewNormal(make([]float64, sizeR), R, seed)
-	if !ok {
-		panic("measurement noise invalid")
-	}
-	return &AWGN{Q, R, process, meas}
+	n := &AWGN{Q, R, nil, nil}
+	n.Reset()
+	return n
 }
 
 // ProcessMatrix implements the Noise interface.
-func (n AWGN) ProcessMatrix() mat64.Symmetric {
+func (n *AWGN) ProcessMatrix() mat64.Symmetric {
 	return n.Q
 }
 
 // MeasurementMatrix implements the Noise interface.
-func (n AWGN) MeasurementMatrix() mat64.Symmetric {
+func (n *AWGN) MeasurementMatrix() mat64.Symmetric {
 	return n.R
 }
 
 // Process implements the Noise interface.
-func (n AWGN) Process(k int) *mat64.Vector {
+func (n *AWGN) Process(k int) *mat64.Vector {
 	r := n.process.Rand(nil)
 	return mat64.NewVector(len(r), r)
 }
 
 // Measurement implements the Noise interface.
-func (n AWGN) Measurement(k int) *mat64.Vector {
+func (n *AWGN) Measurement(k int) *mat64.Vector {
 	r := n.measurement.Rand(nil)
 	return mat64.NewVector(len(r), r)
+}
+
+// Reset does nothing for a Noiseless signal.
+func (n *AWGN) Reset() {
+	seed := rand.New(rand.NewSource(time.Now().UnixNano()))
+	//seed := rand.New(rand.NewSource(1)) // TODO: Restore the random seed after debugging.
+	sizeQ, _ := n.Q.Dims()
+	process, ok := distmv.NewNormal(make([]float64, sizeQ), n.Q, seed)
+	if !ok {
+		panic("process noise invalid")
+	}
+	sizeR, _ := n.R.Dims()
+	meas, ok := distmv.NewNormal(make([]float64, sizeR), n.R, seed)
+	if !ok {
+		panic("measurement noise invalid")
+	}
+	n.process = process
+	n.measurement = meas
 }
 
 // String implements the Stringer interface.

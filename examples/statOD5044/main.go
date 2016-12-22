@@ -55,7 +55,7 @@ func main() {
 	// Initial conditions
 	x0 := mat64.NewVector(4, []float64{2, 0.50, 0, 0.0})
 	P0 := mat64.NewSymDense(4, []float64{5, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0.01, 0, 0, 0, 0, 0.00001})
-	P0.ScaleSym(1e10, P0)
+	//P0.ScaleSym(1e10, P0)
 
 	// Truth generation, via a vanilla KF with AWGN.
 	truthNoise := gokalman.NewAWGN(Q, R)

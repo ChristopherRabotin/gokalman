@@ -281,11 +281,7 @@ func (e InformationEstimate) Covariance() mat64.Symmetric {
 			fmt.Printf("gokalman: InformationEstimate: information matrix is not (yet) invertible: %s\n", err)
 			return e.cachedCovar
 		}
-		cachedCovar, err := AsSymDense(&tmpCovar)
-		if err != nil {
-			fmt.Printf("gokalman: InformationEstimate: covariance matrix: %s\n", err)
-			return e.cachedCovar
-		}
+		cachedCovar, _ := AsSymDense(&tmpCovar)
 		e.cachedCovar = cachedCovar
 	}
 	return e.cachedCovar

@@ -91,7 +91,7 @@ func TestInformation(t *testing.T) {
 			if !est.IsWithin2σ() && k != 99 {
 				t.Logf("[WARN] 2σ bound breached: k=%d -> %s ", k, est)
 			}
-			if k == 99 {
+			if k == 0 || k == 99 {
 				t.Logf("k=%d\n%s", k, est)
 			}
 		}

@@ -18,8 +18,8 @@ func main() {
 	G := mat64.NewDense(2, 1, []float64{0.5 * Δt * Δt, Δt})
 	H := mat64.NewDense(1, 2, []float64{1, 0})
 	R := mat64.NewSymDense(1, []float64{0.05})
-	Q := mat64.NewSymDense(2, []float64{0.0003, 0.005, 0.005, 0.1}) // Q true
-	//Q := mat64.NewSymDense(2, []float64{5e-3, 0, 0, 1e-3}) // Q small
+	//Q := mat64.NewSymDense(2, []float64{0.0003, 0.005, 0.005, 0.1}) // Q true
+	Q := mat64.NewSymDense(2, []float64{5e-2, 5e-4, 5e-4, 1e-3}) // Q small
 	//Q := mat64.NewSymDense(2, []float64{0.5, 0, 0, 1}) // Q big
 	noise := gokalman.NewAWGN(Q, R)
 	x0 := mat64.NewVector(2, []float64{0, 0})
@@ -32,7 +32,7 @@ func main() {
 	mcKF, _, _ := gokalman.NewPurePredictorVanilla(mcX0, P0, F, G, H, noise)
 	chiKF, _, _ := gokalman.NewVanilla(x0, P0, F, G, H, gokalman.NewNoiseless(Q, R))
 	steps := 120
-	sims := 500
+	sims := 50
 	controls := make([]*mat64.Vector, steps)
 	for k := 0; k < steps; k++ {
 		controls[k] = mat64.NewVector(1, []float64{math.Cos(0.75 * float64(k+1) * 0.1)})

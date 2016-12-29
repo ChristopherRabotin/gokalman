@@ -7,7 +7,7 @@ import (
 )
 
 func TestNewInformationEstimateErrors(t *testing.T) {
-	est := NewInformationEstimate(mat64.NewVector(1, nil), mat64.NewVector(1, nil), mat64.NewSymDense(1, nil))
+	est := NewInformationEstimate(mat64.NewVector(1, nil), mat64.NewVector(1, nil), mat64.NewSymDense(1, nil), mat64.NewSymDense(1, nil))
 	cov := est.Covariance()
 	if !IsNil(cov) {
 		t.Fatal("singular information matrix should return an empty covariance matrix")
@@ -18,18 +18,26 @@ func TestNewInformationErrors(t *testing.T) {
 	F, G, _ := Robot1DMatrices()
 	H := mat64.NewDense(2, 2, nil)
 	x0 := mat64.NewVector(2, nil)
-	Covar0 := mat64.NewSymDense(3, nil)
-	if _, _, err := NewInformation(x0, Covar0, F, G, H, Noiseless{}); err == nil {
+	Covar0 := mat64.NewSymDense(2, []float64{1, 0, 0, 0})
+	R := mat64.NewSymDense(1, []float64{0.05})
+	Q := mat64.NewSymDense(2, []float64{3e-4, 5e-3, 5e-3, 0.1}) // Q true
+	noise := NewNoiseless(Q, R)
+	_, _, err := NewInformationFromState(x0, Covar0, F, G, H, noise)
+	if err != nil {
+		t.Fatal("singular Covar0 failed (should have only displayed a warning)")
+	}
+	Covar0 = mat64.NewSymDense(3, nil)
+	if _, _, err := NewInformation(x0, Covar0, F, G, H, noise); err == nil {
 		t.Fatal("x0 and Covar0 of incompatible sizes does not fail")
 	}
 	x0 = mat64.NewVector(3, nil)
-	if _, _, err := NewInformation(x0, Covar0, F, G, H, Noiseless{}); err == nil {
+	if _, _, err := NewInformation(x0, Covar0, F, G, H, noise); err == nil {
 		t.Fatal("F and Covar0 of incompatible sizes does not fail")
 	}
 	x0 = mat64.NewVector(2, nil)
 	Covar0 = mat64.NewSymDense(2, nil)
 	H = mat64.NewDense(3, 3, nil)
-	if _, _, err := NewInformation(x0, Covar0, F, G, H, Noiseless{}); err == nil {
+	if _, _, err := NewInformation(x0, Covar0, F, G, H, noise); err == nil {
 		t.Fatal("H and x0 of incompatible sizes does not fail")
 	}
 }
@@ -37,7 +45,6 @@ func TestNewInformationErrors(t *testing.T) {
 func TestInformation(t *testing.T) {
 	F, G, Δt := Midterm2Matrices()
 	Q := mat64.NewSymDense(3, []float64{2.5e-15, 6.25e-13, (25e-11) / 3, 6.25e-13, (5e-7) / 3, 2.5e-8, (25e-11) / 3, 2.5e-8, 5e-6})
-	Q.ScaleSym(1e4, Q) // TODO: Remove this once gonum/matrix fixes their Inverse again.
 	R := mat64.NewSymDense(1, []float64{0.005 / Δt})
 	H := mat64.NewDense(1, 3, []float64{1, 0, 0})
 	noise := NewAWGN(Q, R)
@@ -49,12 +56,26 @@ func TestInformation(t *testing.T) {
 	}
 	i0 := mat64.NewVector(3, nil)
 	I0 := mat64.NewSymDense(3, nil)
-	kfZ, _, err := NewInformation(i0, I0, F, G, H, noise)
+	kfZ, est0, err := NewInformation(i0, I0, F, G, H, noise)
 
-	kfZ.SetF(F)
-	kfZ.SetG(G)
-	kfZ.SetH(H)
+	var Finv mat64.Dense
+	Finv.Inverse(mat64.DenseCopyOf(F))
+	kfZ.SetStateTransition(F)
+	if !mat64.Equal(&Finv, kfZ.GetStateTransition()) {
+		t.Fatal("SetStateTransition did not return the expected Finv")
+	}
+	kfZ.SetInputControl(G)
+	if !mat64.Equal(G, kfZ.GetInputControl()) {
+		t.Fatal("SetInputControl did not return the expected G")
+	}
+	kfZ.SetMeasurementMatrix(H)
+	if !mat64.Equal(H, kfZ.GetMeasurementMatrix()) {
+		t.Fatal("GetMeasurementMatrix did not return the expected H")
+	}
 	kfZ.SetNoise(noise)
+	if !mat64.Equal(noise.MeasurementMatrix(), kfZ.GetNoise().MeasurementMatrix()) {
+		t.Fatal("GetNoise/SetNoise issue")
+	}
 
 	for _, kf := range []Information{*kfS, *kfZ} {
 		var est Estimate
@@ -70,7 +91,7 @@ func TestInformation(t *testing.T) {
 			if !est.IsWithin2σ() && k != 99 {
 				t.Logf("[WARN] 2σ bound breached: k=%d -> %s ", k, est)
 			}
-			if k == 99 {
+			if k == 0 || k == 99 {
 				t.Logf("k=%d\n%s", k, est)
 			}
 		}
@@ -83,6 +104,15 @@ func TestInformation(t *testing.T) {
 			t.Fatal("using an invalid measurement vector does not fail")
 		}
 	}
+
+	// Test reset
+	kfZ.Reset()
+	if kfZ.step != 0 {
+		t.Fatal("reset failed: step non nil")
+	}
+	if !mat64.Equal(kfZ.prevEst.State(), est0.State()) {
+		t.Fatal("reset failed: invalid initial state")
+	}
 }
 
 func TestInformationMultiD(t *testing.T) {
@@ -93,7 +123,6 @@ func TestInformationMultiD(t *testing.T) {
 	H := mat64.NewDense(2, 4, []float64{1, 0, 0, 0, 0, 0, 1, 1})
 	// Noise
 	Q := mat64.NewSymDense(4, []float64{2.5e-15, 6.25e-13, (25e-11) / 3, 0, 6.25e-13, (5e-7) / 3, 2.5e-8, 0, (25e-11) / 3, 2.5e-8, 5e-6, 0, 0, 0, 0, 5.302e-4})
-	Q.ScaleSym(1e4, Q) // TODO: Remove this once gonum/matrix fixes their Inverse again.
 	R := mat64.NewSymDense(2, []float64{0.005 / Δt, 0, 0, 0.0005 / Δt})
 
 	// Vanilla KF

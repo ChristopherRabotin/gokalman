@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/gonum/floats"
 	"github.com/gonum/matrix/mat64"
 )
 
@@ -32,23 +31,25 @@ func NewInformation(i0 *mat64.Vector, I0 mat64.Symmetric, F, G, H mat64.Matrix, 
 
 	// Populate with the initial values.
 	rowsH, _ := H.Dims()
-	est0 := NewInformationEstimate(i0, mat64.NewVector(rowsH, nil), I0)
+	Ir, _ := I0.Dims()
+	I0Pred := mat64.NewSymDense(Ir, nil)
+	est0 := NewInformationEstimate(i0, mat64.NewVector(rowsH, nil), I0, I0Pred)
 
 	var Finv mat64.Dense
 	if err := Finv.Inverse(mat64.DenseCopyOf(F)); err != nil {
-		panic(fmt.Errorf("F not invertible: %s", err))
+		fmt.Printf("F *might* not invertible: %s\n", err)
 	}
 
 	var Qinv mat64.Dense
 	if err := Qinv.Inverse(mat64.DenseCopyOf(noise.ProcessMatrix())); err != nil {
-		panic(fmt.Errorf("Q not invertible: %s", err))
+		fmt.Printf("Q *might* not invertible: %s\n", err)
 	}
 	var Rinv mat64.Dense
 	if err := Rinv.Inverse(mat64.DenseCopyOf(noise.MeasurementMatrix())); err != nil {
-		panic(fmt.Errorf("R not invertible: %s", err))
+		fmt.Printf("R *might* not invertible: %s\n", err)
 	}
 
-	return &Information{&Finv, G, H, &Qinv, &Rinv, noise, !IsNil(G), est0, 0}, &est0, nil
+	return &Information{&Finv, G, H, &Qinv, &Rinv, noise, !IsNil(G), est0, est0, 0}, &est0, nil
 }
 
 // NewInformationFromState returns a new Information KF. To get the next estimate, call
@@ -81,43 +82,71 @@ func NewInformationFromState(x0 *mat64.Vector, P0 mat64.Symmetric, F, G, H mat64
 
 // Information defines a vanilla kalman filter. Use NewVanilla to initialize.
 type Information struct {
-	Finv     mat64.Matrix
-	G        mat64.Matrix
-	H        mat64.Matrix
-	Qinv     mat64.Matrix
-	Rinv     mat64.Matrix
-	Noise    Noise
-	needCtrl bool
-	prevEst  InformationEstimate
-	step     int
+	Finv             mat64.Matrix
+	G                mat64.Matrix
+	H                mat64.Matrix
+	Qinv             mat64.Matrix
+	Rinv             mat64.Matrix
+	Noise            Noise
+	needCtrl         bool
+	prevEst, initEst InformationEstimate
+	step             int
 }
 
 func (kf *Information) String() string {
 	return fmt.Sprintf("inv(F)=%v\nG=%v\nH=%v\n%s", mat64.Formatted(kf.Finv, mat64.Prefix("      ")), mat64.Formatted(kf.G, mat64.Prefix("  ")), mat64.Formatted(kf.H, mat64.Prefix("  ")), kf.Noise)
 }
 
-// SetF updates the F matrix.
-func (kf *Information) SetF(F mat64.Matrix) {
+// GetStateTransition returns the F matrix.
+// *WARNING:* Returns the *INVERSE* of F for the information filter.
+func (kf *Information) GetStateTransition() mat64.Matrix {
+	return kf.Finv
+}
+
+// GetInputControl returns the G matrix.
+func (kf *Information) GetInputControl() mat64.Matrix {
+	return kf.G
+}
+
+// GetMeasurementMatrix returns the H matrix.
+func (kf *Information) GetMeasurementMatrix() mat64.Matrix {
+	return kf.H
+}
+
+// SetStateTransition updates the F matrix.
+func (kf *Information) SetStateTransition(F mat64.Matrix) {
 	var Finv mat64.Dense
 	if err := Finv.Inverse(mat64.DenseCopyOf(F)); err != nil {
-		panic(fmt.Errorf("F not invertible: %s", err))
+		fmt.Printf("F *might* not invertible: %s\n", err)
 	}
 	kf.Finv = &Finv
 }
 
-// SetG updates the F matrix.
-func (kf *Information) SetG(G mat64.Matrix) {
+// SetInputControl updates the G matrix.
+func (kf *Information) SetInputControl(G mat64.Matrix) {
 	kf.G = G
 }
 
-// SetH updates the F matrix.
-func (kf *Information) SetH(H mat64.Matrix) {
+// SetMeasurementMatrix updates the H matrix.
+func (kf *Information) SetMeasurementMatrix(H mat64.Matrix) {
 	kf.H = H
 }
 
 // SetNoise updates the Noise.
 func (kf *Information) SetNoise(n Noise) {
 	kf.Noise = n
+}
+
+// GetNoise updates the F matrix.
+func (kf *Information) GetNoise() Noise {
+	return kf.Noise
+}
+
+// Reset reinitializes the KF with its initial estimate.
+func (kf *Information) Reset() {
+	kf.prevEst = kf.initEst
+	kf.step = 0
+	kf.Noise.Reset()
 }
 
 // Update implements the KalmanFilter interface.
@@ -182,11 +211,16 @@ func (kf *Information) Update(measurement, control *mat64.Vector) (est Estimate,
 	Ikp1Plus.Mul(&HTR, kf.H)
 	Ikp1Plus.Add(&Ikp1Minus, &Ikp1Plus)
 
+	Ikp1MinusSym, err := AsSymDense(&Ikp1Minus)
+	if err != nil {
+		panic(err)
+	}
+
 	Ikp1PlusSym, err := AsSymDense(&Ikp1Plus)
 	if err != nil {
 		panic(err)
 	}
-	est = NewInformationEstimate(&ikp1Plus, &ykHat, Ikp1PlusSym)
+	est = NewInformationEstimate(&ikp1Plus, &ykHat, Ikp1PlusSym, Ikp1MinusSym)
 	kf.prevEst = est.(InformationEstimate)
 	kf.step++
 	return
@@ -195,10 +229,10 @@ func (kf *Information) Update(measurement, control *mat64.Vector) (est Estimate,
 // InformationEstimate is the output of each update state of the Information KF.
 // It implements the Estimate interface.
 type InformationEstimate struct {
-	infoState, meas *mat64.Vector
-	infoMat         mat64.Symmetric
-	cachedState     *mat64.Vector
-	cachedCovar     mat64.Symmetric
+	infoState, meas              *mat64.Vector
+	infoMat, predInfoMat         mat64.Symmetric
+	cachedState                  *mat64.Vector
+	cachedCovar, predCachedCovar mat64.Symmetric
 }
 
 // IsWithin2σ returns whether the estimation is within the 2σ bounds.
@@ -229,16 +263,17 @@ func (e InformationEstimate) Measurement() *mat64.Vector {
 	return e.meas
 }
 
+// Innovation implements the Estimate interface.
+func (e InformationEstimate) Innovation() *mat64.Vector {
+	return e.infoState
+}
+
 // Covariance implements the Estimate interface.
 // *NOTE:* With the IF, one cannot view the covariance matrix until there is enough information.
 func (e InformationEstimate) Covariance() mat64.Symmetric {
 	if e.cachedCovar == nil {
 		rCovar, _ := e.infoMat.Dims()
 		e.cachedCovar = mat64.NewSymDense(rCovar, nil)
-		if floats.EqualWithinRel(mat64.Det(e.infoMat), 0, 1e-16) {
-			fmt.Println("gokalman: InformationEstimate: information matrix is not invertible (nil determinant)")
-			return e.cachedCovar
-		}
 		infoMat := mat64.DenseCopyOf(e.infoMat)
 		var tmpCovar mat64.Dense
 		err := tmpCovar.Inverse(infoMat)
@@ -246,24 +281,45 @@ func (e InformationEstimate) Covariance() mat64.Symmetric {
 			fmt.Printf("gokalman: InformationEstimate: information matrix is not (yet) invertible: %s\n", err)
 			return e.cachedCovar
 		}
-		cachedCovar, err := AsSymDense(&tmpCovar)
-		if err != nil {
-			fmt.Printf("gokalman: InformationEstimate: covariance matrix: %s\n", err)
-			return e.cachedCovar
-		}
+		cachedCovar, _ := AsSymDense(&tmpCovar)
 		e.cachedCovar = cachedCovar
 	}
 	return e.cachedCovar
+}
+
+// PredCovariance implements the Estimate interface.
+// *NOTE:* With the IF, one cannot view the prediction covariance matrix until there is enough information.
+func (e InformationEstimate) PredCovariance() mat64.Symmetric {
+	if e.predCachedCovar == nil {
+		rCovar, _ := e.predInfoMat.Dims()
+		e.predCachedCovar = mat64.NewSymDense(rCovar, nil)
+		predInfoMat := mat64.DenseCopyOf(e.predInfoMat)
+		var tmpCovar mat64.Dense
+		err := tmpCovar.Inverse(predInfoMat)
+		if err != nil {
+			fmt.Printf("gokalman: InformationEstimate: prediction information matrix is not (yet) invertible: %s\n", err)
+			return e.predCachedCovar
+		}
+		predCachedCovar, err := AsSymDense(&tmpCovar)
+		if err != nil {
+			fmt.Printf("gokalman: InformationEstimate: prediction covariance matrix: %s\n", err)
+			return e.predCachedCovar
+		}
+		e.predCachedCovar = predCachedCovar
+	}
+	return e.predCachedCovar
 }
 
 func (e InformationEstimate) String() string {
 	state := mat64.Formatted(e.State(), mat64.Prefix("  "))
 	meas := mat64.Formatted(e.Measurement(), mat64.Prefix("  "))
 	covar := mat64.Formatted(e.Covariance(), mat64.Prefix("  "))
-	return fmt.Sprintf("{\ns=%v\ny=%v\nP=%v\n}", state, meas, covar)
+	innov := mat64.Formatted(e.Innovation(), mat64.Prefix("  "))
+	predp := mat64.Formatted(e.PredCovariance(), mat64.Prefix("   "))
+	return fmt.Sprintf("{\ns=%v\ny=%v\nP=%v\nP-=%v\ni=%v\n}", state, meas, covar, predp, innov)
 }
 
 // NewInformationEstimate initializes a new InformationEstimate.
-func NewInformationEstimate(infoState, meas *mat64.Vector, infoMat mat64.Symmetric) InformationEstimate {
-	return InformationEstimate{infoState, meas, infoMat, nil, nil}
+func NewInformationEstimate(infoState, meas *mat64.Vector, infoMat, predInfoMat mat64.Symmetric) InformationEstimate {
+	return InformationEstimate{infoState, meas, infoMat, predInfoMat, nil, nil, nil}
 }

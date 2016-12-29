@@ -32,9 +32,11 @@ func NewVanilla(x0 *mat64.Vector, Covar0 mat64.Symmetric, F, G, H mat64.Matrix, 
 
 	// Populate with the initial values.
 	rowsH, _ := H.Dims()
-	est0 := VanillaEstimate{x0, mat64.NewVector(rowsH, nil), Covar0, nil}
+	cr, _ := Covar0.Dims()
+	predCovar := mat64.NewSymDense(cr, nil)
+	est0 := VanillaEstimate{x0, mat64.NewVector(rowsH, nil), mat64.NewVector(rowsH, nil), Covar0, predCovar, nil}
 
-	return &Vanilla{F, G, H, noise, !IsNil(G), est0, 0, false}, &est0, nil
+	return &Vanilla{F, G, H, noise, !IsNil(G), est0, est0, 0, false}, &est0, nil
 }
 
 // NewPurePredictorVanilla returns a new Vanilla KF which only does prediction.
@@ -52,45 +54,74 @@ func NewPurePredictorVanilla(x0 *mat64.Vector, Covar0 mat64.Symmetric, F, G, H m
 
 	// Populate with the initial values.
 	rowsH, _ := H.Dims()
-	est0 := VanillaEstimate{x0, mat64.NewVector(rowsH, nil), Covar0, nil}
+	cr, _ := Covar0.Dims()
+	predCovar := mat64.NewSymDense(cr, nil)
+	est0 := VanillaEstimate{x0, mat64.NewVector(rowsH, nil), mat64.NewVector(rowsH, nil), Covar0, predCovar, nil}
 
-	return &Vanilla{F, G, H, noise, !IsNil(G), est0, 0, true}, &est0, nil
+	return &Vanilla{F, G, H, noise, !IsNil(G), est0, est0, 0, true}, &est0, nil
 }
 
 // Vanilla defines a vanilla kalman filter. Use NewVanilla to initialize.
 type Vanilla struct {
-	F              mat64.Matrix
-	G              mat64.Matrix
-	H              mat64.Matrix
-	Noise          Noise
-	needCtrl       bool
-	prevEst        VanillaEstimate
-	step           int
-	predictionOnly bool
+	F                mat64.Matrix
+	G                mat64.Matrix
+	H                mat64.Matrix
+	Noise            Noise
+	needCtrl         bool
+	prevEst, initEst VanillaEstimate
+	step             int
+	predictionOnly   bool
 }
 
 func (kf *Vanilla) String() string {
 	return fmt.Sprintf("F=%v\nG=%v\nH=%v\n%s", mat64.Formatted(kf.F, mat64.Prefix("  ")), mat64.Formatted(kf.G, mat64.Prefix("  ")), mat64.Formatted(kf.H, mat64.Prefix("  ")), kf.Noise)
 }
 
-// SetF updates the F matrix.
-func (kf *Vanilla) SetF(F mat64.Matrix) {
+// GetStateTransition returns the F matrix.
+func (kf *Vanilla) GetStateTransition() mat64.Matrix {
+	return kf.F
+}
+
+// GetInputControl returns the G matrix.
+func (kf *Vanilla) GetInputControl() mat64.Matrix {
+	return kf.G
+}
+
+// GetMeasurementMatrix returns the H matrix.
+func (kf *Vanilla) GetMeasurementMatrix() mat64.Matrix {
+	return kf.H
+}
+
+// SetStateTransition updates the F matrix.
+func (kf *Vanilla) SetStateTransition(F mat64.Matrix) {
 	kf.F = F
 }
 
-// SetG updates the F matrix.
-func (kf *Vanilla) SetG(G mat64.Matrix) {
+// SetInputControl updates the F matrix.
+func (kf *Vanilla) SetInputControl(G mat64.Matrix) {
 	kf.G = G
 }
 
-// SetH updates the F matrix.
-func (kf *Vanilla) SetH(H mat64.Matrix) {
+// SetMeasurementMatrix updates the H matrix.
+func (kf *Vanilla) SetMeasurementMatrix(H mat64.Matrix) {
 	kf.H = H
 }
 
 // SetNoise updates the Noise.
 func (kf *Vanilla) SetNoise(n Noise) {
 	kf.Noise = n
+}
+
+// GetNoise updates the F matrix.
+func (kf *Vanilla) GetNoise() Noise {
+	return kf.Noise
+}
+
+// Reset reinitializes the KF with its initial estimate.
+func (kf *Vanilla) Reset() {
+	kf.prevEst = kf.initEst
+	kf.step = 0
+	kf.Noise.Reset()
 }
 
 // Update implements the KalmanFilter interface.
@@ -112,6 +143,7 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 	} else {
 		xKp1Minus = xKp1Minus1
 	}
+	xKp1Minus.AddVec(&xKp1Minus, kf.Noise.Process(kf.step))
 
 	// P_{k+1}^{-}
 	var Pkp1Minus, FP, FPFt mat64.Dense
@@ -135,25 +167,28 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 	Kkp1.Mul(&PHt, &HPHt)
 
 	if kf.predictionOnly {
+		// Note that in the case of a pure prediction, we set the prediction
+		// covariance and the covariance to Pkp1Minus.
 		Pkp1MinusSym, _ := AsSymDense(&Pkp1Minus)
-		est = VanillaEstimate{&xKp1Minus, &ykHat, Pkp1MinusSym, &Kkp1}
+		rowsH, _ := kf.H.Dims()
+		est = VanillaEstimate{&xKp1Minus, &ykHat, mat64.NewVector(rowsH, nil), Pkp1MinusSym, Pkp1MinusSym, &Kkp1}
 		kf.prevEst = est.(VanillaEstimate)
 		kf.step++
 		return
 	}
 
 	// Measurement update
-	var xkp1Plus, xkp1Plus1, xkp1Plus2 mat64.Vector
-	xkp1Plus1.MulVec(kf.H, &xKp1Minus)
-	xkp1Plus1.SubVec(measurement, &xkp1Plus1)
-	if rX, _ := xkp1Plus1.Dims(); rX == 1 {
-		// xkp1Plus1 is a scalar and mat64 won't be happy.
+	var innov, xkp1Plus, xkp1Plus1, xkp1Plus2 mat64.Vector
+	xkp1Plus1.MulVec(kf.H, &xKp1Minus)    // Predicted measurement
+	innov.SubVec(measurement, &xkp1Plus1) // Innovation vector
+	if rX, _ := innov.Dims(); rX == 1 {
+		// xkp1Plus1 is a scalar and mat64 won't be happy, so fiddle around to get a vector.
 		var sKkp1 mat64.Dense
-		sKkp1.Scale(xkp1Plus1.At(0, 0), &Kkp1)
+		sKkp1.Scale(innov.At(0, 0), &Kkp1)
 		rGain, _ := sKkp1.Dims()
 		xkp1Plus2.AddVec(sKkp1.ColView(0), mat64.NewVector(rGain, nil))
 	} else {
-		xkp1Plus2.MulVec(&Kkp1, &xkp1Plus1)
+		xkp1Plus2.MulVec(&Kkp1, &innov)
 	}
 	xkp1Plus.AddVec(&xKp1Minus, &xkp1Plus2)
 	xkp1Plus.AddVec(&xkp1Plus, kf.Noise.Process(kf.step))
@@ -168,11 +203,16 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 	Kkp1RKkp1.Mul(&Kkp1R, Kkp1.T())
 	Pkp1Plus.Add(&Pkp1Plus, &Kkp1RKkp1)
 
+	Pkp1MinusSym, err := AsSymDense(&Pkp1Minus)
+	if err != nil {
+		return nil, err
+	}
+
 	Pkp1PlusSym, err := AsSymDense(&Pkp1Plus)
 	if err != nil {
 		return nil, err
 	}
-	est = VanillaEstimate{&xkp1Plus, &ykHat, Pkp1PlusSym, &Kkp1}
+	est = VanillaEstimate{&xkp1Plus, &ykHat, &innov, Pkp1PlusSym, Pkp1MinusSym, &Kkp1}
 	kf.prevEst = est.(VanillaEstimate)
 	kf.step++
 	return
@@ -181,9 +221,9 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 // VanillaEstimate is the output of each update state of the Vanilla KF.
 // It implements the Estimate interface.
 type VanillaEstimate struct {
-	state, meas *mat64.Vector
-	covar       mat64.Symmetric
-	gain        mat64.Matrix
+	state, meas, innovation *mat64.Vector
+	covar, predCovar        mat64.Symmetric
+	gain                    mat64.Matrix
 }
 
 // IsWithin2σ returns whether the estimation is within the 2σ bounds.
@@ -207,9 +247,19 @@ func (e VanillaEstimate) Measurement() *mat64.Vector {
 	return e.meas
 }
 
+// Innovation implements the Estimate interface.
+func (e VanillaEstimate) Innovation() *mat64.Vector {
+	return e.innovation
+}
+
 // Covariance implements the Estimate interface.
 func (e VanillaEstimate) Covariance() mat64.Symmetric {
 	return e.covar
+}
+
+// PredCovariance implements the Estimate interface.
+func (e VanillaEstimate) PredCovariance() mat64.Symmetric {
+	return e.predCovar
 }
 
 // Gain the Estimate interface.
@@ -222,5 +272,7 @@ func (e VanillaEstimate) String() string {
 	meas := mat64.Formatted(e.Measurement(), mat64.Prefix("  "))
 	covar := mat64.Formatted(e.Covariance(), mat64.Prefix("  "))
 	gain := mat64.Formatted(e.Gain(), mat64.Prefix("  "))
-	return fmt.Sprintf("{\ns=%v\ny=%v\nP=%v\nK=%v\n}", state, meas, covar, gain)
+	innov := mat64.Formatted(e.Innovation(), mat64.Prefix("  "))
+	predp := mat64.Formatted(e.PredCovariance(), mat64.Prefix("   "))
+	return fmt.Sprintf("{\ns=%v\ny=%v\nP=%v\nK=%v\nP-=%v\ni=%v\n}", state, meas, covar, gain, predp, innov)
 }

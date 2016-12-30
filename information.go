@@ -69,7 +69,7 @@ func NewInformationFromState(x0 *mat64.Vector, P0 mat64.Symmetric, F, G, H mat64
 	if err := I0temp.Inverse(P0); err != nil {
 		rI, _ := P0.Dims()
 		I0 = mat64.NewSymDense(rI, nil)
-		fmt.Printf("[WARN] initial covariance not invertible, using nil matrix: %s", err)
+		fmt.Printf("gokalman: initial covariance not invertible, using nil matrix: %s\n", err)
 	} else {
 		I0, _ = AsSymDense(&I0temp)
 	}

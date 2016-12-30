@@ -1,10 +1,33 @@
 package gokalman
 
-import "github.com/gonum/matrix/mat64"
+import (
+	"fmt"
+	"math"
+	"math/cmplx"
+
+	"github.com/gonum/matrix/mat64"
+)
 
 // VanLoan computes the F and Q matrices from the provided CT system A, Γ, W and
 // the sampling rate Δt.
-func VanLoan(A, Γ, W mat64.Matrix, Δt float64) (*mat64.Dense, *mat64.SymDense) {
+func VanLoan(A, Γ, W *mat64.Dense, Δt float64) (*mat64.Dense, *mat64.SymDense, error) {
+	var err error
+	// Check aliasing
+	λ := mat64.Eigen{}
+	λ.Factorize(A, false)
+	λmaxImag := -math.MaxFloat64
+	var λmax complex128
+	for _, λ := range λ.Values(nil) {
+		if im := imag(λ); im > λmaxImag {
+			λmax = λ
+		}
+	}
+
+	if 2*cmplx.Abs(λmax)*Δt >= math.Pi {
+		err = fmt.Errorf("gokalman: Nyquist sampling criterion not fulfilled with Δt=%f\n", Δt)
+	}
+
+	// Compute F and Q.
 	var ΓW, ΓWΓ, Ap mat64.Dense
 	ΓW.Mul(Γ, W)
 	ΓWΓ.Mul(&ΓW, Γ.T())
@@ -48,5 +71,5 @@ func VanLoan(A, Γ, W mat64.Matrix, Δt float64) (*mat64.Dense, *mat64.SymDense)
 	var Q mat64.Dense
 	Q.Mul(F, F1Q)
 	QSym, _ := AsSymDense(&Q)
-	return F, QSym
+	return F, QSym, err
 }

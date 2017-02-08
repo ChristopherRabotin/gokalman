@@ -40,17 +40,20 @@ func TestIsNil(t *testing.T) {
 
 func TestIdentity(t *testing.T) {
 	n := 3
-	i33 := Identity(n)
-	if r, c := i33.Dims(); r != n || r != c {
-		t.Fatalf("i11 has dimensions (%dx%d)", r, c)
-	}
-	for i := 0; i < n; i++ {
-		if i33.At(i, i) != 1 {
-			t.Fatalf("i33(%d,%d) != 1", i, i)
+	i33s := Identity(n)
+	i33d := DenseIdentity(n)
+	for _, i33 := range []mat64.Matrix{i33s, i33d} {
+		if r, c := i33.Dims(); r != n || r != c {
+			t.Fatalf("i11 has dimensions (%dx%d)", r, c)
 		}
-		for j := 0; j < n; j++ {
-			if i != j && i33.At(i, j) != 0 {
-				t.Fatalf("i33(%d,%d) != 0", i, j)
+		for i := 0; i < n; i++ {
+			if i33.At(i, i) != 1 {
+				t.Fatalf("i33(%d,%d) != 1", i, i)
+			}
+			for j := 0; j < n; j++ {
+				if i != j && i33.At(i, j) != 0 {
+					t.Fatalf("i33(%d,%d) != 0", i, j)
+				}
 			}
 		}
 	}

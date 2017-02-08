@@ -9,7 +9,7 @@ import (
 )
 
 // ScaledIdentity returns an identity matrix time a scaling factor of the provided size.
-func ScaledIdentity(n int, s float64) mat64.Symmetric {
+func ScaledIdentity(n int, s float64) *mat64.SymDense {
 	vals := make([]float64, n*n)
 	for j := 0; j < n*n; j++ {
 		if j%(n+1) == 0 {
@@ -21,8 +21,26 @@ func ScaledIdentity(n int, s float64) mat64.Symmetric {
 	return mat64.NewSymDense(n, vals)
 }
 
+// DenseIdentity returns an identity matrix of type Dense and of the provided size.
+func DenseIdentity(n int) *mat64.Dense {
+	return ScaledDenseIdentity(n, 1)
+}
+
+// ScaledDenseIdentity returns an identity matrix time of type Dense a scaling factor of the provided size.
+func ScaledDenseIdentity(n int, s float64) *mat64.Dense {
+	vals := make([]float64, n*n)
+	for j := 0; j < n*n; j++ {
+		if j%(n+1) == 0 {
+			vals[j] = s
+		} else {
+			vals[j] = 0
+		}
+	}
+	return mat64.NewDense(n, n, vals)
+}
+
 // Identity returns an identity matrix of the provided size.
-func Identity(n int) mat64.Symmetric {
+func Identity(n int) *mat64.SymDense {
 	return ScaledIdentity(n, 1)
 }
 

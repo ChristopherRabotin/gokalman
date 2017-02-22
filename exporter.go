@@ -16,8 +16,9 @@ type Exporter interface {
 
 // CSVExporter returns a new CSV exporter.
 type CSVExporter struct {
-	delimiter string
-	hdlr      *os.File
+	covarBound float64
+	delimiter  string
+	hdlr       *os.File
 }
 
 // Close closes the file.
@@ -49,8 +50,8 @@ func (e CSVExporter) WriteRawLn(s string) error {
 	return err
 }
 
-// NewCSVExporter initializes a new CSV export.
-func NewCSVExporter(headers []string, filepath, filename string) (e *CSVExporter, err error) {
+// NewCustomCSVExporter initializes a new CSV export.
+func NewCustomCSVExporter(headers []string, filepath, filename string, covarBound float64) (e *CSVExporter, err error) {
 	f, err := os.Create(fmt.Sprintf("%s/%s", filepath, filename))
 	if err != nil {
 		return
@@ -58,12 +59,18 @@ func NewCSVExporter(headers []string, filepath, filename string) (e *CSVExporter
 	delimiter := ","
 	// Header
 	hdr := make([]string, len(headers)*3)
+	bhdr := fmt.Sprintf("%.0fs", covarBound)
 	for i := 0; i < len(headers)*3; i += 3 {
 		hdr[i] = headers[i/3]
-		hdr[i+1] = hdr[i] + "+2s"
-		hdr[i+2] = hdr[i] + "-2s"
+		hdr[i+1] = hdr[i] + "+" + bhdr
+		hdr[i+2] = hdr[i] + "-" + bhdr
 	}
 	f.WriteString(fmt.Sprintf("# Creation date (UTC): %s\n%s\n", time.Now(), strings.Join(hdr, delimiter)))
-	e = &CSVExporter{delimiter, f}
+	e = &CSVExporter{covarBound, delimiter, f}
 	return
+}
+
+// NewCSVExporter initializes a new CSV export.
+func NewCSVExporter(headers []string, filepath, filename string) (e *CSVExporter, err error) {
+	return NewCustomCSVExporter(headers, filepath, filename, 2)
 }

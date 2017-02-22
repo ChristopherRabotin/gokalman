@@ -30,6 +30,9 @@ func assertPanic(t *testing.T, f func()) {
 }
 
 func TestIsNil(t *testing.T) {
+	if !IsNil(nil) {
+		t.Fatal("nil said to not be nil")
+	}
 	if IsNil(Identity(2)) {
 		t.Fatal("i22 said to be nil")
 	}

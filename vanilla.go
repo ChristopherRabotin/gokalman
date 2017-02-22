@@ -162,7 +162,8 @@ func (kf *Vanilla) Update(measurement, control *mat64.Vector) (est Estimate, err
 	HPHt.Mul(kf.H, &PHt)
 	HPHt.Add(&HPHt, kf.Noise.MeasurementMatrix())
 	if ierr := HPHt.Inverse(&HPHt); ierr != nil {
-		panic(fmt.Errorf("could not invert `H*P_kp1_minus*H' + R`: %s", ierr))
+		//panic(fmt.Errorf("could not invert `H*P_kp1_minus*H' + R`: %s", ierr))
+		return nil, fmt.Errorf("could not invert `H*P_kp1_minus*H' + R`: %s", ierr)
 	}
 	Kkp1.Mul(&PHt, &HPHt)
 

@@ -46,6 +46,9 @@ func Identity(n int) *mat64.SymDense {
 
 // IsNil returns whether the provided matrix only has zero values
 func IsNil(m mat64.Matrix) bool {
+	if m == nil {
+		return true
+	}
 	r, c := m.Dims()
 	for i := 0; i < r; i++ {
 		for j := 0; j < c; j++ {
@@ -68,7 +71,7 @@ func AsSymDense(m *mat64.Dense) (*mat64.SymDense, error) {
 	idx := 0
 	for i := 0; i < r; i++ {
 		for j := 0; j < c; j++ {
-			if i != j && !floats.EqualWithinAbsOrRel(mT.At(i, j), m.At(i, j), 1e-12, 1e-2) {
+			if i != j && !floats.EqualWithinAbsOrRel(mT.At(i, j), m.At(i, j), 1e-6, 1e-2) {
 				return nil, fmt.Errorf("matrix is not symmetric (%d, %d): %.40f != %.40f\n%v", i, j, mT.At(i, j), m.At(i, j), mat64.Formatted(m, mat64.Prefix("")))
 			}
 			vals[idx] = m.At(i, j)

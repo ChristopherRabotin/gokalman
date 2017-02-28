@@ -282,15 +282,20 @@ type SquareRootEstimate struct {
 	cachedCovar, predCachedCovar mat64.Symmetric
 }
 
-// IsWithin2σ returns whether the estimation is within the 2σ bounds.
-func (e SquareRootEstimate) IsWithin2σ() bool {
+// IsWithinNσ returns whether the estimation is within the 2σ bounds.
+func (e SquareRootEstimate) IsWithinNσ(N float64) bool {
 	for i := 0; i < e.state.Len(); i++ {
-		twoσ := 2 * math.Sqrt(e.Covariance().At(i, i))
-		if e.state.At(i, 0) > twoσ || e.state.At(i, 0) < -twoσ {
+		nσ := N * math.Sqrt(e.Covariance().At(i, i))
+		if e.state.At(i, 0) > nσ || e.state.At(i, 0) < -nσ {
 			return false
 		}
 	}
 	return true
+}
+
+// IsWithin2σ returns whether the estimation is within the 2σ bounds.
+func (e SquareRootEstimate) IsWithin2σ() bool {
+	return e.IsWithinNσ(2)
 }
 
 // State implements the Estimate interface.

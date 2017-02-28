@@ -235,17 +235,22 @@ type InformationEstimate struct {
 	cachedCovar, predCachedCovar mat64.Symmetric
 }
 
-// IsWithin2σ returns whether the estimation is within the 2σ bounds.
-func (e InformationEstimate) IsWithin2σ() bool {
+// IsWithinNσ returns whether the estimation is within the 2σ bounds.
+func (e InformationEstimate) IsWithinNσ(N float64) bool {
 	state := e.State()
 	covar := e.Covariance()
 	for i := 0; i < state.Len(); i++ {
-		twoσ := 2 * math.Sqrt(covar.At(i, i))
-		if state.At(i, 0) > twoσ || state.At(i, 0) < -twoσ {
+		nσ := N * math.Sqrt(covar.At(i, i))
+		if state.At(i, 0) > nσ || state.At(i, 0) < -nσ {
 			return false
 		}
 	}
 	return true
+}
+
+// IsWithin2σ returns whether the estimation is within the 2σ bounds.
+func (e InformationEstimate) IsWithin2σ() bool {
+	return e.IsWithinNσ(2)
 }
 
 // State implements the Estimate interface.

@@ -17,20 +17,10 @@ type KalmanFilter interface {
 	String() string
 }
 
-// HybridKalmanFilter defines a hybrid continuous/discrete KF.
-// Usage example: statistical orbit determination.
-type HybridKalmanFilter interface {
-	Prepare(Φ, Htilde *mat64.Dense)
-	Update(realObservation, computedObservation *mat64.Vector) (*HybridCKFEstimate, error)
-	GetNoise() Noise
-	SetNoise(Noise)
-	String() string
-}
-
 // Estimate is returned from Update() in any KF.
 // This allows to avoid some computations in other filters, e.g. in the Information filter.
 type Estimate interface {
-	IsWithin2σ() bool                // IsWithin2σ returns whether the estimation is within the 2σ bounds.
+	IsWithinNσ(N float64) bool       // IsWithinNσ returns whether the estimation is within the N*σ bounds.
 	State() *mat64.Vector            // Returns \hat{x}_{k+1}^{+}
 	Measurement() *mat64.Vector      // Returns \hat{y}_{k}^{+}
 	Innovation() *mat64.Vector       // Returns y_{k} - H*\hat{x}_{k+1}^{-}

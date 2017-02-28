@@ -9,11 +9,6 @@ func TestImplementsKF(t *testing.T) {
 	implements(new(SquareRoot))
 }
 
-func TestImplementsHybridKF(t *testing.T) {
-	implements := func(HybridKalmanFilter) {}
-	implements(new(HybridCKF))
-}
-
 func TestImplementsEst(t *testing.T) {
 	implements := func(Estimate) {}
 	implements(VanillaEstimate{})

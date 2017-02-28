@@ -20,7 +20,7 @@ func TestHybridLock(t *testing.T) {
 	R := mat64.NewSymDense(2, []float64{1e-3, 0, 0, 1e-6})
 	noiseKF := NewNoiseless(Q, R)
 
-	hkf, _, err := NewHybridCKF(prevXHat, prevP, noiseKF, 2)
+	hkf, _, err := NewHybridKF(prevXHat, prevP, noiseKF, 2)
 	if err != nil {
 		t.Fatalf("%s", err)
 	}
@@ -28,5 +28,10 @@ func TestHybridLock(t *testing.T) {
 	_, err = hkf.Update(mat64.NewVector(2, nil), mat64.NewVector(2, nil))
 	if err == nil {
 		t.Fatal("error should not have been nil when calling Update before Prepare")
+	}
+
+	hkf.SwitchToEKF()
+	if hkf.ekfMode == false {
+		t.Fatal("the KF is still in CKF mode after EKF switch")
 	}
 }

@@ -66,7 +66,7 @@ func TestVanilla(t *testing.T) {
 			t.Fatal(err)
 		}
 		// At k=99, there is an especially high yacc in order to test another line in the code.
-		if !est.IsWithin2σ() && k != 99 {
+		if !est.IsWithinNσ(2) && k != 99 {
 			t.Logf("[WARN] 2σ bound breached: k=%d -> %s ", k, est)
 		}
 		if k == 99 {

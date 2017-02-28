@@ -141,8 +141,8 @@ type HybridCKFEstimate struct {
 // IsWithinNσ returns whether the estimation is within the 2σ bounds.
 func (e HybridCKFEstimate) IsWithinNσ(N float64) bool {
 	for i := 0; i < e.state.Len(); i++ {
-		twoσ := N * math.Sqrt(e.covar.At(i, i))
-		if e.state.At(i, 0) > twoσ || e.state.At(i, 0) < -twoσ {
+		nσ := N * math.Sqrt(e.covar.At(i, i))
+		if e.state.At(i, 0) > nσ || e.state.At(i, 0) < -nσ {
 			return false
 		}
 	}

@@ -158,15 +158,20 @@ type ExtendedEstimate struct {
 	gain                    mat64.Matrix
 }
 
-// IsWithin2σ returns whether the estimation is within the 2σ bounds.
-func (e ExtendedEstimate) IsWithin2σ() bool {
+// IsWithinNσ returns whether the estimation is within the 2σ bounds.
+func (e ExtendedEstimate) IsWithinNσ(N float64) bool {
 	for i := 0; i < e.state.Len(); i++ {
-		twoσ := 2 * math.Sqrt(e.covar.At(i, i))
+		twoσ := N * math.Sqrt(e.covar.At(i, i))
 		if e.state.At(i, 0) > twoσ || e.state.At(i, 0) < -twoσ {
 			return false
 		}
 	}
 	return true
+}
+
+// IsWithin2σ returns whether the estimation is within the 2σ bounds.
+func (e ExtendedEstimate) IsWithin2σ() bool {
+	return e.IsWithinNσ(2)
 }
 
 // State implements the Estimate interface.

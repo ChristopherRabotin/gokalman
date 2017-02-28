@@ -6,7 +6,7 @@ import (
 	"github.com/gonum/matrix/mat64"
 )
 
-func TestHybridLock(t *testing.T) {
+func TestHybridBasic(t *testing.T) {
 	prevXHat := mat64.NewVector(6, nil)
 	prevP := mat64.NewSymDense(6, nil)
 	var covarDistance float64 = 50
@@ -30,8 +30,8 @@ func TestHybridLock(t *testing.T) {
 		t.Fatal("error should not have been nil when calling Update before Prepare")
 	}
 
-	hkf.SwitchToEKF()
-	if hkf.ekfMode == false {
+	hkf.EnableEKF()
+	if hkf.ekfMode == false || !hkf.EKFEnabled() {
 		t.Fatal("the KF is still in CKF mode after EKF switch")
 	}
 }

@@ -43,8 +43,13 @@ type HybridKF struct {
 	step      int
 }
 
-// SwitchToEKF switches this to an EKF mode.
-func (kf *HybridKF) SwitchToEKF() {
+// EKFEnabled returns whether the KF is in EKF mode.
+func (kf *HybridKF) EKFEnabled() bool {
+	return kf.ekfMode
+}
+
+// EnableEKF switches this to an EKF mode.
+func (kf *HybridKF) EnableEKF() {
 	kf.ekfMode = true
 }
 

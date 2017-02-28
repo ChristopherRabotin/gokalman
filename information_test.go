@@ -57,6 +57,9 @@ func TestInformation(t *testing.T) {
 	i0 := mat64.NewVector(3, nil)
 	I0 := mat64.NewSymDense(3, nil)
 	kfZ, est0, err := NewInformation(i0, I0, F, G, H, noise)
+	if err != nil {
+		t.Fatalf("%s", err)
+	}
 
 	var Finv mat64.Dense
 	Finv.Inverse(mat64.DenseCopyOf(F))

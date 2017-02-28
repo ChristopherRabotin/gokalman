@@ -14,9 +14,17 @@ type BatchGroundTruth struct {
 
 // Error returns an ErrorEstimate after comparing the provided state and measurements with the ground truths.
 func (t *BatchGroundTruth) Error(k int, est Estimate) Estimate {
+	return t.ErrorWithOffset(k, est, nil)
+}
+
+// ErrorWithOffset returns an ErrorEstimate after comparing the provided state, adding the offset and measurements with the ground truths.
+func (t *BatchGroundTruth) ErrorWithOffset(k int, est Estimate, offset *mat64.Vector) Estimate {
 	esR, _ := est.State().Dims()
 	estState := mat64.NewVector(esR, nil)
 	estState.CopyVec(est.State())
+	if offset != nil {
+		estState.AddVec(estState, offset)
+	}
 	trueState := mat64.NewVector(esR, nil)
 	if t.states != nil {
 		trueState = t.states[k]

@@ -17,6 +17,16 @@ type KalmanFilter interface {
 	String() string
 }
 
+// HybridKalmanFilter defines a hybrid continuous/discrete KF.
+// Usage example: statistical orbit determination.
+type HybridKalmanFilter interface {
+	Prepare(Φ, Htilde *mat64.Dense)
+	Update(realObservation, computedObservation *mat64.Vector) (*HybridCKFEstimate, error)
+	GetNoise() Noise
+	SetNoise(Noise)
+	String() string
+}
+
 // Estimate is returned from Update() in any KF.
 // This allows to avoid some computations in other filters, e.g. in the Information filter.
 type Estimate interface {

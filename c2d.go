@@ -24,7 +24,7 @@ func VanLoan(A, Γ, W *mat64.Dense, Δt float64) (*mat64.Dense, *mat64.SymDense,
 	}
 
 	if 2*cmplx.Abs(λmax)*Δt >= math.Pi {
-		err = fmt.Errorf("gokalman: Nyquist sampling criterion not fulfilled with Δt=%f\n", Δt)
+		err = fmt.Errorf("gokalman: Nyquist sampling criterion not fulfilled with Δt=%f", Δt)
 	}
 
 	// Compute F and Q.

@@ -53,6 +53,11 @@ func (kf *HybridKF) EnableEKF() {
 	kf.ekfMode = true
 }
 
+// DisableEKF switches this back to a CKF mode.
+func (kf *HybridKF) DisableEKF() {
+	kf.ekfMode = false
+}
+
 func (kf *HybridKF) String() string {
 	return fmt.Sprintf("HybridKF [k=%d]\n%s", kf.step, kf.Noise)
 }
@@ -92,14 +97,14 @@ func (kf *HybridKF) Update(realObservation, computedObservation *mat64.Vector) (
 	//XXX: Item (may be: PBar.Add(&PBar, kf.Noise.ProcessMatrix()) ?)
 
 	// Kalman gain
-	var PHt, HPHt, Kkp1 mat64.Dense
+	var PHt, HPHt, K mat64.Dense
 	PHt.Mul(&PBar, kf.Htilde.T())
 	HPHt.Mul(kf.Htilde, &PHt)
 	HPHt.Add(&HPHt, kf.Noise.MeasurementMatrix())
 	if ierr := HPHt.Inverse(&HPHt); ierr != nil {
 		return nil, fmt.Errorf("could not invert `H*P_kp1_minus*H' + R` at k=%d: %s", kf.step, ierr)
 	}
-	Kkp1.Mul(&PHt, &HPHt)
+	K.Mul(&PHt, &HPHt)
 
 	// Compute observation deviation y
 	var y mat64.Vector
@@ -108,7 +113,7 @@ func (kf *HybridKF) Update(realObservation, computedObservation *mat64.Vector) (
 	var xBar mat64.Vector
 	var innov, xHat mat64.Vector
 	if kf.ekfMode {
-		xHat.MulVec(&Kkp1, &y)
+		xHat.MulVec(&K, &y)
 	} else {
 		// Prediction step.
 		xBar.MulVec(kf.Φ, kf.prevEst.State())
@@ -117,17 +122,17 @@ func (kf *HybridKF) Update(realObservation, computedObservation *mat64.Vector) (
 		Hx.MulVec(kf.Htilde, &xBar) // Predicted measurement
 		innov.SubVec(&y, &Hx)       // Innovation vector
 		// XXX: Does not support scalar measurements.
-		xHat.MulVec(&Kkp1, &innov)
+		xHat.MulVec(&K, &innov)
 		xHat.AddVec(&xBar, &xHat)
 	}
 	var P, Ptmp1, IKH, KR, KRKt mat64.Dense
-	IKH.Mul(&Kkp1, kf.Htilde)
+	IKH.Mul(&K, kf.Htilde)
 	n, _ := IKH.Dims()
 	IKH.Sub(Identity(n), &IKH)
 	Ptmp1.Mul(&IKH, &PBar)
 	P.Mul(&Ptmp1, IKH.T())
-	KR.Mul(&Kkp1, kf.Noise.MeasurementMatrix())
-	KRKt.Mul(&KR, Kkp1.T())
+	KR.Mul(&K, kf.Noise.MeasurementMatrix())
+	KRKt.Mul(&KR, K.T())
 	P.Add(&P, &KRKt)
 
 	PBarSym, err := AsSymDense(&PBar)
@@ -139,7 +144,7 @@ func (kf *HybridKF) Update(realObservation, computedObservation *mat64.Vector) (
 	if err != nil {
 		return nil, err
 	}
-	est = &HybridKFEstimate{&xHat, realObservation, &innov, &y, PSym, PBarSym, &Kkp1}
+	est = &HybridKFEstimate{&xHat, realObservation, &innov, &y, PSym, PBarSym, &K}
 	kf.prevEst = *est
 	kf.step++
 	kf.locked = true

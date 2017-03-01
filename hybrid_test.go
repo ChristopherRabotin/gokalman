@@ -34,4 +34,9 @@ func TestHybridBasic(t *testing.T) {
 	if hkf.ekfMode == false || !hkf.EKFEnabled() {
 		t.Fatal("the KF is still in CKF mode after EKF switch")
 	}
+
+	hkf.DisableEKF()
+	if hkf.ekfMode == true || hkf.EKFEnabled() {
+		t.Fatal("the KF is still in EKF mode after CKF switch")
+	}
 }

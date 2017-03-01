@@ -124,12 +124,12 @@ func (kf *HybridKF) Update(realObservation, computedObservation *mat64.Vector) (
 	var y mat64.Vector
 	y.SubVec(realObservation, computedObservation)
 
-	var xBar mat64.Vector
 	var innov, xHat mat64.Vector
 	if kf.ekfMode {
 		xHat.MulVec(&K, &y)
 	} else {
 		// Prediction step.
+		var xBar mat64.Vector
 		xBar.MulVec(kf.Φ, kf.prevEst.State())
 		// Measurement update
 		var Hx mat64.Vector
@@ -161,6 +161,7 @@ func (kf *HybridKF) Update(realObservation, computedObservation *mat64.Vector) (
 	est = &HybridKFEstimate{&xHat, realObservation, &innov, &y, PSym, PBarSym, &K}
 	kf.prevEst = *est
 	kf.step++
+	kf.sncEnabled = false
 	kf.locked = true
 	return
 }

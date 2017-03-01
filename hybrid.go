@@ -30,17 +30,18 @@ func NewHybridKF(x0 *mat64.Vector, P0 mat64.Symmetric, noise Noise, measSize int
 	cr, _ := P0.Dims()
 	predCovar := mat64.NewSymDense(cr, nil)
 	est0 := HybridKFEstimate{x0, mat64.NewVector(measSize, nil), mat64.NewVector(measSize, nil), mat64.NewVector(measSize, nil), P0, predCovar, nil}
-	return &HybridKF{nil, nil, noise, est0, false, true, 0}, &est0, nil
+	return &HybridKF{nil, nil, nil, noise, est0, false, true, false, 0}, &est0, nil
 }
 
 // HybridKF defines a vanilla kalman filter. Use NewVanilla to initialize.
 type HybridKF struct {
-	Φ, Htilde *mat64.Dense
-	Noise     Noise
-	prevEst   HybridKFEstimate
-	ekfMode   bool // Allows switching between CKF and EKF
-	locked    bool // Locks the KF to ensure Prepare is called.
-	step      int
+	Φ, Htilde, Γ *mat64.Dense
+	Noise        Noise
+	prevEst      HybridKFEstimate
+	ekfMode      bool // Allows switching between CKF and EKF.
+	locked       bool // Locks the KF to ensure Prepare is called.
+	sncEnabled   bool // Stores whether we should enable or disable the state noise compensation.
+	step         int
 }
 
 // EKFEnabled returns whether the KF is in EKF mode.
@@ -79,6 +80,13 @@ func (kf *HybridKF) Prepare(Φ, Htilde *mat64.Dense) {
 	kf.locked = false
 }
 
+// PreparePNT prepares the process noise transition matrix and enabled the SNC
+// for the next update. WARNING: If not called, the SNC *will not* be included.
+func (kf *HybridKF) PreparePNT(Γ *mat64.Dense) {
+	kf.Γ = Γ
+	kf.sncEnabled = true
+}
+
 // Update implements the HybridKalmanFilter interface to compute an update.
 // Will return an error if the KF is locked (call Prepare to unlock)
 func (kf *HybridKF) Update(realObservation, computedObservation *mat64.Vector) (est *HybridKFEstimate, err error) {
@@ -94,7 +102,13 @@ func (kf *HybridKF) Update(realObservation, computedObservation *mat64.Vector) (
 	var PBar, ΦP mat64.Dense
 	ΦP.Mul(kf.Φ, kf.prevEst.Covariance())
 	PBar.Mul(&ΦP, kf.Φ.T())
-	//XXX: Item (may be: PBar.Add(&PBar, kf.Noise.ProcessMatrix()) ?)
+	if kf.sncEnabled {
+		// Add the process noise
+		var ΓQΓt, ΓQ mat64.Dense
+		ΓQ.Mul(kf.Γ, kf.Noise.ProcessMatrix())
+		ΓQΓt.Mul(&ΓQ, kf.Γ.T())
+		PBar.Add(&PBar, &ΓQΓt)
+	}
 
 	// Kalman gain
 	var PHt, HPHt, K mat64.Dense

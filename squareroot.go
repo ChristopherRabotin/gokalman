@@ -100,12 +100,12 @@ func (kf *SquareRoot) SetMeasurementMatrix(H mat64.Matrix) {
 func (kf *SquareRoot) SetNoise(n Noise) {
 	// Compute the Cholesky of Q and R only once when the noise is set.
 	var sqrtQchol mat64.Cholesky
-	sqrtQchol.Factorize(n.ProcessMatrix())
+	sqrtQchol.Factorize(n.ProcessMatrix().(mat64.Symmetric))
 	var sqrtQ mat64.TriDense
 	sqrtQ.LFromCholesky(&sqrtQchol)
 
 	var sqrtRchol mat64.Cholesky
-	sqrtRchol.Factorize(n.MeasurementMatrix())
+	sqrtRchol.Factorize(n.MeasurementMatrix().(mat64.Symmetric))
 	var sqrtR mat64.TriDense
 	sqrtR.LFromCholesky(&sqrtRchol)
 	kf.Noise = n
@@ -241,7 +241,7 @@ func (kf *SquareRoot) Update(measurement, control *mat64.Vector) (est Estimate, 
 	// Compute Kalman gain.
 	var SyyInv mat64.Dense
 	if invErr := SyyInv.Inverse(&Syy); err != nil {
-		return nil, fmt.Errorf("Syy is not invertible: %s\nSyy=%v", invErr, mat64.Formatted(&SyyInv, mat64.Prefix("    ")))
+		return nil, fmt.Errorf("matrix Syy is not invertible: %s\nSyy=%v", invErr, mat64.Formatted(&SyyInv, mat64.Prefix("    ")))
 	}
 	var Kkp1 mat64.Dense
 	if pMeas == 1 {

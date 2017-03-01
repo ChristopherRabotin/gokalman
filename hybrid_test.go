@@ -30,6 +30,12 @@ func TestHybridBasic(t *testing.T) {
 		t.Fatal("error should not have been nil when calling Update before Prepare")
 	}
 
+	// Check that calling Predict before "Prepare" returns an error
+	_, err = hkf.Predict()
+	if err == nil {
+		t.Fatal("error should not have been nil when calling Predict before Prepare")
+	}
+
 	hkf.EnableEKF()
 	if hkf.ekfMode == false || !hkf.EKFEnabled() {
 		t.Fatal("the KF is still in CKF mode after EKF switch")

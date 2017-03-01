@@ -30,7 +30,7 @@ func NewHybridKF(x0 *mat64.Vector, P0 mat64.Symmetric, noise Noise, measSize int
 	cr, _ := P0.Dims()
 	predCovar := mat64.NewSymDense(cr, nil)
 	est0 := HybridKFEstimate{x0, mat64.NewVector(measSize, nil), mat64.NewVector(measSize, nil), mat64.NewVector(measSize, nil), P0, predCovar, nil}
-	return &HybridKF{nil, nil, nil, noise, est0, false, true, false, 0}, &est0, nil
+	return &HybridKF{nil, nil, nil, noise, est0, false, true, false, measSize, 0}, &est0, nil
 }
 
 // HybridKF defines a vanilla kalman filter. Use NewVanilla to initialize.
@@ -41,6 +41,7 @@ type HybridKF struct {
 	ekfMode      bool // Allows switching between CKF and EKF.
 	locked       bool // Locks the KF to ensure Prepare is called.
 	sncEnabled   bool // Stores whether we should enable or disable the state noise compensation.
+	measSize     int  // Stores the measurement vector size, needed only for Predict()
 	step         int
 }
 
@@ -87,17 +88,28 @@ func (kf *HybridKF) PreparePNT(Γ *mat64.Dense) {
 	kf.sncEnabled = true
 }
 
-// Update implements the HybridKalmanFilter interface to compute an update.
-// Will return an error if the KF is locked (call Prepare to unlock)
+// Update computes a full time and measurement update.
+// Will return an error if the KF is locked (call Prepare to unlock).
 func (kf *HybridKF) Update(realObservation, computedObservation *mat64.Vector) (est *HybridKFEstimate, err error) {
+	return kf.fullUpdate(false, realObservation, computedObservation)
+}
+
+// Predict computes only the time update (or prediction).
+// Will return an error if the KF is locked (call Prepare to unlock).
+func (kf *HybridKF) Predict() (est *HybridKFEstimate, err error) {
+	return kf.fullUpdate(true, nil, nil)
+}
+
+// fullUpdate performs all the steps of an update and allows to stop right after the pure prediction (or time update) step.
+func (kf *HybridKF) fullUpdate(purePrediction bool, realObservation, computedObservation *mat64.Vector) (est *HybridKFEstimate, err error) {
 	if kf.locked {
 		return nil, errors.New("kf is locked (call Prepare() first)")
 	}
-	if err = checkMatDims(realObservation, computedObservation, "real observation", "computed observation", rowsAndcols); err != nil {
-		return nil, err
+	if !purePrediction {
+		if err = checkMatDims(realObservation, computedObservation, "real observation", "computed observation", rowsAndcols); err != nil {
+			return nil, err
+		}
 	}
-
-	// XXX: No future proofing so I'm not using the process noise just yet.
 	// PBar
 	var PBar, ΦP mat64.Dense
 	ΦP.Mul(kf.Φ, kf.prevEst.Covariance())
@@ -108,6 +120,26 @@ func (kf *HybridKF) Update(realObservation, computedObservation *mat64.Vector) (
 		ΓQ.Mul(kf.Γ, kf.Noise.ProcessMatrix())
 		ΓQΓt.Mul(&ΓQ, kf.Γ.T())
 		PBar.Add(&PBar, &ΓQΓt)
+	}
+
+	if purePrediction {
+		var xBar mat64.Vector
+		if !kf.ekfMode {
+			xBar.MulVec(kf.Φ, kf.prevEst.State())
+		} else {
+			xBar = *mat64.NewVector(6, nil)
+		}
+		// Time update completed.
+		PBarSym, symerr := AsSymDense(&PBar)
+		if symerr != nil {
+			return nil, symerr
+		}
+		est = &HybridKFEstimate{&xBar, mat64.NewVector(kf.measSize, nil), mat64.NewVector(kf.measSize, nil), mat64.NewVector(kf.measSize, nil), PBarSym, PBarSym, nil}
+		kf.prevEst = *est
+		kf.step++
+		kf.sncEnabled = false
+		kf.locked = true
+		return
 	}
 
 	// Kalman gain

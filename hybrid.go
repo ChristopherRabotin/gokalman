@@ -30,17 +30,19 @@ func NewHybridKF(x0 *mat64.Vector, P0 mat64.Symmetric, noise Noise, measSize int
 	cr, _ := P0.Dims()
 	predCovar := mat64.NewSymDense(cr, nil)
 	est0 := HybridKFEstimate{x0, mat64.NewVector(measSize, nil), mat64.NewVector(measSize, nil), mat64.NewVector(measSize, nil), P0, predCovar, nil}
-	return &HybridKF{nil, nil, noise, est0, false, true, 0}, &est0, nil
+	return &HybridKF{nil, nil, nil, noise, est0, false, true, false, measSize, 0}, &est0, nil
 }
 
 // HybridKF defines a vanilla kalman filter. Use NewVanilla to initialize.
 type HybridKF struct {
-	Φ, Htilde *mat64.Dense
-	Noise     Noise
-	prevEst   HybridKFEstimate
-	ekfMode   bool // Allows switching between CKF and EKF
-	locked    bool // Locks the KF to ensure Prepare is called.
-	step      int
+	Φ, Htilde, Γ *mat64.Dense
+	Noise        Noise
+	prevEst      HybridKFEstimate
+	ekfMode      bool // Allows switching between CKF and EKF.
+	locked       bool // Locks the KF to ensure Prepare is called.
+	sncEnabled   bool // Stores whether we should enable or disable the state noise compensation.
+	measSize     int  // Stores the measurement vector size, needed only for Predict()
+	step         int
 }
 
 // EKFEnabled returns whether the KF is in EKF mode.
@@ -51,6 +53,11 @@ func (kf *HybridKF) EKFEnabled() bool {
 // EnableEKF switches this to an EKF mode.
 func (kf *HybridKF) EnableEKF() {
 	kf.ekfMode = true
+}
+
+// DisableEKF switches this back to a CKF mode.
+func (kf *HybridKF) DisableEKF() {
+	kf.ekfMode = false
 }
 
 func (kf *HybridKF) String() string {
@@ -74,60 +81,104 @@ func (kf *HybridKF) Prepare(Φ, Htilde *mat64.Dense) {
 	kf.locked = false
 }
 
-// Update implements the HybridKalmanFilter interface to compute an update.
-// Will return an error if the KF is locked (call Prepare to unlock)
+// PreparePNT prepares the process noise transition matrix and enabled the SNC
+// for the next update. WARNING: If not called, the SNC *will not* be included.
+func (kf *HybridKF) PreparePNT(Γ *mat64.Dense) {
+	kf.Γ = Γ
+	kf.sncEnabled = true
+}
+
+// Update computes a full time and measurement update.
+// Will return an error if the KF is locked (call Prepare to unlock).
 func (kf *HybridKF) Update(realObservation, computedObservation *mat64.Vector) (est *HybridKFEstimate, err error) {
+	return kf.fullUpdate(false, realObservation, computedObservation)
+}
+
+// Predict computes only the time update (or prediction).
+// Will return an error if the KF is locked (call Prepare to unlock).
+func (kf *HybridKF) Predict() (est *HybridKFEstimate, err error) {
+	return kf.fullUpdate(true, nil, nil)
+}
+
+// fullUpdate performs all the steps of an update and allows to stop right after the pure prediction (or time update) step.
+func (kf *HybridKF) fullUpdate(purePrediction bool, realObservation, computedObservation *mat64.Vector) (est *HybridKFEstimate, err error) {
 	if kf.locked {
 		return nil, errors.New("kf is locked (call Prepare() first)")
 	}
-	if err = checkMatDims(realObservation, computedObservation, "real observation", "computed observation", rowsAndcols); err != nil {
-		return nil, err
+	if !purePrediction {
+		if err = checkMatDims(realObservation, computedObservation, "real observation", "computed observation", rowsAndcols); err != nil {
+			return nil, err
+		}
 	}
-
-	// XXX: No future proofing so I'm not using the process noise just yet.
 	// PBar
 	var PBar, ΦP mat64.Dense
 	ΦP.Mul(kf.Φ, kf.prevEst.Covariance())
 	PBar.Mul(&ΦP, kf.Φ.T())
-	//XXX: Item (may be: PBar.Add(&PBar, kf.Noise.ProcessMatrix()) ?)
+	if kf.sncEnabled {
+		// Add the process noise
+		var ΓQΓt, ΓQ mat64.Dense
+		ΓQ.Mul(kf.Γ, kf.Noise.ProcessMatrix())
+		ΓQΓt.Mul(&ΓQ, kf.Γ.T())
+		PBar.Add(&PBar, &ΓQΓt)
+	}
+
+	if purePrediction {
+		var xBar mat64.Vector
+		if !kf.ekfMode {
+			xBar.MulVec(kf.Φ, kf.prevEst.State())
+		} else {
+			xBar = *mat64.NewVector(6, nil)
+		}
+		// Time update completed.
+		PBarSym, symerr := AsSymDense(&PBar)
+		if symerr != nil {
+			return nil, symerr
+		}
+		est = &HybridKFEstimate{&xBar, mat64.NewVector(kf.measSize, nil), mat64.NewVector(kf.measSize, nil), mat64.NewVector(kf.measSize, nil), PBarSym, PBarSym, nil}
+		kf.prevEst = *est
+		kf.step++
+		kf.sncEnabled = false
+		kf.locked = true
+		return
+	}
 
 	// Kalman gain
-	var PHt, HPHt, Kkp1 mat64.Dense
+	var PHt, HPHt, K mat64.Dense
 	PHt.Mul(&PBar, kf.Htilde.T())
 	HPHt.Mul(kf.Htilde, &PHt)
 	HPHt.Add(&HPHt, kf.Noise.MeasurementMatrix())
 	if ierr := HPHt.Inverse(&HPHt); ierr != nil {
 		return nil, fmt.Errorf("could not invert `H*P_kp1_minus*H' + R` at k=%d: %s", kf.step, ierr)
 	}
-	Kkp1.Mul(&PHt, &HPHt)
+	K.Mul(&PHt, &HPHt)
 
 	// Compute observation deviation y
 	var y mat64.Vector
 	y.SubVec(realObservation, computedObservation)
 
-	var xBar mat64.Vector
 	var innov, xHat mat64.Vector
 	if kf.ekfMode {
-		xHat.MulVec(&Kkp1, &y)
+		xHat.MulVec(&K, &y)
 	} else {
 		// Prediction step.
+		var xBar mat64.Vector
 		xBar.MulVec(kf.Φ, kf.prevEst.State())
 		// Measurement update
 		var Hx mat64.Vector
 		Hx.MulVec(kf.Htilde, &xBar) // Predicted measurement
 		innov.SubVec(&y, &Hx)       // Innovation vector
 		// XXX: Does not support scalar measurements.
-		xHat.MulVec(&Kkp1, &innov)
+		xHat.MulVec(&K, &innov)
 		xHat.AddVec(&xBar, &xHat)
 	}
 	var P, Ptmp1, IKH, KR, KRKt mat64.Dense
-	IKH.Mul(&Kkp1, kf.Htilde)
+	IKH.Mul(&K, kf.Htilde)
 	n, _ := IKH.Dims()
 	IKH.Sub(Identity(n), &IKH)
 	Ptmp1.Mul(&IKH, &PBar)
 	P.Mul(&Ptmp1, IKH.T())
-	KR.Mul(&Kkp1, kf.Noise.MeasurementMatrix())
-	KRKt.Mul(&KR, Kkp1.T())
+	KR.Mul(&K, kf.Noise.MeasurementMatrix())
+	KRKt.Mul(&KR, K.T())
 	P.Add(&P, &KRKt)
 
 	PBarSym, err := AsSymDense(&PBar)
@@ -139,9 +190,10 @@ func (kf *HybridKF) Update(realObservation, computedObservation *mat64.Vector) (
 	if err != nil {
 		return nil, err
 	}
-	est = &HybridKFEstimate{&xHat, realObservation, &innov, &y, PSym, PBarSym, &Kkp1}
+	est = &HybridKFEstimate{&xHat, realObservation, &innov, &y, PSym, PBarSym, &K}
 	kf.prevEst = *est
 	kf.step++
+	kf.sncEnabled = false
 	kf.locked = true
 	return
 }

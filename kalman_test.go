@@ -14,4 +14,5 @@ func TestImplementsEst(t *testing.T) {
 	implements(VanillaEstimate{})
 	implements(InformationEstimate{})
 	implements(SquareRootEstimate{})
+	implements(HybridKFEstimate{})
 }

@@ -241,7 +241,7 @@ func (kf *SquareRoot) Update(measurement, control *mat64.Vector) (est Estimate, 
 	// Compute Kalman gain.
 	var SyyInv mat64.Dense
 	if invErr := SyyInv.Inverse(&Syy); err != nil {
-		return nil, fmt.Errorf("Syy is not invertible: %s\nSyy=%v", invErr, mat64.Formatted(&SyyInv, mat64.Prefix("    ")))
+		return nil, fmt.Errorf("matrix Syy is not invertible: %s\nSyy=%v", invErr, mat64.Formatted(&SyyInv, mat64.Prefix("    ")))
 	}
 	var Kkp1 mat64.Dense
 	if pMeas == 1 {

@@ -11,17 +11,17 @@ import (
 
 // Noise allows to handle the noise for a KF.
 type Noise interface {
-	Process(k int) *mat64.Vector     // Returns the process noise w at step k
-	Measurement(k int) *mat64.Vector // Returns the measurement noise w at step k
-	ProcessMatrix() mat64.Matrix     // Returns the process noise matrix Q
-	MeasurementMatrix() mat64.Matrix // Returns the measurement noise matrix R
-	Reset()                          // Reinitializes the noise
-	String() string                  // Stringer interface implementation
+	Process(k int) *mat64.Vector        // Returns the process noise w at step k
+	Measurement(k int) *mat64.Vector    // Returns the measurement noise w at step k
+	ProcessMatrix() mat64.Symmetric     // Returns the process noise matrix Q
+	MeasurementMatrix() mat64.Symmetric // Returns the measurement noise matrix R
+	Reset()                             // Reinitializes the noise
+	String() string                     // Stringer interface implementation
 }
 
 // Noiseless is noiseless and implements the Noise interface.
 type Noiseless struct {
-	Q, R                         mat64.Matrix
+	Q, R                         mat64.Symmetric
 	processSize, measurementSize int
 }
 
@@ -46,12 +46,12 @@ func (n Noiseless) Measurement(k int) *mat64.Vector {
 }
 
 // ProcessMatrix implements the Noise interface.
-func (n Noiseless) ProcessMatrix() mat64.Matrix {
+func (n Noiseless) ProcessMatrix() mat64.Symmetric {
 	return n.Q
 }
 
 // MeasurementMatrix implements the Noise interface.
-func (n Noiseless) MeasurementMatrix() mat64.Matrix {
+func (n Noiseless) MeasurementMatrix() mat64.Symmetric {
 	return n.R
 }
 
@@ -86,15 +86,15 @@ func (n BatchNoise) Measurement(k int) *mat64.Vector {
 }
 
 // ProcessMatrix implements the Noise interface.
-func (n BatchNoise) ProcessMatrix() mat64.Matrix {
-	rows, cols := n.process[0].Dims()
-	return mat64.NewDense(rows, cols, nil)
+func (n BatchNoise) ProcessMatrix() mat64.Symmetric {
+	rows, _ := n.process[0].Dims()
+	return mat64.NewSymDense(rows, nil)
 }
 
 // MeasurementMatrix implements the Noise interface.
-func (n BatchNoise) MeasurementMatrix() mat64.Matrix {
-	rows, cols := n.measurement[0].Dims()
-	return mat64.NewDense(rows, cols, nil)
+func (n BatchNoise) MeasurementMatrix() mat64.Symmetric {
+	rows, _ := n.measurement[0].Dims()
+	return mat64.NewSymDense(rows, nil)
 }
 
 // Reset does nothing for a BatchNoise signal.
@@ -120,12 +120,12 @@ func NewAWGN(Q, R mat64.Symmetric) *AWGN {
 }
 
 // ProcessMatrix implements the Noise interface.
-func (n *AWGN) ProcessMatrix() mat64.Matrix {
+func (n *AWGN) ProcessMatrix() mat64.Symmetric {
 	return n.Q
 }
 
 // MeasurementMatrix implements the Noise interface.
-func (n *AWGN) MeasurementMatrix() mat64.Matrix {
+func (n *AWGN) MeasurementMatrix() mat64.Symmetric {
 	return n.R
 }
 

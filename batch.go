@@ -1,10 +1,6 @@
 package gokalman
 
-import (
-	"fmt"
-
-	"github.com/gonum/matrix/mat64"
-)
+import "github.com/gonum/matrix/mat64"
 
 type measurementInfo struct {
 	realObs     *mat64.Vector
@@ -66,7 +62,6 @@ func (kf *BatchKF) SetNextMeasurement(realObs, computedObs *mat64.Vector, Φ, H 
 // Solve will solve the Batch Kalman filter once and return xHat0 and P0, or an error
 func (kf *BatchKF) Solve() (xHat0 *mat64.Vector, P0 *mat64.SymDense, err error) {
 	var Λinv mat64.Dense
-	fmt.Printf("%+v\n", mat64.Formatted(kf.Λ))
 	if err = Λinv.Inverse(kf.Λ); err != nil {
 		return nil, nil, err
 	}
@@ -80,9 +75,4 @@ func (kf *BatchKF) Solve() (xHat0 *mat64.Vector, P0 *mat64.SymDense, err error) 
 	xHat0 = mat64.NewVector(rΛ, nil)
 	xHat0.MulVec(P0, kf.N)
 	return xHat0, P0, nil
-}
-
-// Smooth runs the smoothing algorithm once.
-func (kf *BatchKF) Smooth() {
-	panic("not implemented")
 }

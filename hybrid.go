@@ -124,17 +124,17 @@ func (kf *HybridKF) fullUpdate(purePrediction bool, realObservation, computedObs
 
 	if purePrediction {
 		var xBar mat64.Vector
-		if !kf.ekfMode {
-			xBar.MulVec(kf.Φ, kf.prevEst.State())
-		} else {
+		if kf.ekfMode {
 			xBar = *mat64.NewVector(6, nil)
+		} else {
+			xBar.MulVec(kf.Φ, kf.prevEst.State())
 		}
 		// Time update completed.
 		PBarSym, symerr := AsSymDense(&PBar)
 		if symerr != nil {
 			return nil, symerr
 		}
-		est = &HybridKFEstimate{&xBar, mat64.NewVector(kf.measSize, nil), mat64.NewVector(kf.measSize, nil), mat64.NewVector(kf.measSize, nil), PBarSym, PBarSym, nil}
+		est = &HybridKFEstimate{&xBar, mat64.NewVector(kf.measSize, nil), mat64.NewVector(kf.measSize, nil), mat64.NewVector(kf.measSize, nil), PBarSym, PBarSym, mat64.NewDense(1, 1, nil)}
 		kf.prevEst = *est
 		kf.step++
 		kf.sncEnabled = false

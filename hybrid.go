@@ -190,7 +190,12 @@ func (kf *HybridKF) fullUpdate(purePrediction bool, realObservation, computedObs
 	if err != nil {
 		return nil, err
 	}
-	est = &HybridKFEstimate{kf.Φ, kf.Γ, &xHat, realObservation, &innov, &y, PSym, PBarSym, &K}
+	Φ := *mat64.DenseCopyOf(kf.Φ)
+	var Γ *mat64.Dense
+	if kf.Γ != nil {
+		Γ = mat64.DenseCopyOf(kf.Γ)
+	}
+	est = &HybridKFEstimate{&Φ, Γ, &xHat, realObservation, &innov, &y, PSym, PBarSym, &K}
 	kf.prevEst = *est
 	kf.step++
 	kf.sncEnabled = false

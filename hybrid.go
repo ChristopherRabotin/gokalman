@@ -29,7 +29,7 @@ func NewHybridKF(x0 *mat64.Vector, P0 mat64.Symmetric, noise Noise, measSize int
 	// Populate with the initial values.
 	cr, _ := P0.Dims()
 	predCovar := mat64.NewSymDense(cr, nil)
-	est0 := HybridKFEstimate{x0, mat64.NewVector(measSize, nil), mat64.NewVector(measSize, nil), mat64.NewVector(measSize, nil), P0, predCovar, nil}
+	est0 := HybridKFEstimate{nil, nil, x0, mat64.NewVector(measSize, nil), mat64.NewVector(measSize, nil), mat64.NewVector(measSize, nil), P0, predCovar, nil}
 	return &HybridKF{nil, nil, nil, noise, est0, false, true, false, measSize, 0}, &est0, nil
 }
 
@@ -134,7 +134,7 @@ func (kf *HybridKF) fullUpdate(purePrediction bool, realObservation, computedObs
 		if symerr != nil {
 			return nil, symerr
 		}
-		est = &HybridKFEstimate{&xBar, mat64.NewVector(kf.measSize, nil), mat64.NewVector(kf.measSize, nil), mat64.NewVector(kf.measSize, nil), PBarSym, PBarSym, mat64.NewDense(1, 1, nil)}
+		est = &HybridKFEstimate{kf.Φ, kf.Γ, &xBar, mat64.NewVector(kf.measSize, nil), mat64.NewVector(kf.measSize, nil), mat64.NewVector(kf.measSize, nil), PBarSym, PBarSym, mat64.NewDense(1, 1, nil)}
 		kf.prevEst = *est
 		kf.step++
 		kf.sncEnabled = false
@@ -190,7 +190,12 @@ func (kf *HybridKF) fullUpdate(purePrediction bool, realObservation, computedObs
 	if err != nil {
 		return nil, err
 	}
-	est = &HybridKFEstimate{&xHat, realObservation, &innov, &y, PSym, PBarSym, &K}
+	Φ := *mat64.DenseCopyOf(kf.Φ)
+	var Γ *mat64.Dense
+	if kf.Γ != nil {
+		Γ = mat64.DenseCopyOf(kf.Γ)
+	}
+	est = &HybridKFEstimate{&Φ, Γ, &xHat, realObservation, &innov, &y, PSym, PBarSym, &K}
 	kf.prevEst = *est
 	kf.step++
 	kf.sncEnabled = false
@@ -198,9 +203,44 @@ func (kf *HybridKF) fullUpdate(purePrediction bool, realObservation, computedObs
 	return
 }
 
+// SmoothAll will smooth all the previous estimates using the provided data. Returns the smoothed estimates.
+// Will return an error if there are more estimates than there should be.
+// WARNING: overwrites the provided array of estimates.
+func (kf *HybridKF) SmoothAll(estimates []*HybridKFEstimate) (err error) {
+	if len(estimates) != kf.step {
+		return errors.New("incorrect number of estimates provided")
+	}
+	l := len(estimates) - 1
+	for k := l - 1; k >= 0; k-- {
+		estimateKp1 := estimates[k+1]
+		if estimateKp1.Γ == nil {
+			// SNC was not enabled for this estimate.
+			var S, SP, SPSt mat64.Dense
+			if ierr := S.Inverse(estimateKp1.Φ); ierr != nil {
+				return errors.New("provided STM Φ is not invertible")
+			}
+			SP.Mul(&S, estimateKp1.Covariance())
+			SPSt.Mul(&SP, S.T())
+			var xHat mat64.Vector
+			xHat.MulVec(&S, estimateKp1.State())
+			Pkl, serr := AsSymDense(&SPSt)
+			if serr != nil {
+				err = serr
+				return
+			}
+			estimates[k].state = &xHat
+			estimates[k].covar = Pkl
+		} else {
+			panic("not yet implemented")
+		}
+	}
+	return
+}
+
 // HybridKFEstimate is the output of each update state of the Vanilla KF.
 // It implements the Estimate interface.
 type HybridKFEstimate struct {
+	Φ, Γ                     *mat64.Dense // Used for smoothing
 	state, meas, innov, Δobs *mat64.Vector
 	covar, predCovar         mat64.Symmetric
 	gain                     mat64.Matrix

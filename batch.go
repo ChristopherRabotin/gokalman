@@ -3,17 +3,18 @@ package gokalman
 import "github.com/gonum/matrix/mat64"
 
 type measurementInfo struct {
-	realObs     *mat64.Vector
-	computedObs *mat64.Vector
-	Φ, H        *mat64.Dense
+	RealObs        *mat64.Vector
+	ComputedObs    *mat64.Vector
+	ObservationDev *mat64.Vector
+	Φ, H           *mat64.Dense
 }
 
 // BatchKF defines a vanilla kalman filter. Use NewVanilla to initialize.
 type BatchKF struct {
 	Λ            *mat64.Dense
 	N            *mat64.Vector
+	Measurements []measurementInfo
 	noise        Noise
-	measurements []measurementInfo
 	locked       bool // Locks the KF to prevent adding more measurements when iterating
 	step         int
 }
@@ -33,7 +34,7 @@ type BatchKF struct {
 func NewBatchKF(numMeasurements int, noise Noise) *BatchKF {
 	meas := make([]measurementInfo, numMeasurements)
 	// Note that we will create the Λ matrix and N vector on the first call to SetNextMeasurement.
-	return &BatchKF{nil, nil, noise, meas, false, 0}
+	return &BatchKF{nil, nil, meas, noise, false, 0}
 }
 
 // SetNextMeasurement sets the next sequential measurement to the list of measurements to be taken into account for the filter.
@@ -44,8 +45,6 @@ func (kf *BatchKF) SetNextMeasurement(realObs, computedObs *mat64.Vector, Φ, H 
 		kf.N = mat64.NewVector(cH, nil)
 		kf.Λ = mat64.NewDense(cH, cH, nil)
 	}
-	// Store the measurement
-	kf.measurements[kf.step] = measurementInfo{realObs, computedObs, Φ, H}
 	// And compute the current Λ and N.
 	var HtR, HtRH mat64.Dense
 	HtR.Mul(H.T(), kf.noise.MeasurementMatrix())
@@ -54,6 +53,8 @@ func (kf *BatchKF) SetNextMeasurement(realObs, computedObs *mat64.Vector, Φ, H 
 	// Compute observation deviation y
 	var y, HtRY mat64.Vector
 	y.SubVec(realObs, computedObs)
+	// Store the measurement
+	kf.Measurements[kf.step] = measurementInfo{realObs, computedObs, &y, Φ, H}
 	HtRY.MulVec(&HtR, &y)
 	kf.N.AddVec(kf.N, &HtRY)
 	kf.step++

@@ -235,25 +235,6 @@ func (kf *HybridKF) SmoothAll(estimates []*HybridKFEstimate) (err error) {
 		}
 	}
 	return
-	/*
-		// If there was SNC, the formulas a bit more complicated.
-		// Γ
-		// Φ
-		var S, S1, PΦt, ΦPΦt, ΓQ, ΓQΓt, ΔP, SP, SPSt mat64.Dense
-		ΓQ.Mul(estimateK.Γ, kf.Noise.ProcessMatrix())
-		ΓQΓt.Mul(&ΓQ, estimateK.Γ.T())
-		PΦt.Mul(estimateK.Covariance(), estimateK.Φ.T())
-		ΦPΦt.Mul(estimateK.Φ, &PΦt)
-		ΦPΦt.Add(&ΦPΦt, &ΓQΓt)
-		if ierr := S1.Inverse(&ΦPΦt); ierr != nil {
-			return nil, errors.New("could not invert (ΦPΦt + ΓQΓt)")
-		}
-		S.Mul(&PΦt, &S1)
-		ΔP.Sub(kf.prevEst.Covariance(), estimateK.Covariance())
-		SP.Mul(&S, &ΔP)
-		SPSt.Mul(&SP, S.T())
-		//P.Add(a, b)
-	*/
 }
 
 // HybridKFEstimate is the output of each update state of the Vanilla KF.

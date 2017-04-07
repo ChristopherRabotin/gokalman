@@ -14,7 +14,7 @@ func VanLoan(A, Γ, W *mat64.Dense, Δt float64) (*mat64.Dense, *mat64.SymDense,
 	var err error
 	// Check aliasing
 	λ := mat64.Eigen{}
-	λ.Factorize(A, false)
+	λ.Factorize(A, false, false)
 	λmaxImag := -math.MaxFloat64
 	var λmax complex128
 	for _, λ := range λ.Values(nil) {

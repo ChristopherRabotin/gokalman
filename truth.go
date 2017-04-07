@@ -21,7 +21,7 @@ func (t *BatchGroundTruth) Error(k int, est Estimate) Estimate {
 func (t *BatchGroundTruth) ErrorWithOffset(k int, est Estimate, offset *mat64.Vector) Estimate {
 	esR, _ := est.State().Dims()
 	estState := mat64.NewVector(esR, nil)
-	if k > 0 {
+	if k >= 0 {
 		estState.CopyVec(est.State())
 		if offset != nil {
 			estState.AddVec(estState, offset)
@@ -39,7 +39,7 @@ func (t *BatchGroundTruth) ErrorWithOffset(k int, est Estimate, offset *mat64.Ve
 
 	emR, _ := est.Measurement().Dims()
 	estMeas := mat64.NewVector(emR, nil)
-	if k > 0 {
+	if k >= 0 {
 		estMeas.CopyVec(est.Measurement())
 		trueMeas := mat64.NewVector(esR, nil)
 		if t.states != nil {

@@ -106,13 +106,7 @@ func TestCheckDims(t *testing.T) {
 }
 
 func TestHouseholderTransf(t *testing.T) {
-	R := mat64.NewDense(3, 3, []float64{2, 0, 0, 0, 3, 0, 0, 0, 4})
-	H := mat64.NewDense(2, 3, []float64{5, 6, 7, 8, 9, 0})
-	b := mat64.NewVector(3, []float64{5, 9, 7})
-	y := mat64.NewVector(2, []float64{3, 7})
-	A, err := HouseholderSRIF(R, H, b, y)
-	if err != nil {
-		t.Fatalf("failed: %s", err)
-	}
+	A := mat64.NewDense(3, 3, []float64{1, -2, -1, 2, -1, 1, 1, 1, 2})
+	HouseholderTransf(A, 2, 1)
 	fmt.Printf("%+v\n", mat64.Formatted(A))
 }

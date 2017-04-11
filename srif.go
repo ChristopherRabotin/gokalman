@@ -254,3 +254,34 @@ func (e SRIFEstimate) String() string {
 func NewSRIFEstimate(Φ *mat64.Dense, sqinfoState, meas, innov, Δobs *mat64.Vector, R0, predR0 *mat64.Dense) SRIFEstimate {
 	return SRIFEstimate{Φ, sqinfoState, meas, innov, Δobs, nil, R0, predR0, nil, nil}
 }
+
+// HouseholderSRIF prepare the matrix and performs the Householder transformation.
+func HouseholderSRIF(R, H *mat64.Dense, b, y *mat64.Vector) (*mat64.Dense, error) {
+	if err := checkMatDims(R, H, "R", "H", cols2cols); err != nil {
+		return nil, err
+	}
+	if err := checkMatDims(R, b, "R", "b", rows2rows); err != nil {
+		return nil, err
+	}
+	if err := checkMatDims(H, y, "H", "y", rows2rows); err != nil {
+		return nil, err
+	}
+	n, _ := b.Dims()
+	m, _ := y.Dims()
+	A0 := mat64.NewDense(m+n, n, nil)
+	A0.Stack(R, H)
+	col := mat64.NewVector(m+n, nil)
+	for i := 0; i < m+n; i++ {
+		if i < n {
+			col.SetVec(i, b.At(i, 0))
+		} else {
+			col.SetVec(i, y.At(i-n, 0))
+		}
+	}
+	A := mat64.NewDense(m+n, n+1, nil)
+	A.Augment(A0, col)
+
+	HouseholderTransf(A, n, m)
+
+	return A, nil
+}

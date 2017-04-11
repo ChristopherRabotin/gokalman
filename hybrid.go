@@ -33,7 +33,7 @@ func NewHybridKF(x0 *mat64.Vector, P0 mat64.Symmetric, noise Noise, measSize int
 	return &HybridKF{nil, nil, nil, noise, est0, false, true, false, measSize, 0}, &est0, nil
 }
 
-// HybridKF defines a vanilla kalman filter. Use NewVanilla to initialize.
+// HybridKF defines a hybrid kalman filter for non-linear dynamical systems. Use NewHybridKF to initialize.
 type HybridKF struct {
 	Φ, Htilde, Γ *mat64.Dense
 	Noise        Noise

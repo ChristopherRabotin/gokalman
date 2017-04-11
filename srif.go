@@ -10,7 +10,7 @@ import (
 // NewSquareRootInformation returns a new Square Root Information Filter.
 // It uses the algorithms from "Statistical Orbit determination" by Tapley, Schutz & Born.
 // It also uses the Householder algorithm.
-func NewSquareRootInformation(x0 *mat64.Vector, P0 mat64.Symmetric, noise Noise) (*SquareRoot, *SRIFEstimate, error) {
+func NewSquareRootInformation(x0 *mat64.Vector, P0 mat64.Symmetric, noise Noise, measSize int) (*SRIF, *SRIFEstimate, error) {
 	// Check the dimensions of each matrix to avoid errors.
 	if err := checkMatDims(x0, P0, "x0", "P0", rows2cols); err != nil {
 		return nil, nil, err
@@ -28,17 +28,25 @@ func NewSquareRootInformation(x0 *mat64.Vector, P0 mat64.Symmetric, noise Noise)
 	R0chol.Factorize(I0)
 	var R0tri mat64.TriDense
 	R0tri.LFromCholesky(&R0chol)
-	var R0 mat64.Dense
-	R0.Clone(&R0tri)
-	stdr, stdc := R0.Dims()
+	var R0dense mat64.Dense
+	R0dense.Clone(&R0tri)
+	R0, _ := AsSymDense(&R0dense)
+
+	b0 := mat64.NewVector(r, nil)
+	b0.MulVec(&R0dense, x0)
 
 	// Populate with the initial values.
-	rowsH, _ := H.Dims()
-	est0 := NewSqrtEstimate(x0, mat64.NewVector(rowsH, nil), mat64.NewVector(rowsH, nil), &R0, mat64.NewDense(stdr, stdc, nil), nil)
-	// Return the state and estimate to the SquareRoot structure.
-	sqrt := SquareRoot{F, G, H, nil, nil, nil, !IsNil(G), est0, est0, 0}
-	sqrt.SetNoise(noise) // Computes the Cholesky decompositions of the noise.
-	return &sqrt, &est0, nil
+	est0 := NewSRIFEstimate(nil, nil, b0, nil, nil, nil, R0, R0)
+	return &SRIF{nil, nil, nil, est0, true, measSize, 0}, &est0, nil
+}
+
+// SRIF defines a square root information filter for non-linear dynamical systems. Use NewSquareRootInformation to initialize.
+type SRIF struct {
+	Φ, Htilde, Γ *mat64.Dense
+	prevEst      SRIFEstimate
+	locked       bool // Locks the KF to ensure Prepare is called.
+	measSize     int  // Stores the measurement vector size, needed only for Predict()
+	step         int
 }
 
 // SRIFEstimate is the output of each update state of the Vanilla KF.

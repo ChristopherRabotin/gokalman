@@ -3,6 +3,7 @@ package gokalman
 import (
 	"errors"
 	"fmt"
+	"math"
 
 	"github.com/gonum/floats"
 	"github.com/gonum/matrix/mat64"
@@ -126,4 +127,82 @@ func checkMatDims(m1, m2 mat64.Matrix, name1, name2 string, method DimensionAgre
 		break
 	}
 	return nil
+}
+
+// Sign returns the sign of a given number.
+func Sign(v float64) float64 {
+	if floats.EqualWithinAbs(v, 0, 1e-12) {
+		return 1
+	}
+	return v / math.Abs(v)
+}
+
+// HouseholderSRIF prepare the matrix and performs the Householder transformation.
+func HouseholderSRIF(R, H *mat64.Dense, b, y *mat64.Vector) (*mat64.Dense, error) {
+	if err := checkMatDims(R, H, "R", "H", cols2cols); err != nil {
+		return nil, err
+	}
+	if err := checkMatDims(R, b, "R", "b", rows2rows); err != nil {
+		return nil, err
+	}
+	if err := checkMatDims(H, y, "H", "y", rows2rows); err != nil {
+		return nil, err
+	}
+	n, _ := b.Dims()
+	m, _ := y.Dims()
+	A0 := mat64.NewDense(m+n, n, nil)
+	A0.Stack(R, H)
+	col := mat64.NewVector(m+n, nil)
+	for i := 0; i < m+n; i++ {
+		if i < n {
+			col.SetVec(i, b.At(i, 0))
+		} else {
+			col.SetVec(i, y.At(i-n, 0))
+		}
+	}
+	A := mat64.NewDense(m+n, n+1, nil)
+	A.Augment(A0, col)
+
+	HouseholderTransf(A, n, m)
+
+	return A, nil
+}
+
+// HouseholderTransf performs the Householder transformation of the given A matrix.
+// Changes are done directly in the provided matrix.
+func HouseholderTransf(A *mat64.Dense, n, m int) {
+	// TODO: Check indexing!
+	for k := 0; k < n; k++ {
+		//sigma := sign(A.At(k, k))
+		sigma := 0.0
+		for i := 0; i < m+n; i++ {
+			sigma += math.Pow(A.At(i, k), 2)
+		}
+		sigma = math.Sqrt(sigma) * Sign(A.At(k, k))
+		uk := A.At(k, k) + sigma
+		A.Set(k, k, -sigma)
+		u := make([]float64, m+n-k-1)
+		for i := k + 1; i < m+n; i++ {
+			u[i-k-1] = A.At(i, k)
+		}
+		beta := 1 / (sigma * uk)
+
+		for j := k + 1; j < n+1; j++ {
+			gamma := 0.0
+			for i := k; i < m+n; i++ {
+				// Should I simply replace u[i] with A.At(i, k) ? Also seems like there won't be enough u[i]s.
+				//gamma += u[i] * A.At(i, j)
+				gamma += A.At(i, k) * A.At(i, j)
+			}
+			gamma *= beta
+			for i := k; i < m+n; i++ {
+				A.Set(i, j, A.At(i, j)-gamma*A.At(i, k))
+			}
+			// Next j?!
+			for i := k + 1; i < m+n; i++ {
+				A.Set(i, k, 0)
+			}
+		}
+
+	}
 }

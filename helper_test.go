@@ -1,6 +1,7 @@
 package gokalman
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/gonum/matrix/mat64"
@@ -102,4 +103,16 @@ func TestCheckDims(t *testing.T) {
 			t.Fatalf("method %+v does not error when using i22 and i33 ", meth)
 		}
 	}
+}
+
+func TestHouseholderTransf(t *testing.T) {
+	R := mat64.NewDense(3, 3, []float64{2, 0, 0, 0, 3, 0, 0, 0, 4})
+	H := mat64.NewDense(2, 3, []float64{5, 6, 7, 8, 9, 0})
+	b := mat64.NewVector(3, []float64{5, 9, 7})
+	y := mat64.NewVector(2, []float64{3, 7})
+	A, err := HouseholderSRIF(R, H, b, y)
+	if err != nil {
+		t.Fatalf("failed: %s", err)
+	}
+	fmt.Printf("%+v\n", mat64.Formatted(A))
 }

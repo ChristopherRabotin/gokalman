@@ -10,8 +10,8 @@ import (
 
 // NewSquareRootInformation returns a new Square Root Information Filter.
 // It uses the algorithms from "Statistical Orbit determination" by Tapley, Schutz & Born.
-// It also uses the Householder algorithm.
-func NewSquareRootInformation(x0 *mat64.Vector, P0 mat64.Symmetric, measSize int) (*SRIF, *SRIFEstimate, error) {
+// Set upperTriangular to `false` to use the lower triangular of the Cholesky decomposition instead of the upper.
+func NewSquareRootInformation(x0 *mat64.Vector, P0 mat64.Symmetric, measSize int, upperTriangular bool) (*SRIF, *SRIFEstimate, error) {
 	// Check the dimensions of each matrix to avoid errors.
 	if err := checkMatDims(x0, P0, "x0", "P0", rows2cols); err != nil {
 		return nil, nil, err
@@ -28,7 +28,11 @@ func NewSquareRootInformation(x0 *mat64.Vector, P0 mat64.Symmetric, measSize int
 	var R0chol mat64.Cholesky
 	R0chol.Factorize(I0)
 	var R0tri mat64.TriDense
-	R0tri.LFromCholesky(&R0chol)
+	if upperTriangular {
+		R0tri.UFromCholesky(&R0chol)
+	} else {
+		R0tri.LFromCholesky(&R0chol)
+	}
 	var R0 mat64.Dense
 	R0.Clone(&R0tri)
 	b0 := mat64.NewVector(r, nil)
@@ -94,57 +98,58 @@ func (kf *SRIF) fullUpdate(purePrediction bool, realObservation, computedObserva
 		kf.locked = true
 		return
 	}
+	/*
+		// Kalman gain
+		var PHt, HPHt, K mat64.Dense
+		PHt.Mul(&PBar, kf.Htilde.T())
+		HPHt.Mul(kf.Htilde, &PHt)
+		if ierr := HPHt.Inverse(&HPHt); ierr != nil {
+			return nil, fmt.Errorf("could not invert `H*P_kp1_minus*H' + R` at k=%d: %s", kf.step, ierr)
+		}
+		K.Mul(&PHt, &HPHt)
 
-	// Kalman gain
-	var PHt, HPHt, K mat64.Dense
-	PHt.Mul(&PBar, kf.Htilde.T())
-	HPHt.Mul(kf.Htilde, &PHt)
-	if ierr := HPHt.Inverse(&HPHt); ierr != nil {
-		return nil, fmt.Errorf("could not invert `H*P_kp1_minus*H' + R` at k=%d: %s", kf.step, ierr)
-	}
-	K.Mul(&PHt, &HPHt)
+		// Compute observation deviation y
+		var y mat64.Vector
+		y.SubVec(realObservation, computedObservation)
 
-	// Compute observation deviation y
-	var y mat64.Vector
-	y.SubVec(realObservation, computedObservation)
+		var innov, xHat mat64.Vector
 
-	var innov, xHat mat64.Vector
+		// Prediction step.
+		var xBar mat64.Vector
+		xBar.MulVec(kf.Φ, kf.prevEst.State())
+		// Measurement update
+		var Hx mat64.Vector
+		Hx.MulVec(kf.Htilde, &xBar) // Predicted measurement
+		innov.SubVec(&y, &Hx)       // Innovation vector
+		// XXX: Does not support scalar measurements.
+		xHat.MulVec(&K, &innov)
+		xHat.AddVec(&xBar, &xHat)
 
-	// Prediction step.
-	var xBar mat64.Vector
-	xBar.MulVec(kf.Φ, kf.prevEst.State())
-	// Measurement update
-	var Hx mat64.Vector
-	Hx.MulVec(kf.Htilde, &xBar) // Predicted measurement
-	innov.SubVec(&y, &Hx)       // Innovation vector
-	// XXX: Does not support scalar measurements.
-	xHat.MulVec(&K, &innov)
-	xHat.AddVec(&xBar, &xHat)
+		var P, Ptmp1, IKH, KR, KRKt mat64.Dense
+		IKH.Mul(&K, kf.Htilde)
+		n, _ := IKH.Dims()
+		IKH.Sub(Identity(n), &IKH)
+		Ptmp1.Mul(&IKH, &PBar)
+		P.Mul(&Ptmp1, IKH.T())
+		KRKt.Mul(&KR, K.T())
+		P.Add(&P, &KRKt)
 
-	var P, Ptmp1, IKH, KR, KRKt mat64.Dense
-	IKH.Mul(&K, kf.Htilde)
-	n, _ := IKH.Dims()
-	IKH.Sub(Identity(n), &IKH)
-	Ptmp1.Mul(&IKH, &PBar)
-	P.Mul(&Ptmp1, IKH.T())
-	KRKt.Mul(&KR, K.T())
-	P.Add(&P, &KRKt)
+		PBarSym, err := AsSymDense(&PBar)
+		if err != nil {
+			return nil, err
+		}
 
-	PBarSym, err := AsSymDense(&PBar)
-	if err != nil {
-		return nil, err
-	}
-
-	PSym, err := AsSymDense(&P)
-	if err != nil {
-		return nil, err
-	}
-	Φ := *mat64.DenseCopyOf(kf.Φ)
-	var Γ *mat64.Dense
-	est = NewSRIFEstimate(Φ, xHat, &y, innov, realObservation, R0, predR0)
-	kf.prevEst = *est
-	kf.step++
-	kf.locked = true
+		PSym, err := AsSymDense(&P)
+		if err != nil {
+			return nil, err
+		}
+		Φ := *mat64.DenseCopyOf(kf.Φ)
+		var Γ *mat64.Dense
+		est = NewSRIFEstimate(Φ, xHat, &y, innov, realObservation, R0, predR0)
+		kf.prevEst = *est
+		kf.step++
+		kf.locked = true
+	*/
 	return
 }
 
@@ -154,7 +159,7 @@ type SRIFEstimate struct {
 	Φ                            *mat64.Dense // Used for smoothing
 	sqinfoState, meas            *mat64.Vector
 	innov, Δobs, cachedState     *mat64.Vector
-	matR0, predMatR0             mat64.Symmetric
+	matR0, predMatR0             *mat64.Dense
 	cachedCovar, predCachedCovar mat64.Symmetric
 }
 

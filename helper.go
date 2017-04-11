@@ -141,19 +141,20 @@ func Sign(v float64) float64 {
 // Changes are done directly in the provided matrix.
 func HouseholderTransf(A *mat64.Dense, n, m int) {
 	for k := 0; k < n; k++ {
-		fmt.Printf("[%d]\n%+v\n\n", k, mat64.Formatted(A))
+		fmt.Printf("\n\n[%d]\n%+v\n", k, mat64.Formatted(A))
 		sigma := 0.0
 		for i := k; i < m+n; i++ {
 			sigma += math.Pow(A.At(i, k), 2)
 		}
 		sigma = math.Sqrt(sigma) * Sign(A.At(k, k))
 		fmt.Printf("sigma = %f\n", sigma)
-		u := make([]float64, m+n-k)
+		u := make([]float64, m+n-k+1)
 		u[k] = A.At(k, k) + sigma
+		fmt.Printf("u[%d] = A(%d,%d) = %f\n", k, k, k, u[k])
 		A.Set(k, k, -sigma)
 		for i := k + 1; i < m+n; i++ {
-			//u[i-k] = A.At(i, k)
-			u[i-k] = A.At(i, k)
+			u[i] = A.At(i, k)
+			fmt.Printf("u[%d] = A(%d,%d) = %f\n", i, i, k, u[i])
 		}
 		fmt.Printf("u = %+v\n", u)
 		beta := 1 / (sigma * u[k])

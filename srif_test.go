@@ -7,10 +7,9 @@ import (
 )
 
 func TestSRIFR0(t *testing.T) {
-	noise := Noiseless{}
 	x0 := mat64.NewVector(3, []float64{0, 0.35, 0})
 	P0 := ScaledIdentity(3, 10)
-	_, est0, err := NewSquareRootInformation(x0, P0, noise, 3)
+	_, est0, err := NewSquareRootInformation(x0, P0, 3)
 	if err != nil {
 		t.Fatal(err)
 	}

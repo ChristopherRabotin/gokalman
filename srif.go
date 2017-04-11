@@ -1,6 +1,7 @@
 package gokalman
 
 import (
+	"errors"
 	"fmt"
 	"math"
 
@@ -10,7 +11,7 @@ import (
 // NewSquareRootInformation returns a new Square Root Information Filter.
 // It uses the algorithms from "Statistical Orbit determination" by Tapley, Schutz & Born.
 // It also uses the Householder algorithm.
-func NewSquareRootInformation(x0 *mat64.Vector, P0 mat64.Symmetric, noise Noise, measSize int) (*SRIF, *SRIFEstimate, error) {
+func NewSquareRootInformation(x0 *mat64.Vector, P0 mat64.Symmetric, measSize int) (*SRIF, *SRIFEstimate, error) {
 	// Check the dimensions of each matrix to avoid errors.
 	if err := checkMatDims(x0, P0, "x0", "P0", rows2cols); err != nil {
 		return nil, nil, err
@@ -28,31 +29,129 @@ func NewSquareRootInformation(x0 *mat64.Vector, P0 mat64.Symmetric, noise Noise,
 	R0chol.Factorize(I0)
 	var R0tri mat64.TriDense
 	R0tri.LFromCholesky(&R0chol)
-	var R0dense mat64.Dense
-	R0dense.Clone(&R0tri)
-	R0, _ := AsSymDense(&R0dense)
-
+	var R0 mat64.Dense
+	R0.Clone(&R0tri)
 	b0 := mat64.NewVector(r, nil)
-	b0.MulVec(&R0dense, x0)
+	b0.MulVec(&R0, x0)
 
 	// Populate with the initial values.
-	est0 := NewSRIFEstimate(nil, nil, b0, nil, nil, nil, R0, R0)
-	return &SRIF{nil, nil, nil, est0, true, measSize, 0}, &est0, nil
+	est0 := NewSRIFEstimate(nil, b0, nil, nil, nil, &R0, &R0)
+	return &SRIF{nil, nil, est0, true, measSize, 0}, &est0, nil
 }
 
 // SRIF defines a square root information filter for non-linear dynamical systems. Use NewSquareRootInformation to initialize.
 type SRIF struct {
-	Φ, Htilde, Γ *mat64.Dense
-	prevEst      SRIFEstimate
-	locked       bool // Locks the KF to ensure Prepare is called.
-	measSize     int  // Stores the measurement vector size, needed only for Predict()
-	step         int
+	Φ, Htilde *mat64.Dense
+	prevEst   SRIFEstimate
+	locked    bool // Locks the KF to ensure Prepare is called.
+	measSize  int  // Stores the measurement vector size, needed only for Predict()
+	step      int
+}
+
+// Prepare unlocks the KF ready for the next Update call.
+func (kf *SRIF) Prepare(Φ, Htilde *mat64.Dense) {
+	kf.Φ = Φ
+	kf.Htilde = Htilde
+	kf.locked = false
+}
+
+// Update computes a full time and measurement update.
+// Will return an error if the KF is locked (call Prepare to unlock).
+func (kf *SRIF) Update(realObservation, computedObservation *mat64.Vector) (est *SRIFEstimate, err error) {
+	return kf.fullUpdate(false, realObservation, computedObservation)
+}
+
+// Predict computes only the time update (or prediction).
+// Will return an error if the KF is locked (call Prepare to unlock).
+func (kf *SRIF) Predict() (est *SRIFEstimate, err error) {
+	return kf.fullUpdate(true, nil, nil)
+}
+
+// fullUpdate performs all the steps of an update and allows to stop right after the pure prediction (or time update) step.
+func (kf *SRIF) fullUpdate(purePrediction bool, realObservation, computedObservation *mat64.Vector) (est *SRIFEstimate, err error) {
+	if kf.locked {
+		return nil, errors.New("kf is locked (call Prepare() first)")
+	}
+	if !purePrediction {
+		if err = checkMatDims(realObservation, computedObservation, "real observation", "computed observation", rowsAndcols); err != nil {
+			return nil, err
+		}
+	}
+	// RBar
+	var RBar, invΦ mat64.Dense
+	if ierr := invΦ.Inverse(kf.Φ); ierr != nil {
+		return nil, fmt.Errorf("could not invert `Φ` at k=%d: %s", kf.step, ierr)
+	}
+	RBar.Mul(kf.prevEst.matR0, &invΦ)
+
+	var xBar, bBar mat64.Vector
+	xBar.MulVec(kf.Φ, kf.prevEst.State())
+	bBar.MulVec(&RBar, &xBar)
+
+	if purePrediction {
+		kf.prevEst = NewSRIFEstimate(kf.Φ, &bBar, mat64.NewVector(kf.measSize, nil), mat64.NewVector(kf.measSize, nil), mat64.NewVector(kf.measSize, nil), &RBar, &RBar)
+		kf.step++
+		kf.locked = true
+		return
+	}
+
+	// Kalman gain
+	var PHt, HPHt, K mat64.Dense
+	PHt.Mul(&PBar, kf.Htilde.T())
+	HPHt.Mul(kf.Htilde, &PHt)
+	if ierr := HPHt.Inverse(&HPHt); ierr != nil {
+		return nil, fmt.Errorf("could not invert `H*P_kp1_minus*H' + R` at k=%d: %s", kf.step, ierr)
+	}
+	K.Mul(&PHt, &HPHt)
+
+	// Compute observation deviation y
+	var y mat64.Vector
+	y.SubVec(realObservation, computedObservation)
+
+	var innov, xHat mat64.Vector
+
+	// Prediction step.
+	var xBar mat64.Vector
+	xBar.MulVec(kf.Φ, kf.prevEst.State())
+	// Measurement update
+	var Hx mat64.Vector
+	Hx.MulVec(kf.Htilde, &xBar) // Predicted measurement
+	innov.SubVec(&y, &Hx)       // Innovation vector
+	// XXX: Does not support scalar measurements.
+	xHat.MulVec(&K, &innov)
+	xHat.AddVec(&xBar, &xHat)
+
+	var P, Ptmp1, IKH, KR, KRKt mat64.Dense
+	IKH.Mul(&K, kf.Htilde)
+	n, _ := IKH.Dims()
+	IKH.Sub(Identity(n), &IKH)
+	Ptmp1.Mul(&IKH, &PBar)
+	P.Mul(&Ptmp1, IKH.T())
+	KRKt.Mul(&KR, K.T())
+	P.Add(&P, &KRKt)
+
+	PBarSym, err := AsSymDense(&PBar)
+	if err != nil {
+		return nil, err
+	}
+
+	PSym, err := AsSymDense(&P)
+	if err != nil {
+		return nil, err
+	}
+	Φ := *mat64.DenseCopyOf(kf.Φ)
+	var Γ *mat64.Dense
+	est = NewSRIFEstimate(Φ, xHat, &y, innov, realObservation, R0, predR0)
+	kf.prevEst = *est
+	kf.step++
+	kf.locked = true
+	return
 }
 
 // SRIFEstimate is the output of each update state of the Vanilla KF.
 // It implements the Estimate interface.
 type SRIFEstimate struct {
-	Φ, Γ                         *mat64.Dense // Used for smoothing
+	Φ                            *mat64.Dense // Used for smoothing
 	sqinfoState, meas            *mat64.Vector
 	innov, Δobs, cachedState     *mat64.Vector
 	matR0, predMatR0             mat64.Symmetric
@@ -146,6 +245,7 @@ func (e SRIFEstimate) String() string {
 }
 
 // NewSRIFEstimate initializes a new SRIFEstimate.
-func NewSRIFEstimate(Φ, Γ *mat64.Dense, sqinfoState, meas, innov, Δobs *mat64.Vector, R0, predR0 mat64.Symmetric) SRIFEstimate {
-	return SRIFEstimate{Φ, Γ, sqinfoState, meas, innov, Δobs, nil, R0, predR0, nil, nil}
+// NOTE: R0 and predR0 are mat64.Dense for simplicity of implementation, but they should be symmetric.
+func NewSRIFEstimate(Φ *mat64.Dense, sqinfoState, meas, innov, Δobs *mat64.Vector, R0, predR0 *mat64.Dense) SRIFEstimate {
+	return SRIFEstimate{Φ, sqinfoState, meas, innov, Δobs, nil, R0, predR0, nil, nil}
 }

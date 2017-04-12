@@ -3,6 +3,7 @@ package gokalman
 import (
 	"errors"
 	"fmt"
+	"math"
 
 	"github.com/gonum/floats"
 	"github.com/gonum/matrix/mat64"
@@ -126,4 +127,46 @@ func checkMatDims(m1, m2 mat64.Matrix, name1, name2 string, method DimensionAgre
 		break
 	}
 	return nil
+}
+
+// Sign returns the sign of a given number.
+func Sign(v float64) float64 {
+	if floats.EqualWithinAbs(v, 0, 1e-12) {
+		return 1
+	}
+	return v / math.Abs(v)
+}
+
+// HouseholderTransf performs the Householder transformation of the given A matrix.
+// Changes are done directly in the provided matrix.
+func HouseholderTransf(A *mat64.Dense, n, m int) {
+	for k := 0; k < n; k++ {
+		sigma := 0.0
+		for i := k; i < m+n; i++ {
+			sigma += math.Pow(A.At(i, k), 2)
+		}
+		sigma = math.Sqrt(sigma) * Sign(A.At(k, k))
+		u := make([]float64, m+n)
+		u[k] = A.At(k, k) + sigma
+		A.Set(k, k, -sigma)
+		for i := k + 1; i < m+n; i++ {
+			u[i] = A.At(i, k)
+		}
+		beta := 1 / (sigma * u[k])
+		for j := k + 1; j < n+1; j++ {
+			gamma := 0.0
+			for i := k; i < m+n; i++ {
+				// Should I simply replace u[i] with A.At(i, k) ? Also seems like there won't be enough u[i]s.
+				gamma += u[i] * A.At(i, j)
+			}
+			gamma *= beta
+			for i := k; i < m+n; i++ {
+				A.Set(i, j, A.At(i, j)-gamma*u[i])
+			}
+			// Next j step
+			for i := k + 1; i < m+n; i++ {
+				A.Set(i, k, 0)
+			}
+		}
+	}
 }

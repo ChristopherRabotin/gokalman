@@ -1,6 +1,7 @@
 package gokalman
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/gonum/matrix/mat64"
@@ -101,5 +102,16 @@ func TestCheckDims(t *testing.T) {
 		if err := checkMatDims(i22, i33, "i22", "i33", meth); err == nil {
 			t.Fatalf("method %+v does not error when using i22 and i33 ", meth)
 		}
+	}
+}
+
+func TestHouseholderTransf(t *testing.T) {
+	A := mat64.NewDense(3, 3, []float64{1, -2, -1, 2, -1, 1, 1, 1, 2})
+	HouseholderTransf(A, 2, 1)
+	Apost := mat64.NewDense(3, 3, []float64{-2.449489742783178, 1.224744871391589, -1.2247448713915892, 0, -2.121320343559643, -2.121320343559643, 0, 0, 0})
+	if !mat64.EqualApprox(A, Apost, 1e-15) {
+		A.Sub(A, Apost)
+		fmt.Printf("Delta:\n%+v\n", mat64.Formatted(A))
+		t.Fatal("Householder fails")
 	}
 }

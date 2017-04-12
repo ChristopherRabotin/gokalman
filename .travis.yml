@@ -6,4 +6,8 @@ before_install:
   - go get github.com/mattn/goveralls
   - if ! go get code.google.com/p/go.tools/cmd/cover; then go get golang.org/x/tools/cmd/cover; fi
 script:
-  - $HOME/gopath/bin/goveralls -package github.com/ChristopherRabotin/gokalman -service=travis-ci
+  - mkdir test_output
+  - go test -v -covermode=count -coverprofile=coverage.out
+  - $HOME/gopath/bin/goveralls -package github.com/ChristopherRabotin/gokalman -coverprofile=coverage.out -service=travis-ci
+env:
+  - SMD_CONFIG=./

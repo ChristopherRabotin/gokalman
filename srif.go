@@ -10,8 +10,8 @@ import (
 
 // NewSRIF returns a new Square Root Information Filter.
 // It uses the algorithms from "Statistical Orbit determination" by Tapley, Schutz & Born.
-// Set upperTriangular to `false` to use the lower triangular of the Cholesky decomposition instead of the upper.
-func NewSRIF(x0 *mat64.Vector, P0 mat64.Symmetric, measSize int, upperTriangular bool, n Noise) (*SRIF, *SRIFEstimate, error) {
+// Set nonTriR to `true` to NOT use the Householder transformation on \bar{R_k}.
+func NewSRIF(x0 *mat64.Vector, P0 mat64.Symmetric, measSize int, nonTriR bool, n Noise) (*SRIF, *SRIFEstimate, error) {
 	// Check the dimensions of each matrix to avoid errors.
 	if err := checkMatDims(x0, P0, "x0", "P0", rows2cols); err != nil {
 		return nil, nil, err
@@ -28,11 +28,7 @@ func NewSRIF(x0 *mat64.Vector, P0 mat64.Symmetric, measSize int, upperTriangular
 	var R0chol mat64.Cholesky
 	R0chol.Factorize(I0)
 	var R0tri mat64.TriDense
-	if upperTriangular {
-		R0tri.UFromCholesky(&R0chol)
-	} else {
-		R0tri.LFromCholesky(&R0chol)
-	}
+	R0tri.LFromCholesky(&R0chol)
 	var R0 mat64.Dense
 	R0.Clone(&R0tri)
 	b0 := mat64.NewVector(r, nil)
@@ -49,7 +45,7 @@ func NewSRIF(x0 *mat64.Vector, P0 mat64.Symmetric, measSize int, upperTriangular
 	}
 	// Populate with the initial values.
 	est0 := NewSRIFEstimate(nil, b0, nil, nil, &R0, &R0)
-	return &SRIF{nil, nil, &sqrtMeasNoise, est0, true, measSize, 0}, &est0, nil
+	return &SRIF{nil, nil, &sqrtMeasNoise, est0, nonTriR, true, measSize, 0}, &est0, nil
 }
 
 // SRIF defines a square root information filter for non-linear dynamical systems. Use NewSquareRootInformation to initialize.
@@ -57,6 +53,7 @@ type SRIF struct {
 	Φ, Htilde    *mat64.Dense
 	sqrtInvNoise mat64.Matrix
 	prevEst      SRIFEstimate
+	nonTriR      bool // Do not a triangular R
 	locked       bool // Locks the KF to ensure Prepare is called.
 	measSize     int  // Stores the measurement vector size, needed only for Predict()
 	step         int
@@ -101,6 +98,19 @@ func (kf *SRIF) fullUpdate(purePrediction bool, realObservation, computedObserva
 	var xBar, bBar mat64.Vector
 	xBar.MulVec(kf.Φ, kf.prevEst.State())
 	bBar.MulVec(&RBar, &xBar)
+
+	if !kf.nonTriR {
+		// Make Rbar triangular.
+		rR, _ := RBar.Dims()
+		A := mat64.NewDense(rR, rR+1, nil)
+		A.Augment(&RBar, &bBar)
+		// Extract the new RBar and bBar
+		RBar = *(A.Slice(0, rR, 0, rR).(*mat64.Dense))
+		bBarMat := A.Slice(0, rR, rR, rR+1)
+		for i := 0; i < rR; i++ {
+			bBar.SetVec(i, bBarMat.At(i, 0))
+		}
+	}
 
 	if purePrediction {
 		kf.prevEst = NewSRIFEstimate(kf.Φ, &bBar, mat64.NewVector(kf.measSize, nil), mat64.NewVector(kf.measSize, nil), &RBar, &RBar)

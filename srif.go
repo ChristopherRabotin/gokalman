@@ -147,7 +147,7 @@ type SRIFEstimate struct {
 	sqinfoState, meas  *mat64.Vector
 	Δobs, cachedState  *mat64.Vector
 	R, predR           *mat64.Dense
-	cCovar, predcCovar mat64.Symmetric
+	cCovar, cPredCovar mat64.Symmetric
 }
 
 // IsWithinNσ returns whether the estimation is within the 2σ bounds.
@@ -215,19 +215,18 @@ func (e SRIFEstimate) Covariance() mat64.Symmetric {
 
 // PredCovariance implements the Estimate interface.
 func (e SRIFEstimate) PredCovariance() mat64.Symmetric {
-	if e.predcCovar == nil {
-		var invPredCovar mat64.Dense
-		invPredCovar.Mul(e.predR, e.predR.T())
-		var tmpPredCovar mat64.Dense
-		err := tmpPredCovar.Inverse(&invPredCovar)
-		if err != nil {
-			fmt.Printf("gokalman: SRIF: prediction R0 is not (yet) invertible: %s\n", err)
+	if e.cPredCovar == nil {
+		var invPredR mat64.Dense
+		if err := invPredR.Inverse(e.predR); err != nil {
+			fmt.Printf("gokalman: SRIF: R is not (yet) invertible: %s\n%+v\n", err, mat64.Formatted(e.R))
 			return e.cCovar
 		}
-		predcCovar, _ := AsSymDense(&tmpPredCovar)
-		e.predcCovar = predcCovar
+		var tmpPredCovar mat64.Dense
+		tmpPredCovar.Mul(&invPredR, invPredR.T())
+		preccCovar, _ := AsSymDense(&tmpPredCovar)
+		e.cPredCovar = preccCovar
 	}
-	return e.predcCovar
+	return e.cPredCovar
 }
 
 func (e SRIFEstimate) String() string {

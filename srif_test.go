@@ -138,7 +138,7 @@ func TestSRIFFullODExample(t *testing.T) {
 	// TODO: Add noise to initial orbit estimate.
 
 	// Perturbations in the estimate
-	estPerts := smd.Perturbations{Jn: 2}
+	estPerts := smd.Perturbations{Jn: 3}
 
 	stateEstChan := make(chan (smd.State), 1)
 	mEst := smd.NewPreciseMission(smd.NewEmptySC(scName+"Est", 0), &estOrbit, startDT, startDT.Add(-1), estPerts, timeStep, true, smd.ExportConfig{})
@@ -176,7 +176,7 @@ func TestSRIFFullODExample(t *testing.T) {
 	var ckfMeasNo = 0
 	measNo := 1
 	stateNo := 0
-	kf, _, err := NewSRIF(mat64.NewVector(6, nil), prevP, 2, true, noiseKF)
+	kf, _, err := NewSRIF(mat64.NewVector(6, nil), prevP, 2, false, noiseKF)
 	if err != nil {
 		panic(fmt.Errorf("%s", err))
 	}
@@ -187,6 +187,10 @@ func TestSRIFFullODExample(t *testing.T) {
 			break
 		}
 		stateNo++
+		// Just to test with a non triangular R and b vector, let's switch about half way.
+		if stateNo == 200 {
+			kf.nonTriR = true
+		}
 		roundedDT := state.DT.Truncate(time.Second)
 		measurement, exists := measurements[roundedDT]
 		if !exists {
@@ -290,6 +294,14 @@ func processEst(fn string, estChan chan (Estimate), t *testing.T) {
 			wg.Done()
 			break
 		}
+		if !est.(ErrorEstimate).IsWithin2σ() {
+			t.Fatalf("%s", est)
+		}
+		if numMeasurements == 0 {
+			// NOTE: This will display some panic messages because ErrorEstimate is based off VanillaEstimate which has a gain
+			// and more. Ideally, this should be changed to an Estimate which is a subset of Vanilla.
+			t.Logf("\n%s", est)
+		}
 		numMeasurements++
 		for i := 0; i < 3; i++ {
 			rmsPosition += math.Pow(est.State().At(i, 0), 2)
@@ -302,9 +314,9 @@ func processEst(fn string, estChan chan (Estimate), t *testing.T) {
 	rmsVelocity /= float64(numMeasurements)
 	rmsPosition = math.Sqrt(rmsPosition)
 	rmsVelocity = math.Sqrt(rmsVelocity)
-	t.Logf("=== RMS ===\nPosition = %f\tVelocity = %f\n", rmsPosition, rmsVelocity)
+	t.Logf("RMS: Position = %f\tVelocity = %f\n", rmsPosition, rmsVelocity)
 	// We don't have any unmodeled dynamics, so the RMS should  be tiny.
-	if rmsPosition > 1e-1 || rmsVelocity > 1e-3 {
+	if rmsPosition > 1e-3 || rmsVelocity > 1e-6 {
 		t.Fatal("RMS values too big")
 	}
 }

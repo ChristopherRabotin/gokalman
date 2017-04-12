@@ -116,7 +116,7 @@ func (kf *SRIF) fullUpdate(purePrediction bool, realObservation, computedObserva
 	Htilde.Mul(kf.sqrtInvNoise, kf.Htilde)
 	y.MulVec(kf.sqrtInvNoise, &y)
 
-	Rk, bk, _, err := HouseholderSRIF(&RBar, &Htilde, &bBar, &y)
+	Rk, bk, _, err := measurementSRIFUpdate(&RBar, &Htilde, &bBar, &y)
 	if err != nil {
 		return nil, err
 	}
@@ -222,8 +222,8 @@ func NewSRIFEstimate(Φ *mat64.Dense, sqinfoState, meas, Δobs *mat64.Vector, R0
 	return SRIFEstimate{Φ, sqinfoState, meas, Δobs, nil, R0, predR0, nil, nil}
 }
 
-// HouseholderSRIF prepare the matrix and performs the Householder transformation.
-func HouseholderSRIF(R, H *mat64.Dense, b, y *mat64.Vector) (*mat64.Dense, *mat64.Vector, *mat64.Vector, error) {
+// measurementSRIFUpdate prepare the matrix and performs the Householder transformation.
+func measurementSRIFUpdate(R, H *mat64.Dense, b, y *mat64.Vector) (*mat64.Dense, *mat64.Vector, *mat64.Vector, error) {
 	if err := checkMatDims(R, H, "R", "H", cols2cols); err != nil {
 		return nil, nil, nil, err
 	}
@@ -251,17 +251,18 @@ func HouseholderSRIF(R, H *mat64.Dense, b, y *mat64.Vector) (*mat64.Dense, *mat6
 	HouseholderTransf(A, n, m)
 
 	// Extract the data.
-	Rk := A.Slice(0, n, 0, n)
-	bkMat := A.Slice(n, n+1, 0, n)
+	Rk := A.Slice(0, n, 0, n).(*mat64.Dense)
+	bkMat := A.Slice(0, n, n, n+1)
 	bk := mat64.NewVector(n, nil)
 	for i := 0; i < n; i++ {
 		bk.SetVec(i, bkMat.At(i, 0))
 	}
-	ekMat := A.Slice(n, n+1, n, m)
-	ek := mat64.NewVector(m-n, nil)
-	for i := 0; i < n; i++ {
+	ekMat := A.Slice(n, n+m, n, m)
+	er, _ := ekMat.Dims()
+	ek := mat64.NewVector(er, nil)
+	for i := 0; i < er; i++ {
 		ek.SetVec(i, ekMat.At(i, 0))
 	}
 
-	return Rk.(*mat64.Dense), bk, ek, nil
+	return Rk, bk, ek, nil
 }

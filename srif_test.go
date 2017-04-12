@@ -235,6 +235,13 @@ func TestSRIFFullODExample(t *testing.T) {
 			t.Fatalf("[ERR!] %s", err)
 		}
 
+		if !est.IsWithin2σ() {
+			t.Fatalf("%s", est)
+		}
+		if stateNo == 1 {
+			t.Logf("\n%s", est)
+		}
+
 		prevP = est.Covariance().(*mat64.SymDense)
 		stateEst := mat64.NewVector(6, nil)
 		stateEst.AddVec(state.Vector(), est.State())
@@ -293,14 +300,6 @@ func processEst(fn string, estChan chan (Estimate), t *testing.T) {
 			ce.Close()
 			wg.Done()
 			break
-		}
-		if !est.(ErrorEstimate).IsWithin2σ() {
-			t.Fatalf("%s", est)
-		}
-		if numMeasurements == 0 {
-			// NOTE: This will display some panic messages because ErrorEstimate is based off VanillaEstimate which has a gain
-			// and more. Ideally, this should be changed to an Estimate which is a subset of Vanilla.
-			t.Logf("\n%s", est)
 		}
 		numMeasurements++
 		for i := 0; i < 3; i++ {

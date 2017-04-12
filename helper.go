@@ -146,7 +146,7 @@ func HouseholderTransf(A *mat64.Dense, n, m int) {
 			sigma += math.Pow(A.At(i, k), 2)
 		}
 		sigma = math.Sqrt(sigma) * Sign(A.At(k, k))
-		u := make([]float64, m+n-k+1)
+		u := make([]float64, m+n)
 		u[k] = A.At(k, k) + sigma
 		A.Set(k, k, -sigma)
 		for i := k + 1; i < m+n; i++ {

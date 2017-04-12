@@ -93,7 +93,7 @@ func (kf *SRIF) fullUpdate(purePrediction bool, realObservation, computedObserva
 	if ierr := invΦ.Inverse(kf.Φ); ierr != nil {
 		return nil, fmt.Errorf("could not invert `Φ` at k=%d: %s", kf.step, ierr)
 	}
-	RBar.Mul(kf.prevEst.matR0, &invΦ)
+	RBar.Mul(kf.prevEst.R, &invΦ)
 
 	var xBar, bBar mat64.Vector
 	xBar.MulVec(kf.Φ, kf.prevEst.State())
@@ -113,7 +113,9 @@ func (kf *SRIF) fullUpdate(purePrediction bool, realObservation, computedObserva
 	}
 
 	if purePrediction {
-		kf.prevEst = NewSRIFEstimate(kf.Φ, &bBar, mat64.NewVector(kf.measSize, nil), mat64.NewVector(kf.measSize, nil), &RBar, &RBar)
+		tmpEst := NewSRIFEstimate(kf.Φ, &bBar, mat64.NewVector(kf.measSize, nil), mat64.NewVector(kf.measSize, nil), &RBar, &RBar)
+		est = &tmpEst
+		kf.prevEst = *est
 		kf.step++
 		kf.locked = true
 		return
@@ -130,7 +132,9 @@ func (kf *SRIF) fullUpdate(purePrediction bool, realObservation, computedObserva
 	if err != nil {
 		return nil, err
 	}
-	kf.prevEst = NewSRIFEstimate(kf.Φ, bk, realObservation, &y, Rk, &RBar)
+	tmpEst := NewSRIFEstimate(kf.Φ, bk, realObservation, &y, Rk, &RBar)
+	est = &tmpEst
+	kf.prevEst = *est
 	kf.step++
 	kf.locked = true
 	return
@@ -139,11 +143,11 @@ func (kf *SRIF) fullUpdate(purePrediction bool, realObservation, computedObserva
 // SRIFEstimate is the output of each update state of the Vanilla KF.
 // It implements the Estimate interface.
 type SRIFEstimate struct {
-	Φ                            *mat64.Dense // Used for smoothing
-	sqinfoState, meas            *mat64.Vector
-	Δobs, cachedState            *mat64.Vector
-	matR0, predMatR0             *mat64.Dense
-	cachedCovar, predCachedCovar mat64.Symmetric
+	Φ                  *mat64.Dense // Used for smoothing
+	sqinfoState, meas  *mat64.Vector
+	Δobs, cachedState  *mat64.Vector
+	R, predR           *mat64.Dense
+	cCovar, predcCovar mat64.Symmetric
 }
 
 // IsWithinNσ returns whether the estimation is within the 2σ bounds.
@@ -169,9 +173,18 @@ func (e SRIFEstimate) State() *mat64.Vector {
 	if e.cachedState == nil {
 		rState, _ := e.sqinfoState.Dims()
 		e.cachedState = mat64.NewVector(rState, nil)
-		e.cachedState.MulVec(e.Covariance(), e.sqinfoState)
+		var rInv mat64.Dense
+		if err := rInv.Inverse(e.R); err != nil {
+			panic("cannot invert R!")
+		}
+		e.cachedState.MulVec(&rInv, e.sqinfoState)
 	}
 	return e.cachedState
+}
+
+// Innovation implements the Estimate interface.
+func (e SRIFEstimate) Innovation() *mat64.Vector {
+	return e.sqinfoState
 }
 
 // Measurement implements the Estimate interface.
@@ -186,36 +199,35 @@ func (e SRIFEstimate) ObservationDev() *mat64.Vector {
 
 // Covariance implements the Estimate interface.
 func (e SRIFEstimate) Covariance() mat64.Symmetric {
-	if e.cachedCovar == nil {
-		var invCovar mat64.Dense
-		invCovar.Mul(e.matR0, e.matR0.T())
-		var tmpCovar mat64.Dense
-		err := tmpCovar.Inverse(&invCovar)
-		if err != nil {
-			fmt.Printf("gokalman: SRIF: R0 is not (yet) invertible: %s\n", err)
-			return e.cachedCovar
+	if e.cCovar == nil {
+		var invR mat64.Dense
+		if err := invR.Inverse(e.R); err != nil {
+			fmt.Printf("gokalman: SRIF: R is not (yet) invertible: %s\n%+v\n", err, mat64.Formatted(e.R))
+			return e.cCovar
 		}
-		cachedCovar, _ := AsSymDense(&tmpCovar)
-		e.cachedCovar = cachedCovar
+		var tmpCovar mat64.Dense
+		tmpCovar.Mul(&invR, invR.T())
+		cCovar, _ := AsSymDense(&tmpCovar)
+		e.cCovar = cCovar
 	}
-	return e.cachedCovar
+	return e.cCovar
 }
 
 // PredCovariance implements the Estimate interface.
 func (e SRIFEstimate) PredCovariance() mat64.Symmetric {
-	if e.predCachedCovar == nil {
+	if e.predcCovar == nil {
 		var invPredCovar mat64.Dense
-		invPredCovar.Mul(e.predMatR0, e.predMatR0.T())
+		invPredCovar.Mul(e.predR, e.predR.T())
 		var tmpPredCovar mat64.Dense
 		err := tmpPredCovar.Inverse(&invPredCovar)
 		if err != nil {
 			fmt.Printf("gokalman: SRIF: prediction R0 is not (yet) invertible: %s\n", err)
-			return e.cachedCovar
+			return e.cCovar
 		}
-		predCachedCovar, _ := AsSymDense(&tmpPredCovar)
-		e.predCachedCovar = predCachedCovar
+		predcCovar, _ := AsSymDense(&tmpPredCovar)
+		e.predcCovar = predcCovar
 	}
-	return e.predCachedCovar
+	return e.predcCovar
 }
 
 func (e SRIFEstimate) String() string {
@@ -267,7 +279,7 @@ func measurementSRIFUpdate(R, H *mat64.Dense, b, y *mat64.Vector) (*mat64.Dense,
 	for i := 0; i < n; i++ {
 		bk.SetVec(i, bkMat.At(i, 0))
 	}
-	ekMat := A.Slice(n, n+m, n, m)
+	ekMat := A.Slice(n, n+m, n, n+1)
 	er, _ := ekMat.Dims()
 	ek := mat64.NewVector(er, nil)
 	for i := 0; i < er; i++ {

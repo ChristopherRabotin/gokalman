@@ -115,7 +115,7 @@ func TestSRIFFullODExample(t *testing.T) {
 	// Generate the true orbit -- Mtrue
 	timeStep := 10 * time.Second
 	scName := "LEO"
-	smd.NewPreciseMission(smd.NewEmptySC(scName, 0), leo, startDT, endDT, smd.Perturbations{Jn: 3}, timeStep, false, export).Propagate()
+	smd.NewPreciseMission(smd.NewEmptySC(scName, 0), leo, startDT, endDT, smd.Perturbations{Jn: 2}, timeStep, false, export).Propagate()
 
 	// Let's mark those as the truth so we can plot that.
 	stateTruth := make([]*mat64.Vector, len(measurements))
@@ -138,7 +138,7 @@ func TestSRIFFullODExample(t *testing.T) {
 	// TODO: Add noise to initial orbit estimate.
 
 	// Perturbations in the estimate
-	estPerts := smd.Perturbations{Jn: 3}
+	estPerts := smd.Perturbations{Jn: 2}
 
 	stateEstChan := make(chan (smd.State), 1)
 	mEst := smd.NewPreciseMission(smd.NewEmptySC(scName+"Est", 0), &estOrbit, startDT, startDT.Add(-1), estPerts, timeStep, true, smd.ExportConfig{})
@@ -268,7 +268,7 @@ func TestSRIFFullODExample(t *testing.T) {
 	if visibilityErrors > 0 {
 		severity = "WARNING"
 	}
-	fmt.Printf("[%s] %d visibility errors\n", severity, visibilityErrors)
+	t.Logf("[%s] %d visibility errors\n", severity, visibilityErrors)
 	// Write the residuals to a CSV file
 	f, ferr := os.Create("./hkf-residuals.csv")
 	if ferr != nil {

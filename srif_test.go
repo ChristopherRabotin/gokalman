@@ -158,8 +158,6 @@ func TestSRIFFullODExample(t *testing.T) {
 	noiseKF := NewNoiseless(noiseQ, noiseR)
 
 	// Take care of measurements.
-	//estHistory := make([]*HybridKFEstimate, len(measurements))
-	//stateHistory := make([]*mat64.Vector, len(measurements)) // Stores the histories of the orbit estimate (to post compute the truth)
 	estChan := make(chan (Estimate), 1)
 	go processEst("hybridkf", estChan, t)
 

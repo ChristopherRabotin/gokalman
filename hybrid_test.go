@@ -197,6 +197,8 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 	measNo := 1
 	stateNo := 0
 	kf, _, err := NewHybridKF(mat64.NewVector(6, nil), prevP, noiseKF, 2)
+	kf.sncEnabled = sncEnabled
+
 	if err != nil {
 		t.Fatalf("%s", err)
 	}

@@ -158,10 +158,8 @@ func TestSRIFFullODExample(t *testing.T) {
 	noiseKF := NewNoiseless(noiseQ, noiseR)
 
 	// Take care of measurements.
-	//estHistory := make([]*HybridKFEstimate, len(measurements))
-	//stateHistory := make([]*mat64.Vector, len(measurements)) // Stores the histories of the orbit estimate (to post compute the truth)
 	estChan := make(chan (Estimate), 1)
-	go processEst("hybridkf", estChan, t)
+	go processEst("hybridkf", estChan, 1e-3, 1e-6, t)
 
 	prevP := mat64.NewSymDense(6, nil)
 	var covarDistance float64 = 50
@@ -287,7 +285,7 @@ func TestSRIFFullODExample(t *testing.T) {
 	}
 }
 
-func processEst(fn string, estChan chan (Estimate), t *testing.T) {
+func processEst(fn string, estChan chan (Estimate), rmsPos, rmsVel float64, t *testing.T) {
 	wg.Add(1)
 	// We also compute the RMS here.
 	numMeasurements := 0
@@ -315,7 +313,7 @@ func processEst(fn string, estChan chan (Estimate), t *testing.T) {
 	rmsVelocity = math.Sqrt(rmsVelocity)
 	t.Logf("RMS: Position = %f\tVelocity = %f\n", rmsPosition, rmsVelocity)
 	// We don't have any unmodeled dynamics, so the RMS should  be tiny.
-	if rmsPosition > 1e-3 || rmsVelocity > 1e-6 {
+	if rmsPosition > rmsPos || rmsVelocity > rmsVel {
 		t.Fatal("RMS values too big")
 	}
 }

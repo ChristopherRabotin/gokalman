@@ -172,19 +172,19 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 	visibilityErrors := 0
 
 	if smoothing {
-		fmt.Println("[INFO] Smoothing enabled")
+		t.Logf("[INFO] Smoothing enabled")
 	}
 
 	if ekfTrigger < 0 {
-		fmt.Println("[WARNING] EKF disabled")
+		t.Logf("[WARNING] EKF disabled")
 	} else {
 		if smoothing {
-			fmt.Println("[ERROR] Enabling smooth has NO effect because EKF is enabled")
+			t.Logf("[ERROR] Enabling smooth has NO effect because EKF is enabled")
 		}
 		if ekfTrigger < 10 {
-			fmt.Println("[WARNING] EKF may be turned on too early")
+			t.Logf("[WARNING] EKF may be turned on too early")
 		} else {
-			fmt.Printf("[INFO] EKF will turn on after %d measurements\n", ekfTrigger)
+			t.Logf("[INFO] EKF will turn on after %d measurements\n", ekfTrigger)
 		}
 	}
 
@@ -195,7 +195,7 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 	stateNo := 0
 	kf, _, err := NewHybridKF(mat64.NewVector(6, nil), prevP, noiseKF, 2)
 	if err != nil {
-		panic(fmt.Errorf("%s", err))
+		t.Fatalf("%s", err)
 	}
 	// Now let's do the filtering.
 	for {
@@ -209,13 +209,13 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 		if !exists {
 			if measNo == 0 {
 				time.Sleep(time.Second)
-				panic(fmt.Errorf("should start KF at first measurement: \n%s (got)\n%s (exp)", roundedDT, measurementTimes[0]))
+				t.Fatalf("should start KF at first measurement: \n%s (got)\n%s (exp)", roundedDT, measurementTimes[0])
 			}
 			// There is no truth measurement here, let's only predict the KF covariance.
 			kf.Prepare(state.Φ, nil)
 			est, perr := kf.Predict()
 			if perr != nil {
-				panic(fmt.Errorf("[ERR!] (#%04d)\n%s", measNo, perr))
+				t.Fatalf("[ERR!] (#%04d)\n%s", measNo, perr)
 			}
 			// TODO: Plot this too.
 			stateEst := mat64.NewVector(6, nil)
@@ -224,7 +224,7 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 			continue
 		}
 		if roundedDT != measurementTimes[measNo] {
-			panic(fmt.Errorf("[ERR!] %04d delta = %s\tstate=%s\tmeas=%s", measNo, state.DT.Sub(measurementTimes[measNo]), state.DT, measurementTimes[measNo]))
+			t.Fatalf("[ERR!] %04d delta = %s\tstate=%s\tmeas=%s", measNo, state.DT.Sub(measurementTimes[measNo]), state.DT, measurementTimes[measNo])
 		}
 
 		if measNo == 0 {
@@ -238,23 +238,23 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 		if !kf.EKFEnabled() && ckfMeasNo == ekfTrigger {
 			// Switch KF to EKF mode
 			kf.EnableEKF()
-			fmt.Printf("[info] #%04d EKF now enabled\n", measNo)
+			t.Logf("[info] #%04d EKF now enabled\n", measNo)
 		} else if kf.EKFEnabled() && ekfDisableTime > 0 && Δt > ekfDisableTime {
 			// Switch KF back to CKF mode
 			kf.DisableEKF()
 			ckfMeasNo = 0
-			fmt.Printf("[info] #%04d EKF now disabled (Δt=%s)\n", measNo, ΔtDuration)
+			t.Logf("[info] #%04d EKF now disabled (Δt=%s)\n", measNo, ΔtDuration)
 		}
 
 		if measurement.Station.Name != prevStationName {
-			fmt.Printf("[info] #%04d %s in visibility of %s (T+%s)\n", measNo, scName, measurement.Station.Name, measurement.State.DT.Sub(startDT))
+			t.Logf("[info] #%04d %s in visibility of %s (T+%s)\n", measNo, scName, measurement.Station.Name, measurement.State.DT.Sub(startDT))
 			prevStationName = measurement.Station.Name
 		}
 
 		// Compute "real" measurement
 		computedObservation := measurement.Station.PerformMeasurement(measurement.Timeθgst, state)
 		if !computedObservation.Visible {
-			fmt.Printf("[WARN] station %s should see the SC but does not\n", measurement.Station.Name)
+			t.Logf("[WARN] station %s should see the SC but does not\n", measurement.Station.Name)
 			visibilityErrors++
 		}
 
@@ -280,7 +280,7 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 					QECI.Mul(dcm, &QECI0)
 					QECISym, err := AsSymDense(&QECI)
 					if err != nil {
-						fmt.Printf("[ERR!] QECI is not symmertric!")
+						t.Logf("[ERR!] QECI is not symmertric!")
 						panic(err)
 					}
 					kf.SetNoise(NewNoiseless(QECISym, noiseR))
@@ -295,9 +295,15 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 		}
 		est, err := kf.Update(measurement.StateVector(), computedObservation.StateVector())
 		if err != nil {
-			panic(fmt.Errorf("[ERR!] %s", err))
+			t.Fatalf("[ERR!] %s", err)
 		}
 
+		if !est.IsWithin2σ() {
+			t.Logf("[Not within 2-sigma] %s", est)
+		}
+		if stateNo == 1 {
+			t.Logf("\n%s", est)
+		}
 		prevP = est.Covariance().(*mat64.SymDense)
 		stateEst := mat64.NewVector(6, nil)
 		stateEst.AddVec(state.Vector(), est.State())

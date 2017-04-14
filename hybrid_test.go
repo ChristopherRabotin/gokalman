@@ -54,6 +54,9 @@ func TestHybridBasic(t *testing.T) {
 
 func TestCKFFull(t *testing.T) {
 	hybridFullODExample(-15, 0, -15, false, false, false, t)
+	hybridFullODExample(-15, 0, -15, true, false, false, t) // Smoothing
+	hybridFullODExample(-15, 0, -15, false, true, false, t) // SNC
+	hybridFullODExample(-15, 0, -15, false, true, true, t)  // SNC RIC
 }
 
 func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64, smoothing, sncEnabled, sncRIC bool, t *testing.T) {

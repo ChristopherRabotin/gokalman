@@ -59,8 +59,8 @@ func TestSRIFUpdate(t *testing.T) {
 var wg sync.WaitGroup
 
 func TestSRIFFullODExample(t *testing.T) {
-	_SRIFFullODExample(false, t)
-	//_SRIFFullODExample(true, t)
+	//_SRIFFullODExample(false, t)
+	_SRIFFullODExample(true, t)
 }
 
 func _SRIFFullODExample(smoothing bool, t *testing.T) {
@@ -141,7 +141,7 @@ func _SRIFFullODExample(smoothing bool, t *testing.T) {
 	// Get the first measurement as an initial orbit estimation.
 	firstDT := measurementTimes[0]
 	estOrbit := measurements[firstDT].State.Orbit
-	startDT = firstDT.Add(-timeStep)
+	startDT = firstDT //.Add(-timeStep)
 	// TODO: Add noise to initial orbit estimate.
 
 	// Perturbations in the estimate
@@ -178,7 +178,7 @@ func _SRIFFullODExample(smoothing bool, t *testing.T) {
 
 	visibilityErrors := 0
 	var prevStationName = ""
-	measNo := 0
+	measNo := 1
 	stateNo := 0
 	kf, _, err := NewSRIF(mat64.NewVector(6, nil), prevP, 2, false, noiseKF)
 	if err != nil {

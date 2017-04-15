@@ -59,7 +59,7 @@ func TestSRIFUpdate(t *testing.T) {
 var wg sync.WaitGroup
 
 func TestSRIFFullODExample(t *testing.T) {
-	//_SRIFFullODExample(false, t)
+	_SRIFFullODExample(false, t)
 	_SRIFFullODExample(true, t)
 }
 
@@ -152,7 +152,7 @@ func _SRIFFullODExample(smoothing bool, t *testing.T) {
 	mEst.RegisterStateChan(stateEstChan)
 
 	// Go-routine to advance propagation.
-	go mEst.PropagateUntil(measurementTimes[len(measurementTimes)-1], true)
+	go mEst.PropagateUntil(measurementTimes[len(measurementTimes)-1].Add(timeStep), true)
 
 	// KF filter initialization stuff.
 

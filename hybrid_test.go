@@ -55,7 +55,7 @@ func TestHybridBasic(t *testing.T) {
 func TestCKFFull(t *testing.T) {
 	hybridFullODExample(-15, 0, -15, false, false, false, t)
 	hybridFullODExample(-15, 0, -15, true, false, false, t) // Smoothing
-	t.Skip("Skipping broken SNC (not high priority right now)")
+	t.Skip("Skipping broken SNC test (not high priority right now)")
 	hybridFullODExample(-15, 0, -15, false, true, false, t) // SNC
 	hybridFullODExample(-15, 0, -15, false, true, true, t)  // SNC RIC
 }
@@ -82,7 +82,7 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 	numMeasurements := 0 // Easier to count them here than to iterate the map to count.
 
 	// Define the special export functions
-	export := smd.ExportConfig{Filename: "SRIFFullOD", Cosmo: false, AsCSV: true, Timestamp: false}
+	export := smd.ExportConfig{Filename: "CKFFullOD", Cosmo: false, AsCSV: true, Timestamp: false}
 	export.CSVAppendHdr = func() string {
 		hdr := "secondsSinceEpoch,"
 		for _, st := range stations {
@@ -132,6 +132,8 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 	// Compute number of states which will be generated.
 	numStates := int((measurementTimes[len(measurementTimes)-1].Sub(measurementTimes[0])).Seconds()/timeStep.Seconds()) + 1
 	residuals := make([]*mat64.Vector, numStates)
+	estHistory := make([]*HybridKFEstimate, numStates)
+	stateHistory := make([]*mat64.Vector, numStates) // Stores the histories of the orbit estimate (to post compute the truth)
 
 	// Get the first measurement as an initial orbit estimation.
 	firstDT := measurementTimes[0]
@@ -147,7 +149,7 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 	mEst.RegisterStateChan(stateEstChan)
 
 	// Go-routine to advance propagation.
-	go mEst.PropagateUntil(measurementTimes[len(measurementTimes)-1], true)
+	go mEst.PropagateUntil(measurementTimes[len(measurementTimes)-1].Add(timeStep), true)
 
 	// KF filter initialization stuff.
 
@@ -164,8 +166,6 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 	noiseKF := NewNoiseless(noiseQ, noiseR)
 
 	// Take care of measurements.
-	estHistory := make([]*HybridKFEstimate, len(measurements))
-	stateHistory := make([]*mat64.Vector, len(measurements)) // Stores the histories of the orbit estimate (to post compute the truth)
 	estChan := make(chan (Estimate), 1)
 	go processEst("hybridkf", estChan, 1e0, 1e-1, t)
 
@@ -227,10 +227,14 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 			if perr != nil {
 				t.Fatalf("[ERR!] (#%04d)\n%s", measNo, perr)
 			}
-			// TODO: Plot this too.
-			stateEst := mat64.NewVector(6, nil)
-			stateEst.SubVec(est.State(), state.Vector())
-			estChan <- truth.ErrorWithOffset(-1, est, nil)
+			if smoothing {
+				// Save to history in order to perform smoothing.
+				estHistory[stateNo-1] = est
+				stateHistory[stateNo-1] = nil
+			} else {
+				// Stream to CSV file
+				estChan <- truth.ErrorWithOffset(-1, est, nil)
+			}
 			continue
 		}
 		if roundedDT != measurementTimes[measNo] {
@@ -326,8 +330,8 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 
 		if smoothing {
 			// Save to history in order to perform smoothing.
-			estHistory[measNo] = est
-			stateHistory[measNo] = stateEst
+			estHistory[stateNo-1] = est
+			stateHistory[stateNo-1] = state.Vector()
 		} else {
 			// Stream to CSV file
 			estChan <- truth.ErrorWithOffset(measNo, est, state.Vector())
@@ -355,8 +359,16 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 			panic(err)
 		}
 		// Replay forward
+		replayMeasNo := 1
 		for estNo, est := range estHistory {
-			estChan <- truth.ErrorWithOffset(estNo, est, stateHistory[estNo])
+			thisNo := replayMeasNo
+			if stateHistory[estNo] == nil {
+				thisNo = -1
+			}
+			estChan <- truth.ErrorWithOffset(thisNo, est, stateHistory[estNo])
+			if stateHistory[estNo] != nil {
+				replayMeasNo++
+			}
 		}
 		fmt.Println("[INFO] Smoothing completed")
 	}

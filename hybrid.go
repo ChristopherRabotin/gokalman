@@ -208,7 +208,7 @@ func (kf *HybridKF) fullUpdate(purePrediction bool, realObservation, computedObs
 // WARNING: overwrites the provided array of estimates.
 func (kf *HybridKF) SmoothAll(estimates []*HybridKFEstimate) (err error) {
 	if len(estimates) != kf.step {
-		return errors.New("incorrect number of estimates provided")
+		return fmt.Errorf("incorrect number of estimates provided: %d instead of expected %d\n", len(estimates), kf.step)
 	}
 	l := len(estimates) - 1
 	for k := l - 1; k >= 0; k-- {

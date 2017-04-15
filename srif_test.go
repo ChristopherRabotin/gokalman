@@ -59,6 +59,11 @@ func TestSRIFUpdate(t *testing.T) {
 var wg sync.WaitGroup
 
 func TestSRIFFullODExample(t *testing.T) {
+	_SRIFFullODExample(false, t)
+	//_SRIFFullODExample(true, t)
+}
+
+func _SRIFFullODExample(smoothing bool, t *testing.T) {
 	if testing.Short() {
 		t.SkipNow()
 	}
@@ -130,11 +135,13 @@ func TestSRIFFullODExample(t *testing.T) {
 	// Compute number of states which will be generated.
 	numStates := int((measurementTimes[len(measurementTimes)-1].Sub(measurementTimes[0])).Seconds()/timeStep.Seconds()) + 1
 	residuals := make([]*mat64.Vector, numStates)
+	estHistory := make([]*SRIFEstimate, numStates)
+	stateHistory := make([]*mat64.Vector, numStates) // Stores the histories of the orbit estimate (to post compute the truth)
 
 	// Get the first measurement as an initial orbit estimation.
 	firstDT := measurementTimes[0]
 	estOrbit := measurements[firstDT].State.Orbit
-	startDT = firstDT
+	startDT = firstDT.Add(-timeStep)
 	// TODO: Add noise to initial orbit estimate.
 
 	// Perturbations in the estimate
@@ -171,8 +178,7 @@ func TestSRIFFullODExample(t *testing.T) {
 
 	visibilityErrors := 0
 	var prevStationName = ""
-	var ckfMeasNo = 0
-	measNo := 1
+	measNo := 0
 	stateNo := 0
 	kf, _, err := NewSRIF(mat64.NewVector(6, nil), prevP, 2, false, noiseKF)
 	if err != nil {
@@ -202,11 +208,14 @@ func TestSRIFFullODExample(t *testing.T) {
 			if perr != nil {
 				t.Fatalf("[ERR!] (#%04d)\n%s", measNo, perr)
 			}
-			// TODO: Plot this too.
-			stateEst := mat64.NewVector(6, nil)
-			stateEst.SubVec(est.State(), state.Vector())
-			// NOTE: The state seems to be all I need, along with Phi maybe (?) because the KF already uses the previous state?!
-			estChan <- truth.ErrorWithOffset(-1, est, nil)
+			if smoothing {
+				// Save to history in order to perform smoothing.
+				estHistory[stateNo-1] = est
+				stateHistory[stateNo-1] = nil
+			} else {
+				// Stream to CSV file
+				estChan <- truth.ErrorWithOffset(-1, est, nil)
+			}
 			continue
 		}
 		if roundedDT != measurementTimes[measNo] {
@@ -241,23 +250,36 @@ func TestSRIFFullODExample(t *testing.T) {
 		}
 
 		prevP = est.Covariance().(*mat64.SymDense)
-		stateEst := mat64.NewVector(6, nil)
-		stateEst.AddVec(state.Vector(), est.State())
 		// Compute residual
 		residual := mat64.NewVector(2, nil)
 		residual.MulVec(Htilde, est.State())
 		residual.AddScaledVec(residual, -1, est.ObservationDev())
 		residual.ScaleVec(-1, residual)
-		residuals[stateNo] = residual
+		residuals[stateNo-1] = residual
 
-		// Stream to CSV file
-		estChan <- truth.ErrorWithOffset(measNo, est, state.Vector())
-		diff := mat64.NewVector(6, nil)
-		diff.SubVec(stateEst, measurement.State.Vector())
-
-		ckfMeasNo++
+		if smoothing {
+			// Save to history in order to perform smoothing.
+			estHistory[stateNo-1] = est
+			stateHistory[stateNo-1] = state.Vector()
+		} else {
+			// Stream to CSV file
+			estChan <- truth.ErrorWithOffset(measNo, est, state.Vector())
+		}
 		measNo++
 	} // end while true
+
+	if smoothing {
+		fmt.Println("[INFO] Smoothing started")
+		// Perform the smoothing. First, play back all the estimates backward, and then replay the smoothed estimates forward to compute the difference.
+		if err := kf.SmoothAll(estHistory); err != nil {
+			panic(err)
+		}
+		// Replay forward
+		for _, est := range estHistory {
+			estChan <- est
+		}
+		fmt.Println("[INFO] Smoothing completed")
+	}
 
 	close(estChan)
 	wg.Wait()

@@ -331,8 +331,6 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 		} else {
 			// Stream to CSV file
 			estChan <- truth.ErrorWithOffset(measNo, est, state.Vector())
-			diff := mat64.NewVector(6, nil)
-			diff.SubVec(stateEst, measurement.State.Vector())
 		}
 		prevDT = measurement.State.DT
 
@@ -349,6 +347,19 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 		ckfMeasNo++
 		measNo++
 	} // end while true
+
+	if smoothing {
+		fmt.Println("[INFO] Smoothing started")
+		// Perform the smoothing. First, play back all the estimates backward, and then replay the smoothed estimates forward to compute the difference.
+		if err := kf.SmoothAll(estHistory); err != nil {
+			panic(err)
+		}
+		// Replay forward
+		for estNo, est := range estHistory {
+			estChan <- truth.ErrorWithOffset(estNo, est, stateHistory[estNo])
+		}
+		fmt.Println("[INFO] Smoothing completed")
+	}
 
 	close(estChan)
 	wg.Wait()

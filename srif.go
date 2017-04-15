@@ -140,6 +140,38 @@ func (kf *SRIF) fullUpdate(purePrediction bool, realObservation, computedObserva
 	return
 }
 
+// SmoothAll will smooth all the previous estimates using the provided data. Returns the smoothed estimates.
+// Will return an error if there are more estimates than there should be.
+// WARNING: overwrites the provided array of estimates.
+func (kf *SRIF) SmoothAll(estimates []*SRIFEstimate) (err error) {
+	if len(estimates) != kf.step {
+		return fmt.Errorf("incorrect number of estimates provided: %d instead of expected %d\n", len(estimates), kf.step)
+	}
+	l := len(estimates) - 1
+	for k := l - 1; k >= 0; k-- {
+		estimateKp1 := estimates[k+1]
+		// SNC was not enabled for this estimate.
+		var S, SP, SPSt mat64.Dense
+		if ierr := S.Inverse(estimateKp1.Φ); ierr != nil {
+			return errors.New("provided STM Φ is not invertible")
+		}
+		SP.Mul(&S, estimateKp1.Covariance())
+		SPSt.Mul(&SP, S.T())
+		var xHat mat64.Vector
+		xHat.MulVec(&S, estimateKp1.State())
+		Pkl, serr := AsSymDense(&SPSt)
+		if serr != nil {
+			err = serr
+			return
+		}
+		// WARNING: We do not update the actual values to compute the state and covariance, only the cached values.
+		estimates[k].cachedState = &xHat
+		estimates[k].cCovar = Pkl
+
+	}
+	return
+}
+
 // SRIFEstimate is the output of each update state of the Vanilla KF.
 // It implements the Estimate interface.
 type SRIFEstimate struct {

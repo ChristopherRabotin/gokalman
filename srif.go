@@ -68,18 +68,18 @@ func (kf *SRIF) Prepare(Φ, Htilde *mat64.Dense) {
 
 // Update computes a full time and measurement update.
 // Will return an error if the KF is locked (call Prepare to unlock).
-func (kf *SRIF) Update(realObservation, computedObservation *mat64.Vector) (est *SRIFEstimate, err error) {
+func (kf *SRIF) Update(realObservation, computedObservation *mat64.Vector) (est Estimate, err error) {
 	return kf.fullUpdate(false, realObservation, computedObservation)
 }
 
 // Predict computes only the time update (or prediction).
 // Will return an error if the KF is locked (call Prepare to unlock).
-func (kf *SRIF) Predict() (est *SRIFEstimate, err error) {
+func (kf *SRIF) Predict() (est Estimate, err error) {
 	return kf.fullUpdate(true, nil, nil)
 }
 
 // fullUpdate performs all the steps of an update and allows to stop right after the pure prediction (or time update) step.
-func (kf *SRIF) fullUpdate(purePrediction bool, realObservation, computedObservation *mat64.Vector) (est *SRIFEstimate, err error) {
+func (kf *SRIF) fullUpdate(purePrediction bool, realObservation, computedObservation *mat64.Vector) (est Estimate, err error) {
 	if kf.locked {
 		return nil, errors.New("kf is locked (call Prepare() first)")
 	}
@@ -115,7 +115,7 @@ func (kf *SRIF) fullUpdate(purePrediction bool, realObservation, computedObserva
 	if purePrediction {
 		tmpEst := NewSRIFEstimate(kf.Φ, &bBar, mat64.NewVector(kf.measSize, nil), mat64.NewVector(kf.measSize, nil), &RBar, &RBar)
 		est = &tmpEst
-		kf.prevEst = *est
+		kf.prevEst = est.(SRIFEstimate)
 		kf.step++
 		kf.locked = true
 		return
@@ -134,7 +134,7 @@ func (kf *SRIF) fullUpdate(purePrediction bool, realObservation, computedObserva
 	}
 	tmpEst := NewSRIFEstimate(kf.Φ, bk, realObservation, &y, Rk, &RBar)
 	est = &tmpEst
-	kf.prevEst = *est
+	kf.prevEst = est.(SRIFEstimate)
 	kf.step++
 	kf.locked = true
 	return
@@ -207,7 +207,7 @@ func (e SRIFEstimate) State() *mat64.Vector {
 		e.cachedState = mat64.NewVector(rState, nil)
 		var rInv mat64.Dense
 		if err := rInv.Inverse(e.R); err != nil {
-			panic("cannot invert R!")
+			panic(fmt.Errorf("cannot invert R: %s", err))
 		}
 		e.cachedState.MulVec(&rInv, e.sqinfoState)
 	}

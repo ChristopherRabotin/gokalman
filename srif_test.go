@@ -210,7 +210,7 @@ func _SRIFFullODExample(smoothing bool, t *testing.T) {
 			}
 			if smoothing {
 				// Save to history in order to perform smoothing.
-				estHistory[stateNo-1] = est
+				estHistory[stateNo-1] = est.(*SRIFEstimate)
 				stateHistory[stateNo-1] = nil
 			} else {
 				// Stream to CSV file
@@ -237,11 +237,11 @@ func _SRIFFullODExample(smoothing bool, t *testing.T) {
 
 		Htilde := computedObservation.HTilde()
 		kf.Prepare(state.Φ, Htilde)
-		est, err := kf.Update(measurement.StateVector(), computedObservation.StateVector())
+		estI, err := kf.Update(measurement.StateVector(), computedObservation.StateVector())
 		if err != nil {
 			t.Fatalf("[ERR!] %s", err)
 		}
-
+		est := estI.(*SRIFEstimate)
 		if !est.IsWithin2σ() {
 			t.Fatalf("%s", est)
 		}

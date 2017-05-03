@@ -90,18 +90,18 @@ func (kf *HybridKF) PreparePNT(Γ *mat64.Dense) {
 
 // Update computes a full time and measurement update.
 // Will return an error if the KF is locked (call Prepare to unlock).
-func (kf *HybridKF) Update(realObservation, computedObservation *mat64.Vector) (est *HybridKFEstimate, err error) {
+func (kf *HybridKF) Update(realObservation, computedObservation *mat64.Vector) (est Estimate, err error) {
 	return kf.fullUpdate(false, realObservation, computedObservation)
 }
 
 // Predict computes only the time update (or prediction).
 // Will return an error if the KF is locked (call Prepare to unlock).
-func (kf *HybridKF) Predict() (est *HybridKFEstimate, err error) {
+func (kf *HybridKF) Predict() (est Estimate, err error) {
 	return kf.fullUpdate(true, nil, nil)
 }
 
 // fullUpdate performs all the steps of an update and allows to stop right after the pure prediction (or time update) step.
-func (kf *HybridKF) fullUpdate(purePrediction bool, realObservation, computedObservation *mat64.Vector) (est *HybridKFEstimate, err error) {
+func (kf *HybridKF) fullUpdate(purePrediction bool, realObservation, computedObservation *mat64.Vector) (est Estimate, err error) {
 	if kf.locked {
 		return nil, errors.New("kf is locked (call Prepare() first)")
 	}
@@ -135,7 +135,7 @@ func (kf *HybridKF) fullUpdate(purePrediction bool, realObservation, computedObs
 			return nil, symerr
 		}
 		est = &HybridKFEstimate{kf.Φ, kf.Γ, &xBar, mat64.NewVector(kf.measSize, nil), mat64.NewVector(kf.measSize, nil), mat64.NewVector(kf.measSize, nil), PBarSym, PBarSym, mat64.NewDense(1, 1, nil)}
-		kf.prevEst = *est
+		kf.prevEst = est.(HybridKFEstimate)
 		kf.step++
 		kf.sncEnabled = false
 		kf.locked = true
@@ -196,7 +196,7 @@ func (kf *HybridKF) fullUpdate(purePrediction bool, realObservation, computedObs
 		Γ = mat64.DenseCopyOf(kf.Γ)
 	}
 	est = &HybridKFEstimate{&Φ, Γ, &xHat, realObservation, &innov, &y, PSym, PBarSym, &K}
-	kf.prevEst = *est
+	kf.prevEst = est.(HybridKFEstimate)
 	kf.step++
 	kf.sncEnabled = false
 	kf.locked = true

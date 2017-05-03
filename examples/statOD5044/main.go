@@ -135,7 +135,7 @@ func main() {
 	}
 	sqrtEstChan <- sest0
 
-	filters := []gokalman.KalmanFilter{vanillaKF, infoKF, sqrtKF}
+	filters := []gokalman.LDKF{vanillaKF, infoKF, sqrtKF}
 	chans := [](chan gokalman.Estimate){vanillaEstChan, informationEstChan, sqrtEstChan}
 
 	// Generate for a quarter of orbit.

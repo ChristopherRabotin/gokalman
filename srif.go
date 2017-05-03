@@ -45,14 +45,14 @@ func NewSRIF(x0 *mat64.Vector, P0 mat64.Symmetric, measSize int, nonTriR bool, n
 	}
 	// Populate with the initial values.
 	est0 := NewSRIFEstimate(nil, b0, nil, nil, &R0, &R0)
-	return &SRIF{nil, nil, &sqrtMeasNoise, est0, nonTriR, true, measSize, 0}, &est0, nil
+	return &SRIF{nil, nil, &sqrtMeasNoise, &est0, nonTriR, true, measSize, 0}, &est0, nil
 }
 
 // SRIF defines a square root information filter for non-linear dynamical systems. Use NewSquareRootInformation to initialize.
 type SRIF struct {
 	Φ, Htilde    *mat64.Dense
 	sqrtInvNoise mat64.Matrix
-	prevEst      SRIFEstimate
+	prevEst      *SRIFEstimate
 	nonTriR      bool // Do not a triangular R
 	locked       bool // Locks the KF to ensure Prepare is called.
 	measSize     int  // Stores the measurement vector size, needed only for Predict()
@@ -115,7 +115,7 @@ func (kf *SRIF) fullUpdate(purePrediction bool, realObservation, computedObserva
 	if purePrediction {
 		tmpEst := NewSRIFEstimate(kf.Φ, &bBar, mat64.NewVector(kf.measSize, nil), mat64.NewVector(kf.measSize, nil), &RBar, &RBar)
 		est = &tmpEst
-		kf.prevEst = est.(SRIFEstimate)
+		kf.prevEst = est.(*SRIFEstimate)
 		kf.step++
 		kf.locked = true
 		return
@@ -134,7 +134,7 @@ func (kf *SRIF) fullUpdate(purePrediction bool, realObservation, computedObserva
 	}
 	tmpEst := NewSRIFEstimate(kf.Φ, bk, realObservation, &y, Rk, &RBar)
 	est = &tmpEst
-	kf.prevEst = est.(SRIFEstimate)
+	kf.prevEst = est.(*SRIFEstimate)
 	kf.step++
 	kf.locked = true
 	return

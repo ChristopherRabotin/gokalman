@@ -13,7 +13,7 @@ import (
 // of both the NEES and NIS tests.
 // Returns NEESmeans, NISmeans and an error if applicable
 // TODO: Change order of parameters.
-func NewChiSquare(kf KalmanFilter, runs MonteCarloRuns, controls []*mat64.Vector, withNEES, withNIS bool) ([]float64, []float64, error) {
+func NewChiSquare(kf LDKF, runs MonteCarloRuns, controls []*mat64.Vector, withNEES, withNIS bool) ([]float64, []float64, error) {
 	if !withNEES && !withNIS {
 		return nil, nil, errors.New("Chi Square requires either NEES or NIS or both")
 	}

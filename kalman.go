@@ -2,8 +2,8 @@ package gokalman
 
 import "github.com/gonum/matrix/mat64"
 
-// KalmanFilter defines a general KF.
-type KalmanFilter interface {
+// LDKF defines a linear dynamics Kalman Filter.
+type LDKF interface {
 	Update(measurement, control *mat64.Vector) (Estimate, error)
 	GetNoise() Noise
 	GetStateTransition() mat64.Matrix
@@ -15,6 +15,14 @@ type KalmanFilter interface {
 	SetNoise(Noise)
 	Reset()
 	String() string
+}
+
+// NLDKF defines a non-linear dynamics Kalman Filter.
+// Operates and is architectured slightly differently than LDKF.
+type NLDKF interface {
+	Prepare(Φ, Htilde *mat64.Dense)
+	Predict() (est Estimate, err error)
+	Update(realObservation, computedObservation *mat64.Vector) (est Estimate, err error)
 }
 
 // Estimate is returned from Update() in any KF.

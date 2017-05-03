@@ -45,14 +45,14 @@ func NewSRIF(x0 *mat64.Vector, P0 mat64.Symmetric, measSize int, nonTriR bool, n
 	}
 	// Populate with the initial values.
 	est0 := NewSRIFEstimate(nil, b0, nil, nil, &R0, &R0)
-	return &SRIF{nil, nil, &sqrtMeasNoise, est0, nonTriR, true, measSize, 0}, &est0, nil
+	return &SRIF{nil, nil, &sqrtMeasNoise, &est0, nonTriR, true, measSize, 0}, &est0, nil
 }
 
 // SRIF defines a square root information filter for non-linear dynamical systems. Use NewSquareRootInformation to initialize.
 type SRIF struct {
 	Φ, Htilde    *mat64.Dense
 	sqrtInvNoise mat64.Matrix
-	prevEst      SRIFEstimate
+	prevEst      *SRIFEstimate
 	nonTriR      bool // Do not a triangular R
 	locked       bool // Locks the KF to ensure Prepare is called.
 	measSize     int  // Stores the measurement vector size, needed only for Predict()
@@ -68,18 +68,18 @@ func (kf *SRIF) Prepare(Φ, Htilde *mat64.Dense) {
 
 // Update computes a full time and measurement update.
 // Will return an error if the KF is locked (call Prepare to unlock).
-func (kf *SRIF) Update(realObservation, computedObservation *mat64.Vector) (est *SRIFEstimate, err error) {
+func (kf *SRIF) Update(realObservation, computedObservation *mat64.Vector) (est Estimate, err error) {
 	return kf.fullUpdate(false, realObservation, computedObservation)
 }
 
 // Predict computes only the time update (or prediction).
 // Will return an error if the KF is locked (call Prepare to unlock).
-func (kf *SRIF) Predict() (est *SRIFEstimate, err error) {
+func (kf *SRIF) Predict() (est Estimate, err error) {
 	return kf.fullUpdate(true, nil, nil)
 }
 
 // fullUpdate performs all the steps of an update and allows to stop right after the pure prediction (or time update) step.
-func (kf *SRIF) fullUpdate(purePrediction bool, realObservation, computedObservation *mat64.Vector) (est *SRIFEstimate, err error) {
+func (kf *SRIF) fullUpdate(purePrediction bool, realObservation, computedObservation *mat64.Vector) (est Estimate, err error) {
 	if kf.locked {
 		return nil, errors.New("kf is locked (call Prepare() first)")
 	}
@@ -115,7 +115,7 @@ func (kf *SRIF) fullUpdate(purePrediction bool, realObservation, computedObserva
 	if purePrediction {
 		tmpEst := NewSRIFEstimate(kf.Φ, &bBar, mat64.NewVector(kf.measSize, nil), mat64.NewVector(kf.measSize, nil), &RBar, &RBar)
 		est = &tmpEst
-		kf.prevEst = *est
+		kf.prevEst = est.(*SRIFEstimate)
 		kf.step++
 		kf.locked = true
 		return
@@ -134,7 +134,7 @@ func (kf *SRIF) fullUpdate(purePrediction bool, realObservation, computedObserva
 	}
 	tmpEst := NewSRIFEstimate(kf.Φ, bk, realObservation, &y, Rk, &RBar)
 	est = &tmpEst
-	kf.prevEst = *est
+	kf.prevEst = est.(*SRIFEstimate)
 	kf.step++
 	kf.locked = true
 	return
@@ -207,7 +207,7 @@ func (e SRIFEstimate) State() *mat64.Vector {
 		e.cachedState = mat64.NewVector(rState, nil)
 		var rInv mat64.Dense
 		if err := rInv.Inverse(e.R); err != nil {
-			panic("cannot invert R!")
+			panic(fmt.Errorf("cannot invert R: %s", err))
 		}
 		e.cachedState.MulVec(&rInv, e.sqinfoState)
 	}

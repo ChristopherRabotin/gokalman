@@ -223,10 +223,11 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 			}
 			// There is no truth measurement here, let's only predict the KF covariance.
 			kf.Prepare(state.Φ, nil)
-			est, perr := kf.Predict()
+			estI, perr := kf.Predict()
 			if perr != nil {
 				t.Fatalf("[ERR!] (#%04d)\n%s", measNo, perr)
 			}
+			est := estI.(*HybridKFEstimate)
 			if smoothing {
 				// Save to history in order to perform smoothing.
 				estHistory[stateNo-1] = est
@@ -307,11 +308,11 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 				kf.PreparePNT(Γ)
 			}
 		}
-		est, err := kf.Update(measurement.StateVector(), computedObservation.StateVector())
+		estI, err := kf.Update(measurement.StateVector(), computedObservation.StateVector())
 		if err != nil {
 			t.Fatalf("[ERR!] %s", err)
 		}
-
+		est := estI.(*HybridKFEstimate)
 		if !est.IsWithin2σ() {
 			t.Logf("[Not within 2-sigma] %s", est)
 		}

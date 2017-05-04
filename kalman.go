@@ -2,6 +2,20 @@ package gokalman
 
 import "github.com/gonum/matrix/mat64"
 
+// FilterType allows for quick comparison of filters.
+type FilterType uint8
+
+const (
+	// CKFType definition would be a tautology
+	CKFType FilterType = iota + 1
+	// EKFType definition would be a tautology
+	EKFType
+	// UKFType definition would be a tautology
+	UKFType
+	// SRIFType definition would be a tautology
+	SRIFType
+)
+
 // LDKF defines a linear dynamics Kalman Filter.
 type LDKF interface {
 	Update(measurement, control *mat64.Vector) (Estimate, error)
@@ -23,6 +37,11 @@ type NLDKF interface {
 	Prepare(Φ, Htilde *mat64.Dense)
 	Predict() (est Estimate, err error)
 	Update(realObservation, computedObservation *mat64.Vector) (est Estimate, err error)
+	EKFEnabled() bool
+	EnableEKF()
+	DisableEKF()
+	PreparePNT(Γ *mat64.Dense)
+	SetNoise(n Noise)
 }
 
 // Estimate is returned from Update() in any KF.

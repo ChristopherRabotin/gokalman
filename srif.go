@@ -59,6 +59,25 @@ type SRIF struct {
 	step         int
 }
 
+// EKFEnabled always returns false.
+func (kf *SRIF) EKFEnabled() bool {
+	return false
+}
+
+// DisableEKF does nothing.
+func (kf *SRIF) DisableEKF() {}
+
+// EnableEKF does nothing.
+func (kf *SRIF) EnableEKF() {}
+
+// PreparePNT does nothing.
+func (kf *SRIF) PreparePNT(Γ *mat64.Dense) {}
+
+// SetNoise updates the Noise.
+func (kf *SRIF) SetNoise(n Noise) {
+	panic("noise not yet supported for SRIF")
+}
+
 // Prepare unlocks the KF ready for the next Update call.
 func (kf *SRIF) Prepare(Φ, Htilde *mat64.Dense) {
 	kf.Φ = Φ

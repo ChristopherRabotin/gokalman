@@ -120,8 +120,8 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 	smd.NewPreciseMission(smd.NewEmptySC(scName, 0), leo, startDT, endDT, smd.Perturbations{Jn: 2}, timeStep, false, export).Propagate()
 
 	// Let's mark those as the truth so we can plot that.
-	stateTruth := make([]*mat64.Vector, len(measurements)+1)
-	truthMeas := make([]*mat64.Vector, len(measurements)+1)
+	stateTruth := make([]*mat64.Vector, len(measurements))
+	truthMeas := make([]*mat64.Vector, len(measurements))
 	for measNo, measTime := range measurementTimes {
 		measurement := measurements[measTime]
 		stateTruth[measNo] = measurement.State.Vector()
@@ -320,8 +320,6 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 			t.Logf("\n%s", est)
 		}
 		prevP = est.Covariance().(*mat64.SymDense)
-		stateEst := mat64.NewVector(6, nil)
-		stateEst.AddVec(state.Vector(), est.State())
 		// Compute residual
 		residual := mat64.NewVector(2, nil)
 		residual.MulVec(Htilde, est.State())
@@ -360,7 +358,7 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 			panic(err)
 		}
 		// Replay forward
-		replayMeasNo := 1
+		replayMeasNo := 0
 		for estNo, est := range estHistory {
 			thisNo := replayMeasNo
 			if stateHistory[estNo] == nil {

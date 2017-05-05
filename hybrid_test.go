@@ -120,8 +120,8 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 	smd.NewPreciseMission(smd.NewEmptySC(scName, 0), leo, startDT, endDT, smd.Perturbations{Jn: 2}, timeStep, false, export).Propagate()
 
 	// Let's mark those as the truth so we can plot that.
-	stateTruth := make([]*mat64.Vector, len(measurements))
-	truthMeas := make([]*mat64.Vector, len(measurements))
+	stateTruth := make([]*mat64.Vector, len(measurements)+1)
+	truthMeas := make([]*mat64.Vector, len(measurements)+1)
 	for measNo, measTime := range measurementTimes {
 		measurement := measurements[measTime]
 		stateTruth[measNo] = measurement.State.Vector()
@@ -130,7 +130,7 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 	truth := NewBatchGroundTruth(stateTruth, truthMeas)
 
 	// Compute number of states which will be generated.
-	numStates := int((measurementTimes[len(measurementTimes)-1].Sub(measurementTimes[0])).Seconds()/timeStep.Seconds()) + 1
+	numStates := int((measurementTimes[len(measurementTimes)-1].Sub(measurementTimes[0])).Seconds()/timeStep.Seconds()) + 2
 	residuals := make([]*mat64.Vector, numStates)
 	estHistory := make([]*HybridKFEstimate, numStates)
 	stateHistory := make([]*mat64.Vector, numStates) // Stores the histories of the orbit estimate (to post compute the truth)
@@ -199,7 +199,7 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 	var prevStationName = ""
 	var prevDT time.Time
 	var ckfMeasNo = 0
-	measNo := 1
+	measNo := 0
 	stateNo := 0
 	kf, _, err := NewHybridKF(mat64.NewVector(6, nil), prevP, noiseKF, 2)
 	kf.sncEnabled = sncEnabled

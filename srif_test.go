@@ -133,7 +133,7 @@ func _SRIFFullODExample(smoothing bool, t *testing.T) {
 	truth := NewBatchGroundTruth(stateTruth, truthMeas)
 
 	// Compute number of states which will be generated.
-	numStates := int((measurementTimes[len(measurementTimes)-1].Sub(measurementTimes[0])).Seconds()/timeStep.Seconds()) + 1
+	numStates := int((measurementTimes[len(measurementTimes)-1].Sub(measurementTimes[0])).Seconds()/timeStep.Seconds()) + 2
 	residuals := make([]*mat64.Vector, numStates)
 	estHistory := make([]*SRIFEstimate, numStates)
 	stateHistory := make([]*mat64.Vector, numStates) // Stores the histories of the orbit estimate (to post compute the truth)
@@ -178,7 +178,7 @@ func _SRIFFullODExample(smoothing bool, t *testing.T) {
 
 	visibilityErrors := 0
 	var prevStationName = ""
-	measNo := 1
+	measNo := 0
 	stateNo := 0
 	kf, _, err := NewSRIF(mat64.NewVector(6, nil), prevP, 2, false, noiseKF)
 	if err != nil {

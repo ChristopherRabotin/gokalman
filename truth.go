@@ -29,11 +29,14 @@ func (t *BatchGroundTruth) ErrorWithOffset(k int, est Estimate, offset *mat64.Ve
 		trueState := mat64.NewVector(esR, nil)
 		if t.states != nil {
 			trueState = t.states[k]
-			tsR, _ := trueState.Dims()
-			if esR != tsR {
-				panic(fmt.Errorf("ground truth state size different from estimated state size (k=%d: %d != %d)", k, esR, tsR))
+			// WARNING: trueState may be nil if we are at the very last item (because Mission feeds the first state so things shift).
+			if trueState != nil {
+				tsR, _ := trueState.Dims()
+				if esR != tsR {
+					panic(fmt.Errorf("ground truth state size different from estimated state size (k=%d: %d != %d)", k, esR, tsR))
+				}
+				estState.SubVec(estState, trueState)
 			}
-			estState.SubVec(estState, trueState)
 		}
 	}
 
@@ -44,11 +47,13 @@ func (t *BatchGroundTruth) ErrorWithOffset(k int, est Estimate, offset *mat64.Ve
 		trueMeas := mat64.NewVector(esR, nil)
 		if t.states != nil {
 			trueMeas = t.measurements[k]
-			tmR, _ := trueMeas.Dims()
-			if emR != tmR {
-				panic(fmt.Errorf("ground truth measurement size different from estimated measurement size (k=%d)", k))
+			if trueMeas != nil {
+				tmR, _ := trueMeas.Dims()
+				if emR != tmR {
+					panic(fmt.Errorf("ground truth measurement size different from estimated measurement size (k=%d)", k))
+				}
+				estMeas.SubVec(estMeas, trueMeas)
 			}
-			estMeas.SubVec(estMeas, trueMeas)
 		}
 	}
 	return ErrorEstimate{VanillaEstimate{state: estState, meas: estMeas, covar: est.Covariance()}}

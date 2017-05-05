@@ -60,6 +60,9 @@ func TestCKFFull(t *testing.T) {
 	hybridFullODExample(-15, 0, -15, false, true, true, t)  // SNC RIC
 }
 
+func TestEKFFull(t *testing.T) {
+	hybridFullODExample(15, 0, -15, false, false, false, t)
+}
 func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64, smoothing, sncEnabled, sncRIC bool, t *testing.T) {
 	if testing.Short() {
 		t.SkipNow()
@@ -149,7 +152,21 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 	mEst.RegisterStateChan(stateEstChan)
 
 	// Go-routine to advance propagation.
-	go mEst.PropagateUntil(measurementTimes[len(measurementTimes)-1].Add(timeStep), true)
+	if ekfTrigger > 0 { // TODO: Switch to `<=`
+		go mEst.PropagateUntil(measurementTimes[len(measurementTimes)-1].Add(timeStep), true)
+	} else {
+		// Go step by step because the orbit pointer needs to be updated.
+		go func() {
+			for _, measurementTime := range measurementTimes {
+				/*if i == 0 {
+					continue
+				}*/
+				t.Logf("advancing to %s", measurementTime)
+				mEst.PropagateUntil(measurementTime, false)
+			}
+			mEst.PropagateUntil(measurementTimes[len(measurementTimes)-1].Add(timeStep), true)
+		}()
+	}
 
 	// KF filter initialization stuff.
 
@@ -269,7 +286,7 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 		// Compute "real" measurement
 		computedObservation := measurement.Station.PerformMeasurement(measurement.Timeθgst, state)
 		if !computedObservation.Visible {
-			t.Logf("[WARN] station %s should see the SC but does not\n", measurement.Station.Name)
+			t.Logf("[WARN] #%04d %s station %s should see the SC but does not\n", measNo, state.DT, measurement.Station.Name)
 			visibilityErrors++
 		}
 
@@ -314,7 +331,8 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 		}
 		est := estI.(*HybridKFEstimate)
 		if !est.IsWithin2σ() {
-			t.Logf("[Not within 2-sigma] %s", est)
+			t.Logf("[Not within 2-sigma] %04d %s", measNo, state.DT)
+			//t.Logf("[Not within 2-sigma] %s", est)
 		}
 		if stateNo == 1 {
 			t.Logf("\n%s", est)

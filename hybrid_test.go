@@ -68,7 +68,7 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 		t.SkipNow()
 	}
 	startDT := time.Date(2017, 1, 1, 0, 0, 0, 0, time.UTC)
-	endDT := startDT.Add(time.Duration(24) * time.Hour)
+	endDT := startDT.Add(time.Duration(12) * time.Hour)
 	// Define the orbits
 	leo := smd.NewOrbitFromOE(7000, 0.001, 30, 80, 40, 0, smd.Earth)
 
@@ -118,6 +118,7 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 	}
 
 	// Generate the true orbit -- Mtrue
+	//	var ekfWG sync.WaitGroup
 	timeStep := 10 * time.Second
 	scName := "LEO"
 	smd.NewPreciseMission(smd.NewEmptySC(scName, 0), leo, startDT, endDT, smd.Perturbations{Jn: 2}, timeStep, false, export).Propagate()
@@ -130,6 +131,7 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 		stateTruth[measNo] = measurement.State.Vector()
 		truthMeas[measNo] = measurement.StateVector()
 	}
+	t.Logf("Generated %d measurements", len(measurements))
 	truth := NewBatchGroundTruth(stateTruth, truthMeas)
 
 	// Compute number of states which will be generated.
@@ -150,19 +152,6 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 	stateEstChan := make(chan (smd.State), 1)
 	mEst := smd.NewPreciseMission(smd.NewEmptySC(scName+"Est", 0), &estOrbit, startDT, startDT.Add(-1), estPerts, timeStep, true, smd.ExportConfig{})
 	mEst.RegisterStateChan(stateEstChan)
-
-	// Go-routine to advance propagation.
-	if ekfTrigger <= 0 {
-		go mEst.PropagateUntil(measurementTimes[len(measurementTimes)-1].Add(timeStep), true)
-	} else {
-		// Go step by step because the orbit pointer needs to be updated.
-		go func() {
-			for _, measurementTime := range measurementTimes {
-				mEst.PropagateUntil(measurementTime, false)
-			}
-			mEst.PropagateUntil(measurementTimes[len(measurementTimes)-1].Add(timeStep), true)
-		}()
-	}
 
 	// KF filter initialization stuff.
 
@@ -220,6 +209,24 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 	if err != nil {
 		t.Fatalf("%s", err)
 	}
+
+	// Go-routine to advance propagation.
+	if ekfTrigger <= 0 {
+		go mEst.PropagateUntil(measurementTimes[len(measurementTimes)-1].Add(timeStep), true)
+	} else {
+		// Go step by step because the orbit pointer needs to be updated.
+		go func() {
+			if kf.EKFEnabled() {
+				//ekfWG.Wait() // Wait for the previous update to be done.
+			}
+			for _, measurementTime := range measurementTimes {
+				mEst.PropagateUntil(measurementTime, false)
+				//ekfWG.Add(1)
+			}
+			mEst.PropagateUntil(measurementTimes[len(measurementTimes)-1].Add(timeStep), true)
+		}()
+	}
+
 	// Now let's do the filtering.
 	for {
 		state, more := <-stateEstChan
@@ -285,8 +292,10 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 			t.Logf("[WARN] #%04d %s station %s should see the SC but does not\n", measNo, state.DT, measurement.Station.Name)
 			visibilityErrors++
 		}
-		//t.Logf("[info] #%04d %s EXP: %+v", measNo, state.DT, mat64.Formatted(measurement.State.Vector().T()))
-		//t.Logf("[info] #%04d %s GOT: %+v", measNo, state.DT, mat64.Formatted(state.Vector().T()))
+		if !mat64.Equal(measurement.State.Vector().T(), state.Vector().T()) {
+			t.Logf("[info] #%04d %s EXP: %+v", measNo, state.DT, mat64.Formatted(measurement.State.Vector().T()))
+			t.Logf("[info] #%04d %s GOT: %+v", measNo, state.DT, mat64.Formatted(state.Vector().T()))
+		}
 
 		Htilde := computedObservation.HTilde()
 		kf.Prepare(state.Φ, Htilde)
@@ -361,7 +370,9 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 				R[i] += est.State().At(i, 0)
 				V[i] += est.State().At(i+3, 0)
 			}
-			mEst.Orbit = smd.NewOrbitFromRV(R, V, smd.Earth)
+			*mEst.Orbit = *smd.NewOrbitFromRV(R, V, smd.Earth)
+			t.Logf("#%04d %s added delta   = %+v", measNo, state.DT, mat64.Formatted(est.State().T()))
+			//ekfWG.Done()
 		}
 		ckfMeasNo++
 		measNo++

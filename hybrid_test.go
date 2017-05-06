@@ -133,7 +133,7 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 	truth := NewBatchGroundTruth(stateTruth, truthMeas)
 
 	// Compute number of states which will be generated.
-	numStates := int((measurementTimes[len(measurementTimes)-1].Sub(measurementTimes[0])).Seconds()/timeStep.Seconds()) + 3
+	numStates := int((measurementTimes[len(measurementTimes)-1].Sub(measurementTimes[0])).Seconds()/timeStep.Seconds()) + 2
 	residuals := make([]*mat64.Vector, numStates)
 	estHistory := make([]*HybridKFEstimate, numStates)
 	stateHistory := make([]*mat64.Vector, numStates) // Stores the histories of the orbit estimate (to post compute the truth)
@@ -141,7 +141,7 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 	// Get the first measurement as an initial orbit estimation.
 	firstDT := measurementTimes[0]
 	estOrbit := measurements[firstDT].State.Orbit
-	startDT = firstDT.Add(timeStep)
+	startDT = firstDT
 	// TODO: Add noise to initial orbit estimate.
 
 	// Perturbations in the estimate
@@ -152,16 +152,12 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 	mEst.RegisterStateChan(stateEstChan)
 
 	// Go-routine to advance propagation.
-	if ekfTrigger > 0 { // TODO: Switch to `<=`
+	if ekfTrigger <= 0 {
 		go mEst.PropagateUntil(measurementTimes[len(measurementTimes)-1].Add(timeStep), true)
 	} else {
 		// Go step by step because the orbit pointer needs to be updated.
 		go func() {
-			for i, measurementTime := range measurementTimes {
-				if i == 0 {
-					continue
-				}
-				t.Logf("advancing to %s #%04d", measurementTime, i)
+			for _, measurementTime := range measurementTimes {
 				mEst.PropagateUntil(measurementTime, false)
 			}
 			mEst.PropagateUntil(measurementTimes[len(measurementTimes)-1].Add(timeStep), true)
@@ -289,8 +285,8 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 			t.Logf("[WARN] #%04d %s station %s should see the SC but does not\n", measNo, state.DT, measurement.Station.Name)
 			visibilityErrors++
 		}
-		t.Logf("[info] #%04d %s EXP: %+v", measNo, state.DT, mat64.Formatted(measurement.State.Vector().T()))
-		t.Logf("[info] #%04d %s GOT: %+v", measNo, state.DT, mat64.Formatted(state.Vector().T()))
+		//t.Logf("[info] #%04d %s EXP: %+v", measNo, state.DT, mat64.Formatted(measurement.State.Vector().T()))
+		//t.Logf("[info] #%04d %s GOT: %+v", measNo, state.DT, mat64.Formatted(state.Vector().T()))
 
 		Htilde := computedObservation.HTilde()
 		kf.Prepare(state.Φ, Htilde)

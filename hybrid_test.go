@@ -212,7 +212,7 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 
 	// Go-routine to advance propagation.
 	if ekfTrigger <= 0 {
-		go mEst.PropagateUntil(measurementTimes[len(measurementTimes)-1].Add(timeStep), true)
+		go mEst.PropagateUntil(measurementTimes[len(measurementTimes)-1].Add(2*timeStep), true)
 	} else {
 		// Go step by step because the orbit pointer needs to be updated.
 		go func() {
@@ -332,7 +332,7 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 		}
 		est := estI.(*HybridKFEstimate)
 		if !est.IsWithin2σ() {
-			t.Logf("[Not within 2-sigma] %04d %s", measNo, state.DT)
+			t.Logf("[WARN] #%04d @ %s: not within 2-sigma", measNo, state.DT)
 		}
 		if stateNo == 1 {
 			t.Logf("\n%s", est)
@@ -376,7 +376,7 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 		fmt.Println("[INFO] Smoothing started")
 		// Perform the smoothing. First, play back all the estimates backward, and then replay the smoothed estimates forward to compute the difference.
 		if err := kf.SmoothAll(estHistory); err != nil {
-			panic(err)
+			t.Fatalf("smoothing failed: %s", err)
 		}
 		// Replay forward
 		replayMeasNo := 0

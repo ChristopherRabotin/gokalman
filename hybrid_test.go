@@ -157,12 +157,12 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 	} else {
 		// Go step by step because the orbit pointer needs to be updated.
 		go func() {
-			for _, measurementTime := range measurementTimes {
-				/*if i == 0 {
+			for i, measurementTime := range measurementTimes {
+				if i == 0 {
 					continue
-				}*/
-				t.Logf("advancing to %s", measurementTime)
-				mEst.PropagateUntil(measurementTime, false)
+				}
+				t.Logf("advancing to %s #%04d", measurementTime, i)
+				mEst.PropagateUntil(measurementTime.Add(timeStep), false)
 			}
 			mEst.PropagateUntil(measurementTimes[len(measurementTimes)-1].Add(timeStep), true)
 		}()
@@ -289,6 +289,8 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 			t.Logf("[WARN] #%04d %s station %s should see the SC but does not\n", measNo, state.DT, measurement.Station.Name)
 			visibilityErrors++
 		}
+		t.Logf("[info] #%04d %s EXP: %+v", measNo, state.DT, mat64.Formatted(measurement.State.Vector().T()))
+		t.Logf("[info] #%04d %s GOT: %+v", measNo, state.DT, mat64.Formatted(state.Vector().T()))
 
 		Htilde := computedObservation.HTilde()
 		kf.Prepare(state.Φ, Htilde)

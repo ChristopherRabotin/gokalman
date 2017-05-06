@@ -376,7 +376,10 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 				V[i] += est.State().At(i+3, 0)
 			}
 			// NOTE: CURRENTLY CHECKING WHY THE PRE UPDATE STATE IS DIFFERENT FROM THE ONE I AM EXPECTING.
-			fmt.Printf("#%04d pre update  = %+v %+v\n", measNo, mEst.Orbit.R(), mEst.Orbit.V())
+			/*fmt.Printf("#%04d pre update0 = %+v %+v\t%s\n", measNo, mEst.Orbit.R(), mEst.Orbit.V(), mEst.CurrentDT)
+			fmt.Printf("#%04d pre update1 = %+v %+v\t%s\n", measNo, state.Orbit.R(), state.Orbit.V(), state.DT)*/
+			fmt.Printf("#%04d pre update0 = %+v %+v\n", measNo, mEst.Orbit.R(), mEst.Orbit.V())
+			fmt.Printf("#%04d pre update1 = %+v %+v\n", measNo, state.Orbit.R(), state.Orbit.V())
 			mEst.Orbit = smd.NewOrbitFromRV(R, V, smd.Earth)
 			fmt.Printf("#%04d added delta = %+v\n", measNo, mat64.Formatted(est.State().T()))
 			fmt.Printf("#%04d post update = %+v %+v\n", measNo, R, V)

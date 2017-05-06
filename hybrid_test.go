@@ -133,7 +133,7 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 	truth := NewBatchGroundTruth(stateTruth, truthMeas)
 
 	// Compute number of states which will be generated.
-	numStates := int((measurementTimes[len(measurementTimes)-1].Sub(measurementTimes[0])).Seconds()/timeStep.Seconds()) + 2
+	numStates := int((measurementTimes[len(measurementTimes)-1].Sub(measurementTimes[0])).Seconds()/timeStep.Seconds()) + 3
 	residuals := make([]*mat64.Vector, numStates)
 	estHistory := make([]*HybridKFEstimate, numStates)
 	stateHistory := make([]*mat64.Vector, numStates) // Stores the histories of the orbit estimate (to post compute the truth)
@@ -141,7 +141,7 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 	// Get the first measurement as an initial orbit estimation.
 	firstDT := measurementTimes[0]
 	estOrbit := measurements[firstDT].State.Orbit
-	startDT = firstDT
+	startDT = firstDT.Add(timeStep)
 	// TODO: Add noise to initial orbit estimate.
 
 	// Perturbations in the estimate
@@ -162,7 +162,7 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 					continue
 				}
 				t.Logf("advancing to %s #%04d", measurementTime, i)
-				mEst.PropagateUntil(measurementTime.Add(timeStep), false)
+				mEst.PropagateUntil(measurementTime, false)
 			}
 			mEst.PropagateUntil(measurementTimes[len(measurementTimes)-1].Add(timeStep), true)
 		}()

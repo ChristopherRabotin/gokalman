@@ -120,7 +120,6 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 
 	// Generate the true orbit -- Mtrue
 	var ekfWG sync.WaitGroup
-	//ekfWG.Add(1)
 	timeStep := 1 * time.Second
 	scName := "LEO"
 	smd.NewPreciseMission(smd.NewEmptySC(scName, 0), leo, startDT, endDT, smd.Perturbations{Jn: 2}, timeStep, false, export).Propagate()
@@ -149,8 +148,6 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 
 	// Perturbations in the estimate
 	estPerts := smd.Perturbations{Jn: 2}
-
-	// NOTE: CURRENT ISSUE IS THAT THERE SEEMS TO BE A SHIFT IN THE ESTIMATION. WG DOES NOT HELP.
 
 	stateEstChan := make(chan (smd.State), 1)
 	mEst := smd.NewPreciseMission(smd.NewEmptySC(scName+"Est", 0), &estOrbit, firstDT, firstDT.Add(-1), estPerts, timeStep, true, smd.ExportConfig{})
@@ -219,13 +216,10 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 	} else {
 		// Go step by step because the orbit pointer needs to be updated.
 		go func() {
-			for i, measurementTime := range measurementTimes {
-				fmt.Printf("waiting pre #%04d\n", i)
+			for _, measurementTime := range measurementTimes {
 				ekfWG.Wait()
 				ekfWG.Add(1)
-				fmt.Printf("#%04d pre  %v %v\n", i, mEst.Orbit.R(), mEst.Orbit.V())
 				mEst.PropagateUntil(measurementTime, false)
-				fmt.Printf("#%04d post %v %v\n", i, mEst.Orbit.R(), mEst.Orbit.V())
 			}
 			mEst.PropagateUntil(measurementTimes[len(measurementTimes)-1].Add(timeStep), true)
 		}()
@@ -296,11 +290,6 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 			t.Logf("[WARN] #%04d %s station %s should see the SC but does not\n", measNo, state.DT, measurement.Station.Name)
 			visibilityErrors++
 		}
-		fmt.Printf("#%04d %s state: %+v\n", measNo, state.DT, mat64.Formatted(state.Vector().T()))
-		fmt.Printf("#%04d %s orbit: %+v %+v\n", measNo, mEst.CurrentDT, mEst.Orbit.R(), mEst.Orbit.V())
-		if !mat64.Equal(measurement.State.Vector().T(), state.Vector().T()) {
-			fmt.Printf("#%04d %s EXP: %+v\n", measNo, state.DT, mat64.Formatted(measurement.State.Vector().T()))
-		}
 
 		Htilde := computedObservation.HTilde()
 		kf.Prepare(state.Φ, Htilde)
@@ -370,32 +359,16 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 		if kf.EKFEnabled() {
 			// Update the state from the error.
 			R, V := state.Orbit.RV()
-			//R, V := mEst.Orbit.RV()
 			for i := 0; i < 3; i++ {
-				fmt.Printf("R[%d] %f + %f = %f\n", i, R[i], est.State().At(i, 0), R[i]+est.State().At(i, 0))
-				fmt.Printf("V[%d] %f + %f = %f\n", i, V[i], est.State().At(i+3, 0), V[i]+est.State().At(i+3, 0))
 				R[i] += est.State().At(i, 0)
 				V[i] += est.State().At(i+3, 0)
 			}
-			// NOTE: CURRENTLY CHECKING WHY THE PRE UPDATE STATE IS DIFFERENT FROM THE ONE I AM EXPECTING.
-			// NOTE: Why is mEst.Orbit not what measurement.State.Orbit is or what state.Orbit is. It seems to have continued the propagation
-			// although the wait group *should* prevent that. A good way to check this would be to not called .Done() on the WG and check how far it goes.
-			// Also, I'm confused as to why there is a small difference in the residuals when I am *not* doing any update of the reference trajectory and
-			// not using any unmodeled dynamics. Could this be due to a misalignment, or (more likely) the corrections done by the CKF for the first 15 measurements?
-			/*fmt.Printf("#%04d pre update0 = %+v %+v\t%s\n", measNo, mEst.Orbit.R(), mEst.Orbit.V(), mEst.CurrentDT)
-			fmt.Printf("#%04d pre update1 = %+v %+v\t%s\n", measNo, state.Orbit.R(), state.Orbit.V(), state.DT)*/
-			fmt.Printf("#%04d pre update0 = %+v %+v\n", measNo, mEst.Orbit.R(), mEst.Orbit.V())
-			fmt.Printf("#%04d pre update1 = %+v %+v\n", measNo, state.Orbit.R(), state.Orbit.V())
-			//mEst.Orbit = smd.NewOrbitFromRV(R, V, smd.Earth)
-			fmt.Printf("#%04d added delta = %+v\n", measNo, mat64.Formatted(est.State().T()))
-			fmt.Printf("#%04d post update = %+v %+v\n", measNo, R, V)
-			fmt.Printf("#%04d new orbit   = %+v %+v\n", measNo, mEst.Orbit.R(), mEst.Orbit.V())
+			mEst.Orbit = smd.NewOrbitFromRV(R, V, smd.Earth)
 		}
 		ckfMeasNo++
 		measNo++
-		if ekfTrigger > 0 && !kf.EKFEnabled() {
+		if ekfTrigger > 0 {
 			ekfWG.Done()
-			fmt.Printf("unlocked #%04d\n", measNo-1)
 		}
 	} // end while true
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -118,8 +119,9 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 	}
 
 	// Generate the true orbit -- Mtrue
-	//	var ekfWG sync.WaitGroup
-	timeStep := 10 * time.Second
+	var ekfWG sync.WaitGroup
+	//ekfWG.Add(1)
+	timeStep := 1 * time.Second
 	scName := "LEO"
 	smd.NewPreciseMission(smd.NewEmptySC(scName, 0), leo, startDT, endDT, smd.Perturbations{Jn: 2}, timeStep, false, export).Propagate()
 
@@ -148,6 +150,8 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 
 	// Perturbations in the estimate
 	estPerts := smd.Perturbations{Jn: 2}
+
+	// NOTE: CURRENT ISSUE IS THAT THERE SEEMS TO BE A SHIFT IN THE ESTIMATION. WG DOES NOT HELP.
 
 	stateEstChan := make(chan (smd.State), 1)
 	mEst := smd.NewPreciseMission(smd.NewEmptySC(scName+"Est", 0), &estOrbit, startDT, startDT.Add(-1), estPerts, timeStep, true, smd.ExportConfig{})
@@ -216,12 +220,12 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 	} else {
 		// Go step by step because the orbit pointer needs to be updated.
 		go func() {
-			if kf.EKFEnabled() {
-				//ekfWG.Wait() // Wait for the previous update to be done.
-			}
-			for _, measurementTime := range measurementTimes {
+			for i, measurementTime := range measurementTimes {
+				ekfWG.Wait()
+				ekfWG.Add(1)
+				fmt.Printf("#%04d pre  %v %v\n", i, mEst.Orbit.R(), mEst.Orbit.V())
 				mEst.PropagateUntil(measurementTime, false)
-				//ekfWG.Add(1)
+				fmt.Printf("#%04d post %v %v\n", i, mEst.Orbit.R(), mEst.Orbit.V())
 			}
 			mEst.PropagateUntil(measurementTimes[len(measurementTimes)-1].Add(timeStep), true)
 		}()
@@ -258,10 +262,10 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 			}
 			continue
 		}
+
 		if roundedDT != measurementTimes[measNo] {
 			t.Fatalf("[ERR!] %04d delta = %s\tstate=%s\tmeas=%s", measNo, state.DT.Sub(measurementTimes[measNo]), state.DT, measurementTimes[measNo])
 		}
-
 		if measNo == 0 {
 			prevDT = measurement.State.DT
 		}
@@ -269,7 +273,7 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 		// Let's perform a full update since there is a measurement.
 		ΔtDuration := measurement.State.DT.Sub(prevDT)
 		Δt := ΔtDuration.Seconds() // Everything is in seconds.
-		// Infomrational messages.
+		// Informational messages.
 		if !kf.EKFEnabled() && ckfMeasNo == ekfTrigger {
 			// Switch KF to EKF mode
 			kf.EnableEKF()
@@ -339,7 +343,6 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 		est := estI.(*HybridKFEstimate)
 		if !est.IsWithin2σ() {
 			t.Logf("[Not within 2-sigma] %04d %s", measNo, state.DT)
-			//t.Logf("[Not within 2-sigma] %s", est)
 		}
 		if stateNo == 1 {
 			t.Logf("\n%s", est)
@@ -367,15 +370,23 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 			// Update the state from the error.
 			R, V := state.Orbit.RV()
 			for i := 0; i < 3; i++ {
+				fmt.Printf("R[%d] %f + %f = %f\n", i, R[i], est.State().At(i, 0), R[i]+est.State().At(i, 0))
+				fmt.Printf("V[%d] %f + %f = %f\n", i, V[i], est.State().At(i+3, 0), V[i]+est.State().At(i+3, 0))
 				R[i] += est.State().At(i, 0)
 				V[i] += est.State().At(i+3, 0)
 			}
-			*mEst.Orbit = *smd.NewOrbitFromRV(R, V, smd.Earth)
-			t.Logf("#%04d %s added delta   = %+v", measNo, state.DT, mat64.Formatted(est.State().T()))
-			//ekfWG.Done()
+			// NOTE: CURRENTLY CHECKING WHY THE PRE UPDATE STATE IS DIFFERENT FROM THE ONE I AM EXPECTING.
+			fmt.Printf("#%04d pre update  = %+v %+v\n", measNo, mEst.Orbit.R(), mEst.Orbit.V())
+			mEst.Orbit = smd.NewOrbitFromRV(R, V, smd.Earth)
+			fmt.Printf("#%04d added delta = %+v\n", measNo, mat64.Formatted(est.State().T()))
+			fmt.Printf("#%04d post update = %+v %+v\n", measNo, R, V)
+			fmt.Printf("#%04d new orbit   = %+v %+v\n", measNo, mEst.Orbit.R(), mEst.Orbit.V())
 		}
 		ckfMeasNo++
 		measNo++
+		if ekfTrigger > 0 {
+			ekfWG.Done()
+		}
 	} // end while true
 
 	if smoothing {

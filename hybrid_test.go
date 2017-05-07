@@ -172,7 +172,7 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 	go processEst("hybridkf", estChan, 1e0, 1e-1, t)
 
 	prevP := mat64.NewSymDense(6, nil)
-	var covarDistance float64 = 50
+	var covarDistance float64 = 10
 	var covarVelocity float64 = 1
 	for i := 0; i < 3; i++ {
 		prevP.SetSym(i, i, covarDistance)

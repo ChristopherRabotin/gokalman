@@ -212,16 +212,15 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 
 	// Go-routine to advance propagation.
 	if ekfTrigger <= 0 {
-		go mEst.PropagateUntil(measurementTimes[len(measurementTimes)-1].Add(2*timeStep), true)
+		go mEst.PropagateUntil(measurementTimes[len(measurementTimes)-1].Add(timeStep), true)
 	} else {
 		// Go step by step because the orbit pointer needs to be updated.
 		go func() {
-			for _, measurementTime := range measurementTimes {
+			for i, measurementTime := range measurementTimes {
 				ekfWG.Wait()
 				ekfWG.Add(1)
-				mEst.PropagateUntil(measurementTime, false)
+				mEst.PropagateUntil(measurementTime, i == len(measurementTimes)-1)
 			}
-			mEst.PropagateUntil(measurementTimes[len(measurementTimes)-1].Add(timeStep), true)
 		}()
 	}
 

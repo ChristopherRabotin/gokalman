@@ -44,6 +44,12 @@ func (e CSVExporter) Write(est Estimate) error {
 	return err
 }
 
+// WriteRaw writes a raw line to the CSV file.
+func (e CSVExporter) WriteRaw(s string) error {
+	_, err := e.hdlr.WriteString(s)
+	return err
+}
+
 // WriteRawLn writes a raw line to the CSV file.
 func (e CSVExporter) WriteRawLn(s string) error {
 	_, err := e.hdlr.WriteString(s + "\n")
@@ -51,6 +57,7 @@ func (e CSVExporter) WriteRawLn(s string) error {
 }
 
 // NewCustomCSVExporter initializes a new CSV export.
+// NOTE: Prefix header with `_` to state that it does not relate to the estimation (and therefore won't have the added covariance bounds).
 func NewCustomCSVExporter(headers []string, filepath, filename string, covarBound float64) (e *CSVExporter, err error) {
 	f, err := os.Create(fmt.Sprintf("%s/%s", filepath, filename))
 	if err != nil {
@@ -61,11 +68,24 @@ func NewCustomCSVExporter(headers []string, filepath, filename string, covarBoun
 	hdr := make([]string, len(headers)*3)
 	bhdr := fmt.Sprintf("%.0fs", covarBound)
 	for i := 0; i < len(headers)*3; i += 3 {
+		header := headers[i/3]
+		if header[0:1] == "_" {
+			// Non covar header
+			hdr[i] = header[1:len(header)]
+			continue
+		}
 		hdr[i] = headers[i/3]
 		hdr[i+1] = hdr[i] + "+" + bhdr
 		hdr[i+2] = hdr[i] + "-" + bhdr
 	}
-	f.WriteString(fmt.Sprintf("# Creation date (UTC): %s\n%s\n", time.Now(), strings.Join(hdr, delimiter)))
+	// Remove extra headers
+	trimmedHdrs := make([]string, 0)
+	for _, thdr := range hdr {
+		if len(thdr) > 0 {
+			trimmedHdrs = append(trimmedHdrs, thdr)
+		}
+	}
+	f.WriteString(fmt.Sprintf("# Creation date (UTC): %s\n%s\n", time.Now(), strings.Join(trimmedHdrs, delimiter)))
 	e = &CSVExporter{covarBound, delimiter, f}
 	return
 }

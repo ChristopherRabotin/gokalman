@@ -5,6 +5,21 @@ import "github.com/gonum/matrix/mat64"
 // FilterType allows for quick comparison of filters.
 type FilterType uint8
 
+func (f FilterType) String() string {
+	switch f {
+	case CKFType:
+		return "CKF"
+	case EKFType:
+		return "EKF"
+	case UKFType:
+		return "UKF"
+	case SRIFType:
+		return "SRIF"
+	default:
+		panic("unknown filter")
+	}
+}
+
 const (
 	// CKFType definition would be a tautology
 	CKFType FilterType = iota + 1

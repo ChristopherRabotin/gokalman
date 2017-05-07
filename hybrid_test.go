@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -60,12 +61,15 @@ func TestCKFFull(t *testing.T) {
 	hybridFullODExample(-15, 0, -15, false, true, true, t)  // SNC RIC
 }
 
+func TestEKFFull(t *testing.T) {
+	hybridFullODExample(15, 0, -15, false, false, false, t)
+}
 func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64, smoothing, sncEnabled, sncRIC bool, t *testing.T) {
 	if testing.Short() {
 		t.SkipNow()
 	}
 	startDT := time.Date(2017, 1, 1, 0, 0, 0, 0, time.UTC)
-	endDT := startDT.Add(time.Duration(24) * time.Hour)
+	endDT := startDT.Add(time.Duration(12) * time.Hour)
 	// Define the orbits
 	leo := smd.NewOrbitFromOE(7000, 0.001, 30, 80, 40, 0, smd.Earth)
 
@@ -115,7 +119,8 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 	}
 
 	// Generate the true orbit -- Mtrue
-	timeStep := 10 * time.Second
+	var ekfWG sync.WaitGroup
+	timeStep := 1 * time.Second
 	scName := "LEO"
 	smd.NewPreciseMission(smd.NewEmptySC(scName, 0), leo, startDT, endDT, smd.Perturbations{Jn: 2}, timeStep, false, export).Propagate()
 
@@ -127,10 +132,11 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 		stateTruth[measNo] = measurement.State.Vector()
 		truthMeas[measNo] = measurement.StateVector()
 	}
+	t.Logf("Generated %d measurements", len(measurements))
 	truth := NewBatchGroundTruth(stateTruth, truthMeas)
 
 	// Compute number of states which will be generated.
-	numStates := int((measurementTimes[len(measurementTimes)-1].Sub(measurementTimes[0])).Seconds()/timeStep.Seconds()) + 1
+	numStates := int((measurementTimes[len(measurementTimes)-1].Sub(measurementTimes[0])).Seconds()/timeStep.Seconds()) + 2
 	residuals := make([]*mat64.Vector, numStates)
 	estHistory := make([]*HybridKFEstimate, numStates)
 	stateHistory := make([]*mat64.Vector, numStates) // Stores the histories of the orbit estimate (to post compute the truth)
@@ -138,18 +144,14 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 	// Get the first measurement as an initial orbit estimation.
 	firstDT := measurementTimes[0]
 	estOrbit := measurements[firstDT].State.Orbit
-	startDT = firstDT
 	// TODO: Add noise to initial orbit estimate.
 
 	// Perturbations in the estimate
 	estPerts := smd.Perturbations{Jn: 2}
 
 	stateEstChan := make(chan (smd.State), 1)
-	mEst := smd.NewPreciseMission(smd.NewEmptySC(scName+"Est", 0), &estOrbit, startDT, startDT.Add(-1), estPerts, timeStep, true, smd.ExportConfig{})
+	mEst := smd.NewPreciseMission(smd.NewEmptySC(scName+"Est", 0), &estOrbit, firstDT, firstDT.Add(-1), estPerts, timeStep, true, smd.ExportConfig{})
 	mEst.RegisterStateChan(stateEstChan)
-
-	// Go-routine to advance propagation.
-	go mEst.PropagateUntil(measurementTimes[len(measurementTimes)-1].Add(timeStep), true)
 
 	// KF filter initialization stuff.
 
@@ -170,7 +172,7 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 	go processEst("hybridkf", estChan, 1e0, 1e-1, t)
 
 	prevP := mat64.NewSymDense(6, nil)
-	var covarDistance float64 = 50
+	var covarDistance float64 = 10
 	var covarVelocity float64 = 1
 	for i := 0; i < 3; i++ {
 		prevP.SetSym(i, i, covarDistance)
@@ -199,7 +201,7 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 	var prevStationName = ""
 	var prevDT time.Time
 	var ckfMeasNo = 0
-	measNo := 1
+	measNo := 0
 	stateNo := 0
 	kf, _, err := NewHybridKF(mat64.NewVector(6, nil), prevP, noiseKF, 2)
 	kf.sncEnabled = sncEnabled
@@ -207,6 +209,21 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 	if err != nil {
 		t.Fatalf("%s", err)
 	}
+
+	// Go-routine to advance propagation.
+	if ekfTrigger <= 0 {
+		go mEst.PropagateUntil(measurementTimes[len(measurementTimes)-1].Add(timeStep), true)
+	} else {
+		// Go step by step because the orbit pointer needs to be updated.
+		go func() {
+			for i, measurementTime := range measurementTimes {
+				ekfWG.Wait()
+				ekfWG.Add(1)
+				mEst.PropagateUntil(measurementTime, i == len(measurementTimes)-1)
+			}
+		}()
+	}
+
 	// Now let's do the filtering.
 	for {
 		state, more := <-stateEstChan
@@ -238,10 +255,10 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 			}
 			continue
 		}
+
 		if roundedDT != measurementTimes[measNo] {
 			t.Fatalf("[ERR!] %04d delta = %s\tstate=%s\tmeas=%s", measNo, state.DT.Sub(measurementTimes[measNo]), state.DT, measurementTimes[measNo])
 		}
-
 		if measNo == 0 {
 			prevDT = measurement.State.DT
 		}
@@ -249,7 +266,7 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 		// Let's perform a full update since there is a measurement.
 		ΔtDuration := measurement.State.DT.Sub(prevDT)
 		Δt := ΔtDuration.Seconds() // Everything is in seconds.
-		// Infomrational messages.
+		// Informational messages.
 		if !kf.EKFEnabled() && ckfMeasNo == ekfTrigger {
 			// Switch KF to EKF mode
 			kf.EnableEKF()
@@ -262,14 +279,14 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 		}
 
 		if measurement.Station.Name != prevStationName {
-			t.Logf("[info] #%04d %s in visibility of %s (T+%s)\n", measNo, scName, measurement.Station.Name, measurement.State.DT.Sub(startDT))
+			t.Logf("[info] #%04d %s in visibility of %s (T+%s)\n", measNo, scName, measurement.Station.Name, measurement.State.DT.Sub(firstDT))
 			prevStationName = measurement.Station.Name
 		}
 
 		// Compute "real" measurement
 		computedObservation := measurement.Station.PerformMeasurement(measurement.Timeθgst, state)
 		if !computedObservation.Visible {
-			t.Logf("[WARN] station %s should see the SC but does not\n", measurement.Station.Name)
+			t.Logf("[WARN] #%04d %s station %s should see the SC but does not\n", measNo, state.DT, measurement.Station.Name)
 			visibilityErrors++
 		}
 
@@ -314,14 +331,12 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 		}
 		est := estI.(*HybridKFEstimate)
 		if !est.IsWithin2σ() {
-			t.Logf("[Not within 2-sigma] %s", est)
+			t.Logf("[WARN] #%04d @ %s: not within 2-sigma", measNo, state.DT)
 		}
 		if stateNo == 1 {
 			t.Logf("\n%s", est)
 		}
 		prevP = est.Covariance().(*mat64.SymDense)
-		stateEst := mat64.NewVector(6, nil)
-		stateEst.AddVec(state.Vector(), est.State())
 		// Compute residual
 		residual := mat64.NewVector(2, nil)
 		residual.MulVec(Htilde, est.State())
@@ -351,16 +366,19 @@ func hybridFullODExample(ekfTrigger int, ekfDisableTime, sncDisableTime float64,
 		}
 		ckfMeasNo++
 		measNo++
+		if ekfTrigger > 0 {
+			ekfWG.Done()
+		}
 	} // end while true
 
 	if smoothing {
 		fmt.Println("[INFO] Smoothing started")
 		// Perform the smoothing. First, play back all the estimates backward, and then replay the smoothed estimates forward to compute the difference.
 		if err := kf.SmoothAll(estHistory); err != nil {
-			panic(err)
+			t.Fatalf("smoothing failed: %s", err)
 		}
 		// Replay forward
-		replayMeasNo := 1
+		replayMeasNo := 0
 		for estNo, est := range estHistory {
 			thisNo := replayMeasNo
 			if stateHistory[estNo] == nil {
